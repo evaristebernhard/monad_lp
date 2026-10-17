@@ -1,0 +1,52 @@
+{
+  "chainId": 10143,
+  "sourceBlock": "71747921",
+  "gasPriceWei": "102000000000",
+  "illustrativeGasBudget": 300000,
+  "illustrativeGasCostMON": "0.0306",
+  "gasNote": "300000 is an illustration, not an eth_estimateGas result. Demo WMON cannot redeem for native MON.",
+  "comparisons": [
+    {
+      "pool": "0x9d237bf8fb87cdea6a88fc08e0dafc04335a7528",
+      "base": "WMON",
+      "baseAddress": "0x6d427a189325473725c89ed13cb734cfacbd75a6",
+      "quote": "USDC",
+      "input": "1",
+      "output": "1.989825750701759707",
+      "returnedSamePool": "0.994009594856805791",
+      "lossBeforeGas": "0.005990405143194209"
+    },
+    {
+      "pool": "0x9d237bf8fb87cdea6a88fc08e0dafc04335a7528",
+      "base": "WMON",
+      "baseAddress": "0x6d427a189325473725c89ed13cb734cfacbd75a6",
+      "quote": "USDC",
+      "input": "10",
+      "output": "19.880438385342535286",
+      "returnedSamePool": "9.940149432570110306",
+      "lossBeforeGas": "0.059850567429889694"
+    },
+    {
+      "pool": "0x9d237bf8fb87cdea6a88fc08e0dafc04335a7528",
+      "base": "WMON",
+      "baseAddress": "0x6d427a189325473725c89ed13cb734cfacbd75a6",
+      "quote": "USDC",
+      "input": "100",
+      "output": "197.039868846731993331",
+      "returnedSamePool": "99.406790663529824007",
+      "lossBeforeGas": "0.593209336470175993"
+    },
+    {
+      "pool": "0x9d237bf8fb87cdea6a88fc08e0dafc04335a7528",
+      "base": "WMON",
+      "baseAddress": "0x6d427a189325473725c89ed13cb734cfacbd75a6",
+      "quote": "USDC",
+      "input": "1000",
+      "output": "1809.770111819575209399",
+      "returnedSamePool": "994.550176213051079837",
+      "lossBeforeGas": "5.449823786948920163"
+    }
+  ],
+  "crossPoolCandidates": [],
+  "conclusion": "No same-address token pair across distinct surveyed V2 pools; no verified cross-pool arbitrage. A same-pool round trip loses fees before gas."
+}

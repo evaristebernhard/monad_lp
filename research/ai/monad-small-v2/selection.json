@@ -1,0 +1,74 @@
+{
+  "cutoff": 1792209600,
+  "criteria": {
+    "period": 14400,
+    "recent_bars": 1000,
+    "minimum_coverage": 0.99,
+    "minimum_valid_windows": 850,
+    "maximum_latest_age_bars": 1
+  },
+  "candidates": [
+    {
+      "symbol": "CHOG",
+      "pool": "0x116e7d070f1888b81e1e0324f56d6746b2d7d8f1",
+      "pool_name": "CHOG / WMON 1%",
+      "period": 14400,
+      "count": 999,
+      "recent_coverage": 0.999,
+      "recent_valid_samples": 970,
+      "latest_age_bars": 0.0,
+      "longest_run": 999,
+      "latest_timestamp": 1792195200,
+      "from_timestamp": 1777824000,
+      "eligible": true
+    },
+    {
+      "symbol": "WMON",
+      "pool": "0x659bd0bc4167ba25c62e05656f78043e7ed4a9da",
+      "pool_name": "WMON / USDC 0.3%",
+      "period": 14400,
+      "count": 999,
+      "recent_coverage": 0.999,
+      "recent_valid_samples": 970,
+      "latest_age_bars": 0.0,
+      "longest_run": 999,
+      "latest_timestamp": 1792195200,
+      "from_timestamp": 1777824000,
+      "eligible": true
+    },
+    {
+      "symbol": "WETH",
+      "pool": "0xad408916c1c310da9c258d4c128a7bf50fd9edc42a218cc970da39cfc8a05d93",
+      "pool_name": "USDC / WETH 0.05%",
+      "period": 14400,
+      "count": 999,
+      "recent_coverage": 0.999,
+      "recent_valid_samples": 970,
+      "latest_age_bars": 0.0,
+      "longest_run": 999,
+      "latest_timestamp": 1792195200,
+      "from_timestamp": 1777824000,
+      "eligible": true
+    },
+    {
+      "symbol": "WBTC",
+      "pool": "0xd2634e05ebed90bd0a6c0e93d48d7bd8036653b1",
+      "pool_name": "cbBTC / WBTC / LBTC",
+      "period": 14400,
+      "count": 999,
+      "recent_coverage": 0.999,
+      "recent_valid_samples": 970,
+      "latest_age_bars": 0.0,
+      "longest_run": 999,
+      "latest_timestamp": 1792195200,
+      "from_timestamp": 1777824000,
+      "eligible": true
+    }
+  ],
+  "selected": [
+    "CHOG",
+    "WMON",
+    "WETH",
+    "WBTC"
+  ]
+}

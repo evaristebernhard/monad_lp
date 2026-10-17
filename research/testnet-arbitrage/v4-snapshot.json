@@ -1,0 +1,138 @@
+{
+  "chainId": 10143,
+  "blockNumber": "71748144",
+  "blockHash": "0x74f6aaf95bf772a0258382c7f216e24ca3ee0e62fc8e03727004a79c17f09fd4",
+  "capturedAt": "2026-10-17T06:20:23.332Z",
+  "manager": "0x451d64ab3b650040d2ae1886602b97ed6edc643d",
+  "state": "0xb639209539c61baf67ac04876315786f8d0b153c",
+  "pools": [
+    {
+      "id": "0x035701c97330e08dcbfba844d0f85471da9bc4739b28afae2f059025f25df976",
+      "currency0": "0x520c2F071651249dEc1519a6D908582722Eb47EA",
+      "currency1": "0x74daf87836D127bFd98652D446B034bf489bb6eE",
+      "fee": 3000,
+      "tickSpacing": 60,
+      "hooks": "0x915340A20ee40167B7F41b1c4509540F2e640AC0",
+      "sqrtPriceX96": "79228162514216871762755904045",
+      "tick": -1,
+      "blockNumber": "62279279",
+      "t0": {
+        "address": "0x520c2F071651249dEc1519a6D908582722Eb47EA",
+        "symbol": "MHTA",
+        "decimals": 18
+      },
+      "t1": {
+        "address": "0x74daf87836D127bFd98652D446B034bf489bb6eE",
+        "symbol": "MHTB",
+        "decimals": 18
+      },
+      "protocolFee": 0,
+      "lpFee": 3000,
+      "liquidity": "0",
+      "price": 0.9999999999988018
+    }
+  ],
+  "errors": [],
+  "ranges": [
+    {
+      "from": "62279000",
+      "to": "62279099",
+      "status": "complete"
+    },
+    {
+      "from": "62279100",
+      "to": "62279199",
+      "status": "complete"
+    },
+    {
+      "from": "62279300",
+      "to": "62279399",
+      "status": "complete"
+    },
+    {
+      "from": "62279200",
+      "to": "62279299",
+      "status": "complete"
+    },
+    {
+      "from": "62279600",
+      "to": "62279699",
+      "status": "complete"
+    },
+    {
+      "from": "62279400",
+      "to": "62279499",
+      "status": "complete"
+    },
+    {
+      "from": "62279500",
+      "to": "62279599",
+      "status": "complete"
+    },
+    {
+      "from": "62279700",
+      "to": "62279799",
+      "status": "complete"
+    },
+    {
+      "from": "62279800",
+      "to": "62279899",
+      "status": "complete"
+    },
+    {
+      "from": "71747145",
+      "to": "71747244",
+      "status": "complete"
+    },
+    {
+      "from": "71747245",
+      "to": "71747344",
+      "status": "complete"
+    },
+    {
+      "from": "62279900",
+      "to": "62279999",
+      "status": "complete"
+    },
+    {
+      "from": "71747445",
+      "to": "71747544",
+      "status": "complete"
+    },
+    {
+      "from": "71747645",
+      "to": "71747744",
+      "status": "complete"
+    },
+    {
+      "from": "71747545",
+      "to": "71747644",
+      "status": "complete"
+    },
+    {
+      "from": "71747345",
+      "to": "71747444",
+      "status": "complete"
+    },
+    {
+      "from": "71748045",
+      "to": "71748144",
+      "status": "complete"
+    },
+    {
+      "from": "71747845",
+      "to": "71747944",
+      "status": "complete"
+    },
+    {
+      "from": "71747945",
+      "to": "71748044",
+      "status": "complete"
+    },
+    {
+      "from": "71747745",
+      "to": "71747844",
+      "status": "complete"
+    }
+  ]
+}

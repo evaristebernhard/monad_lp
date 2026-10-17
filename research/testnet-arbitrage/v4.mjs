@@ -1,0 +1,20 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {createPublicClient,http,parseAbi,parseAbiItem} from '../../frontend/node_modules/viem/_esm/index.js';
+import {monadTestnet} from '../../frontend/node_modules/viem/_esm/chains/index.js';
+const rpc=createPublicClient({chain:monadTestnet,transport:http(process.env.MONAD_TESTNET_RPC_URL||'https://testnet-rpc.monad.xyz',{timeout:30000,retryCount:0})});
+assert.equal(await rpc.getChainId(),10143);
+const block=await rpc.getBlock();
+const manager='0x451d64ab3b650040d2ae1886602b97ed6edc643d',state='0xb639209539c61baf67ac04876315786f8d0b153c';
+const abi=parseAbi(['function getSlot0(bytes32) view returns(uint160,int24,uint24,uint24)','function getLiquidity(bytes32) view returns(uint128)','function symbol() view returns(string)','function decimals() view returns(uint8)']);
+const read=(address,functionName,args=[])=>rpc.readContract({address,abi,functionName,args,blockNumber:block.number});
+const event=parseAbiItem('event Initialize(bytes32 indexed id,address indexed currency0,address indexed currency1,uint24 fee,int24 tickSpacing,address hooks,uint160 sqrtPriceX96,int24 tick)');
+const result={chainId:10143,blockNumber:String(block.number),blockHash:block.hash,capturedAt:new Date().toISOString(),manager,state,pools:[],errors:[],ranges:[]};
+console.log('code',((await rpc.getCode({address:manager}))||'').length);
+let logs=[];
+const starts=[];for(let f=62279000n;f<62280000n;f+=100n)starts.push(f);for(let f=block.number-999n;f<=block.number;f+=100n)starts.push(f);
+for(let i=0;i<starts.length;i+=4)await Promise.all(starts.slice(i,i+4).map(async from=>{const to=from+99n;try{logs.push(...await rpc.getLogs({address:manager,event,fromBlock:from,toBlock:to}));result.ranges.push({from:String(from),to:String(to),status:'complete'});}catch(e){result.errors.push(e.message);result.ranges.push({from:String(from),to:String(to),status:'failed'});}}));
+console.log('initializations',logs.length);
+const metadata=async address=>address==='0x0000000000000000000000000000000000000000'?{address,symbol:'MON',decimals:18}:{address,symbol:await read(address,'symbol'),decimals:Number(await read(address,'decimals'))};
+for(const l of logs){try{const a=l.args;const [s,liquidity,t0,t1]=await Promise.all([read(state,'getSlot0',[a.id]),read(state,'getLiquidity',[a.id]),metadata(a.currency0),metadata(a.currency1)]);result.pools.push({...a,blockNumber:l.blockNumber,t0,t1,sqrtPriceX96:s[0],tick:s[1],protocolFee:s[2],lpFee:s[3],liquidity,price:Number(s[0])**2/2**192*10**(t0.decimals-t1.decimals)});}catch(e){result.errors.push(e.shortMessage||e.message);}}
+fs.writeFileSync(new URL('v4-snapshot.json',import.meta.url),JSON.stringify(result,(_,v)=>typeof v==='bigint'?String(v):v,2)+'\n');console.log('pools',result.pools.length,'errors',result.errors.length);

@@ -1,0 +1,77 @@
+{
+  "chainId": 10143,
+  "deployer": "0x41d5D3B5f2e497d1F4bCF767ffac9DDAb85D2b79",
+  "balanceMon": "49.23406574",
+  "gasPriceWei": "102000000000",
+  "weightBytes": 393992,
+  "chunks": 4,
+  "tableBytes": 8196,
+  "spendingCapMon": "20",
+  "scope": "Original actor int16/Q16. Public weights and on-chain inference. Synthetic vector verification. No DEX swaps.",
+  "identity": {
+    "weights": "0xdfee2fff961d67ae159790f0d673b39d863c9d55fe60fd142dd3454537f5f091",
+    "table": "0x9a95d1db026bc333512d657d995c7440adc634a419ba990f6850c854b7ea86e7",
+    "checkpoint": {
+      "repository": "https://huggingface.co/Adilbai/stock-trading-rl-agent",
+      "download_mirror": "https://hf-mirror.com/Adilbai/stock-trading-rl-agent",
+      "revision": "a317fec1939eda44d04088b47b48ca3ee158bc1f",
+      "license_declared_by_model_card": "MIT",
+      "files": {
+        "final_model.zip": {
+          "sha256": "d714969844c671a04cecbe64c428a23919dbcae35bfcc3078e32d0f0b8fdf366",
+          "bytes": 4875406
+        },
+        "scaler.pkl": {
+          "sha256": "cd514054432a4391237c70c9e98479a137aaf4dffbf28b768f78d648e1e7451c",
+          "bytes": 2423
+        }
+      },
+      "algorithm": "PPO",
+      "stable_baselines3_version": "2.1.0",
+      "num_timesteps": 501760,
+      "observation": {
+        "shape": [
+          3008
+        ],
+        "market": "60 time steps x 50 features",
+        "portfolio": "8 normalized portfolio fields",
+        "original_training_assets": [
+          "AAPL",
+          "MSFT",
+          "GOOGL",
+          "AMZN",
+          "TSLA"
+        ]
+      },
+      "action": {
+        "shape": [
+          2
+        ],
+        "type": "continuous Box",
+        "low": [
+          0,
+          0
+        ],
+        "high": [
+          2,
+          1
+        ],
+        "environment_decoding": "int(clip(action[0], 0, 2)); clip(action[1], 0, 1)",
+        "labels": {
+          "0": "HOLD",
+          "1": "BUY",
+          "2": "SELL"
+        }
+      },
+      "verification": {
+        "sha256": "passed",
+        "zip_integrity": "passed",
+        "checkpoint_metadata": "passed",
+        "inference": "not_run",
+        "solidity_deployment": "not_started",
+        "neurom_compatibility": "requires_adapter_or_distillation"
+      }
+    }
+  },
+  "preparedAt": "2026-10-17T05:59:36.421Z"
+}

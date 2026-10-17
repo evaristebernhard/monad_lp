@@ -1,0 +1,178 @@
+{
+  "chainId": 10143,
+  "readOnly": true,
+  "blockNumber": "71747921",
+  "blockHash": "0x0401971be33d3c08e42ae63684e2e787578081fe4ce8f81cbe2a1d0878a4b8a9",
+  "blockTimestamp": "1792217955",
+  "capturedAt": "2026-10-17T06:19:27.985Z",
+  "wallet": "0x41d5D3B5f2e497d1F4bCF767ffac9DDAb85D2b79",
+  "nativeMON": "33.86423694",
+  "tokens": [
+    {
+      "address": "0xfb8bf4c1cc7a94c73d209a149ea2abea852bc541",
+      "symbol": "WMON",
+      "decimals": 18,
+      "label": "WMON-list"
+    },
+    {
+      "address": "0x534b2f3a21130d7a60830c2df862319e593943a3",
+      "symbol": "USDC",
+      "decimals": 6,
+      "label": "USDC-list"
+    },
+    {
+      "address": "0x45477f4709771331db81944a5e20ef95bc7ba2d7",
+      "symbol": "WETH",
+      "decimals": 18,
+      "label": "WETH-list"
+    },
+    {
+      "address": "0x6d427a189325473725c89ed13cb734cfacbd75a6",
+      "symbol": "WMON",
+      "decimals": 18,
+      "label": "WMON-demo"
+    },
+    {
+      "address": "0x0ac0b00cf3e7ab4b287a99c907c93f74bd73e737",
+      "symbol": "USDC",
+      "decimals": 18,
+      "label": "USDC-demo"
+    }
+  ],
+  "discovery": [
+    {
+      "name": "FableSwap demo",
+      "kind": "v2",
+      "address": "0x514d4ad259143c4a6be7c2399d46cbe8b1f9e2db",
+      "fee": 3000,
+      "status": "queried",
+      "totalPairs": "1",
+      "found": 1
+    },
+    {
+      "name": "Uniswap V2",
+      "kind": "v2",
+      "address": "0x733e88f248b742db6c14c0b1713af5ad7fdd59d0",
+      "fee": 3000,
+      "status": "no bytecode"
+    },
+    {
+      "name": "Uniswap V3",
+      "kind": "v3",
+      "address": "0x961235a9020b05c44df1026d956d1f4d78014276",
+      "quoter": "0x1ba215c17565de7b0cb7ecab971bcf540c24a862",
+      "status": "no bytecode"
+    },
+    {
+      "name": "Pancake candidate",
+      "kind": "v3",
+      "address": "0x0bfbcf9fa4f9c56b0f40a671ad40e0805a091865",
+      "quoter": "0xb048bbc1ee6b733fffcfb9e9cef7375518e25997",
+      "status": "no bytecode"
+    },
+    {
+      "name": "DODO configured V2",
+      "kind": "v2",
+      "address": "0xc176ecf1eae0883b2356593d1ccd5dded0441eb1",
+      "fee": 3000,
+      "status": "no bytecode"
+    },
+    {
+      "name": "DODO configured V3",
+      "kind": "v3",
+      "address": "0x816d85d853a7da1f91f427e4132056d88620e7d7",
+      "status": "no bytecode"
+    }
+  ],
+  "pools": [
+    {
+      "address": "0x9d237bf8fb87cdea6a88fc08e0dafc04335a7528",
+      "protocol": "FableSwap demo",
+      "kind": "v2",
+      "factory": "0x514d4ad259143c4a6be7c2399d46cbe8b1f9e2db",
+      "t0": {
+        "address": "0x0ac0b00cf3e7ab4b287a99c907c93f74bd73e737",
+        "symbol": "USDC",
+        "decimals": 18
+      },
+      "t1": {
+        "address": "0x6d427a189325473725c89ed13cb734cfacbd75a6",
+        "symbol": "WMON",
+        "decimals": 18
+      },
+      "bal0": "19980079860379201935671",
+      "bal1": "10010000000000000000000",
+      "r0": "19980079860379201935671",
+      "r1": "10010000000000000000000",
+      "fee": 3000,
+      "price": 0.5009989985
+    }
+  ],
+  "balances": [
+    {
+      "address": "0xfb8bf4c1cc7a94c73d209a149ea2abea852bc541",
+      "symbol": "WMON",
+      "decimals": 18,
+      "amount": "0"
+    },
+    {
+      "address": "0x534b2f3a21130d7a60830c2df862319e593943a3",
+      "symbol": "USDC",
+      "decimals": 6,
+      "amount": "0"
+    },
+    {
+      "address": "0x45477f4709771331db81944a5e20ef95bc7ba2d7",
+      "symbol": "WETH",
+      "decimals": 18,
+      "amount": "0"
+    },
+    {
+      "address": "0x6d427a189325473725c89ed13cb734cfacbd75a6",
+      "symbol": "WMON",
+      "decimals": 18,
+      "amount": "0"
+    },
+    {
+      "address": "0x0ac0b00cf3e7ab4b287a99c907c93f74bd73e737",
+      "symbol": "USDC",
+      "decimals": 18,
+      "amount": "0"
+    }
+  ],
+  "errors": [
+    {
+      "label": "WMON-old",
+      "error": "The contract function \"symbol\" returned no data (\"0x\")."
+    },
+    {
+      "label": "USDT-old",
+      "error": "The contract function \"decimals\" returned no data (\"0x\")."
+    },
+    {
+      "label": "USDC-old",
+      "error": "The contract function \"decimals\" returned no data (\"0x\")."
+    },
+    {
+      "label": "WETH-old",
+      "error": "The contract function \"symbol\" returned no data (\"0x\")."
+    },
+    {
+      "label": "USDC-Uni-example",
+      "error": "The contract function \"symbol\" returned no data (\"0x\")."
+    },
+    {
+      "label": "FableSwap demo discovery",
+      "error": "RPC Request failed."
+    },
+    {
+      "label": "FableSwap demo discovery",
+      "error": "RPC Request failed."
+    },
+    {
+      "label": "FableSwap demo discovery",
+      "error": "RPC Request failed."
+    }
+  ],
+  "scope": "Candidate-token cross pairs and first/last 25 V2 pairs; not full-chain coverage. V2 fee assumed 0.30% pending implementation verification. V3 quotes include pool fees and price impact. No execution."
+}

@@ -1,0 +1,184 @@
+{
+  "chainId": 10143,
+  "sourceChainId": 143,
+  "deployer": "0x41d5D3B5f2e497d1F4bCF767ffac9DDAb85D2b79",
+  "modelSha256": "183fa936ef593253276e4baa3fa8ecb6e1a5334f6dd2df07e38235cd9b8cc8b7",
+  "datasetSha256": "06a2f2f4605041b7b1656accf9e1d9bf0bb95bb3b46295288ae5481f3c2cb52f",
+  "operations": {
+    "deploy": {
+      "hash": "0xb87d7380a957db1b6e46499e72979a807b0782a74e113619a23744d5cf0d2f21",
+      "dataHash": "0xa9789193578d7660cace8a82fb329311dd6ce2b487b5e6e41ba270dd5a88200b",
+      "gasLimit": "601288",
+      "status": "success",
+      "gasUsed": "601288",
+      "effectiveGasPrice": "100000000000",
+      "feeWei": "60128800000000000",
+      "contractAddress": "0x5dd31af6d70b7633fd5da3e30c03feb5fde00618",
+      "blockNumber": "71747969"
+    },
+    "decision-CHOG": {
+      "hash": "0xdf6b475a1d53ffb936e37533f1df2ba6fbdc5574d9500f2e94e3816e5f51e97c",
+      "dataHash": "0xac2bc4c0593e765e206053d03239f8a3211af7a75a71747b3632cadc203cccc7",
+      "gasLimit": "64770",
+      "status": "success",
+      "gasUsed": "64770",
+      "effectiveGasPrice": "100000000000",
+      "feeWei": "6477000000000000",
+      "contractAddress": null,
+      "blockNumber": "71747998",
+      "eventVerified": true
+    },
+    "decision-WMON": {
+      "hash": "0x5cee4d7437de5d12618b0825b21d7459a040adb6e5a4d67690264ffeaf6aab06",
+      "dataHash": "0xf7a777413bd1ead220a6e9b69de64988ea0c15be7ab43c6bf5edf821dfc827b1",
+      "gasLimit": "61691",
+      "status": "success",
+      "gasUsed": "61691",
+      "effectiveGasPrice": "100000000000",
+      "feeWei": "6169100000000000",
+      "contractAddress": null,
+      "blockNumber": "71748258",
+      "eventVerified": true
+    },
+    "decision-WETH": {
+      "hash": "0x80c382dfbe2ef8ea21c01cb7b7eeb944476c21d7dca60b5ef4ba8fccb6af211b",
+      "dataHash": "0x507910394968609bf684f10afda0121ed6adbf375bed2c56f26eb0de40ee468c",
+      "gasLimit": "62570",
+      "status": "success",
+      "gasUsed": "62570",
+      "effectiveGasPrice": "100000000000",
+      "feeWei": "6257000000000000",
+      "contractAddress": null,
+      "blockNumber": "71748263",
+      "eventVerified": true
+    }
+  },
+  "status": "verified",
+  "initialBalanceWei": "33864236940000000000",
+  "address": "0x5dd31af6d70b7633fd5da3e30c03feb5fde00618",
+  "runtimeCodeHash": "0x6910a48e65b3a257eea3f460448e7f64b0d9b40d34b773dc2a31f78839d953b0",
+  "vectors": [
+    {
+      "index": 0,
+      "asset": "CHOG",
+      "timestamp": 1791381600,
+      "action": 1,
+      "scores": [
+        "-9435",
+        "12488",
+        "8165"
+      ],
+      "gasEstimate": "53745",
+      "matches": true
+    },
+    {
+      "index": 1,
+      "asset": "CHOG",
+      "timestamp": 1791385200,
+      "action": 1,
+      "scores": [
+        "-10238",
+        "11508",
+        "6444"
+      ],
+      "gasEstimate": "54468",
+      "matches": true
+    },
+    {
+      "index": 2,
+      "asset": "WMON",
+      "timestamp": 1792195200,
+      "action": 0,
+      "scores": [
+        "2067",
+        "-1682",
+        "-1481"
+      ],
+      "gasEstimate": "54616",
+      "matches": true
+    },
+    {
+      "index": 3,
+      "asset": "WMON",
+      "timestamp": 1792198800,
+      "action": 0,
+      "scores": [
+        "1692",
+        "-1062",
+        "-1350"
+      ],
+      "gasEstimate": "55339",
+      "matches": true
+    },
+    {
+      "index": 4,
+      "asset": "WETH",
+      "timestamp": 1792195200,
+      "action": 0,
+      "scores": [
+        "3649",
+        "-2641",
+        "-2059"
+      ],
+      "gasEstimate": "54604",
+      "matches": true
+    },
+    {
+      "index": 5,
+      "asset": "WETH",
+      "timestamp": 1792198800,
+      "action": 0,
+      "scores": [
+        "3308",
+        "-1782",
+        "-1841"
+      ],
+      "gasEstimate": "54592",
+      "matches": true
+    },
+    {
+      "index": 6,
+      "asset": "WETH",
+      "timestamp": 1790762400,
+      "action": 0,
+      "scores": [
+        "2266",
+        "-569",
+        "78"
+      ],
+      "gasEstimate": "52701",
+      "matches": true
+    },
+    {
+      "index": 7,
+      "asset": "WETH",
+      "timestamp": 1790773200,
+      "action": 1,
+      "scores": [
+        "423",
+        "1006",
+        "955"
+      ],
+      "gasEstimate": "52073",
+      "matches": true
+    },
+    {
+      "index": 8,
+      "asset": "WMON",
+      "timestamp": 1790762400,
+      "action": 2,
+      "scores": [
+        "-706",
+        "3492",
+        "4841"
+      ],
+      "gasEstimate": "51276",
+      "matches": true
+    }
+  ],
+  "finalBalanceWei": "33785205040000000000",
+  "totalFeeMon": "0.0790319",
+  "balanceDecreaseMon": "0.0790319",
+  "explorer": "https://testnet.monadscan.com/address/0x5dd31af6d70b7633fd5da3e30c03feb5fde00618",
+  "verifiedAt": "2026-10-17T06:21:00.507Z"
+}

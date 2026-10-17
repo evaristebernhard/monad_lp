@@ -6,24 +6,31 @@ import {privateKeyToAccount} from 'viem/accounts'
 import {monad} from 'viem/chains'
 import {selectBestFrame,verifyBestQuote,buildBestBuy} from './bestSwap.mjs'
 const args=process.argv.slice(2),amount=args[0]||'0.1',send=args.includes('--send')
+if(args.includes('--help')){
+ console.log('Usage: node --env-file=.env buy-standalone.mjs AMOUNT [--wallet 0xADDRESS] [--send] [--record FILE]\nDefault: preview only. --send signs locally and broadcasts ONE real MON -> USDC swap.\n--quote-only: fetch and verify best selection without a wallet or a separate RPC.\nEnvironment: MONAD_API_URL, MONAD_RPC_URL, PRIVATE_KEY (only on the signing computer).\n--slippage-bps 50 (1-100), --min-usdc 0, --protocol PROTOCOL (optional restriction).\nNode.js 24.18+ tested. Add --use-env-proxy before the filename if your network uses HTTPS_PROXY.');process.exit(0)
+}
+const quoteOnly=args.includes('--quote-only')
+if(quoteOnly&&send)throw Error('--quote-only 不能和 --send 同时使用')
 const arg=(name,fallback)=>args.includes(name)?args[args.indexOf(name)+1]:fallback
 if(send&&!/^(0x)?[0-9a-fA-F]{64}$/.test(process.env.PRIVATE_KEY||''))throw Error('请在本机 .env 配置有效 PRIVATE_KEY')
 const localKey=process.env.PRIVATE_KEY||''
-const account=send?privateKeyToAccount(localKey.startsWith('0x')?localKey:'0x'+localKey):null
+if(localKey&&!/^(0x)?[0-9a-fA-F]{64}$/.test(localKey))throw Error('PRIVATE_KEY 格式无效，请仅在本机配置')
+const account=localKey?privateKeyToAccount(localKey.startsWith('0x')?localKey:'0x'+localKey):null
 const recordPath=arg('--record',new URL('./last-buy.json',import.meta.url))
 if(send&&fs.existsSync(recordPath)){const previous=JSON.parse(fs.readFileSync(recordPath));if(previous.status==='submitted')throw Error('存在待核实交易 '+previous.transactionHash+'；请先查询，不要重复发送')}
 if(account&&arg('--wallet')&&arg('--wallet').toLowerCase()!==account.address.toLowerCase())throw Error('--wallet 与本机签名钱包不一致')
 const wallet=account?.address||arg('--wallet')
-if(!wallet)throw Error('预览请加 --wallet 0x地址；发送请配置本地 PRIVATE_KEY 并加 --send')
+if(!wallet&&!quoteOnly)throw Error('预览请加 --wallet 0x地址或配置本地 PRIVATE_KEY；仅报价使用 --quote-only')
 const origin=(process.env.MONAD_API_URL||'https://lp.chayu123.me').replace(/\/$/,'')
 const rpcUrl=process.env.MONAD_RPC_URL||'https://rpc.monad.xyz'
 const rpc=createPublicClient({chain:monad,transport:http(rpcUrl,{timeout:20000,retryCount:0})})
 const response=await fetch(origin+'/api/selection/quote?'+new URLSearchParams({amount,token_in:'MON',token_out:'USDC'}),{headers:{'User-Agent':'monad-best-buy/1.0'},signal:AbortSignal.timeout(20000)})
-if(!response.ok)throw Error('报价 API HTTP '+response.status)
+if(!response.ok)throw Error('报价 API HTTP '+response.status+': '+(await response.text()).slice(0,800))
 const catalog=JSON.parse(fs.readFileSync(new URL('./catalog.json',import.meta.url),'utf8')).candidates
 const protocol=arg('--protocol')
 if(protocol&&!['Uniswap V2','Uniswap V3','Uniswap V4','PancakeSwap V3'].includes(protocol))throw Error('不支持的 --protocol')
 const quote=selectBestFrame(await response.json(),catalog,amount,Date.now(),{protocol})
+if(quoteOnly){console.log(JSON.stringify(quote.frame,null,2));process.exit(0)}
 await verifyBestQuote(rpc,quote)
 const block=await rpc.getBlock(),deadline=block.timestamp+120n
 const {minimum,...tx}=buildBestBuy({...quote,wallet,deadline,slippageBps:Number(arg('--slippage-bps','50'))})

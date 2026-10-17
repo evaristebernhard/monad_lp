@@ -1,0 +1,341 @@
+{
+  "chainId": 10143,
+  "deployer": "0x41d5D3B5f2e497d1F4bCF767ffac9DDAb85D2b79",
+  "balanceMon": "49.23406574",
+  "gasPriceWei": "102000000000",
+  "weightBytes": 393992,
+  "chunks": [
+    "0x8Fa883787Bc9d91D269a07cf9885B30b1D686Ea1",
+    "0x18d67E4Ea0a9B5f141C846Eb37126Ce1677f666b",
+    "0x17966A25F368D7447E65bfF7c9B04ad3B91ab399",
+    "0x86724270C908c3c045922D5B99aD181442b6F2Aa",
+    "0xd171a291d7BCdFd732aE557B9ea6c9f6346bC7F5"
+  ],
+  "tableBytes": 8196,
+  "spendingCapMon": "20",
+  "scope": "Original actor int16/Q16. Public weights and on-chain inference. Synthetic vector verification. No DEX swaps.",
+  "identity": {
+    "weights": "0xdfee2fff961d67ae159790f0d673b39d863c9d55fe60fd142dd3454537f5f091",
+    "table": "0x9a95d1db026bc333512d657d995c7440adc634a419ba990f6850c854b7ea86e7",
+    "checkpoint": {
+      "repository": "https://huggingface.co/Adilbai/stock-trading-rl-agent",
+      "download_mirror": "https://hf-mirror.com/Adilbai/stock-trading-rl-agent",
+      "revision": "a317fec1939eda44d04088b47b48ca3ee158bc1f",
+      "license_declared_by_model_card": "MIT",
+      "files": {
+        "final_model.zip": {
+          "sha256": "d714969844c671a04cecbe64c428a23919dbcae35bfcc3078e32d0f0b8fdf366",
+          "bytes": 4875406
+        },
+        "scaler.pkl": {
+          "sha256": "cd514054432a4391237c70c9e98479a137aaf4dffbf28b768f78d648e1e7451c",
+          "bytes": 2423
+        }
+      },
+      "algorithm": "PPO",
+      "stable_baselines3_version": "2.1.0",
+      "num_timesteps": 501760,
+      "observation": {
+        "shape": [
+          3008
+        ],
+        "market": "60 time steps x 50 features",
+        "portfolio": "8 normalized portfolio fields",
+        "original_training_assets": [
+          "AAPL",
+          "MSFT",
+          "GOOGL",
+          "AMZN",
+          "TSLA"
+        ]
+      },
+      "action": {
+        "shape": [
+          2
+        ],
+        "type": "continuous Box",
+        "low": [
+          0,
+          0
+        ],
+        "high": [
+          2,
+          1
+        ],
+        "environment_decoding": "int(clip(action[0], 0, 2)); clip(action[1], 0, 1)",
+        "labels": {
+          "0": "HOLD",
+          "1": "BUY",
+          "2": "SELL"
+        }
+      },
+      "verification": {
+        "sha256": "passed",
+        "zip_integrity": "passed",
+        "checkpoint_metadata": "passed",
+        "inference": "not_run",
+        "solidity_deployment": "not_started",
+        "neurom_compatibility": "requires_adapter_or_distillation"
+      }
+    }
+  },
+  "preparedAt": "2026-10-17T05:59:36.421Z",
+  "initialBalanceWei": "49234065740000000000",
+  "operations": {
+    "factory": {
+      "hash": "0xaeea3806ee5ccc518c812a81f222e7ff85e64362debaf79f550764191ec2d274",
+      "dataHash": "0x5c612cf90b8bfd6052fa2bed9ab0226665ec27f0baad25dd471bbdde1c683d8c",
+      "to": null,
+      "gasEstimate": "353345",
+      "gasLimit": "371013",
+      "maxFeePerGas": "122400000000",
+      "nonce": 8,
+      "status": "success",
+      "gasUsed": "371013",
+      "blockNumber": "71744030",
+      "contractAddress": "0x8ada3505df9f87f7763b65b4c445a5706ec99ac7",
+      "effectiveGasPrice": "100000000000",
+      "chargedFeeWei": "37101300000000000",
+      "runtimeHash": "0x01901400d052aa419ad5188d66491bd1d4f4cee1f8f6487266e11370662aaabe"
+    },
+    "chunk-0": {
+      "hash": "0xc86410443d786fa736f8848bc924e2f0e1f0e2595f3901f8d229c49de3702db6",
+      "dataHash": "0x675a498dab4ef264258c9ea8b8827b501362aec64f815a561e74dc992461559e",
+      "to": "0x8ada3505df9f87f7763b65b4c445a5706ec99ac7",
+      "gasEstimate": "26581451",
+      "gasLimit": "27910524",
+      "maxFeePerGas": "122400000000",
+      "nonce": 9,
+      "status": "success",
+      "gasUsed": "27910524",
+      "blockNumber": "71744098",
+      "contractAddress": null,
+      "effectiveGasPrice": "100000000000",
+      "chargedFeeWei": "2791052400000000000"
+    },
+    "chunk-1": {
+      "hash": "0xd18344414cfec29f67623cbd08fbe843b37b48986c2ad13f6f7bed7c8595e0a1",
+      "dataHash": "0x96de9e392b49dcdb73b5b7ba5fc255391c95d67ca363df25b4e14ee0d08e3ace",
+      "to": "0x8ada3505df9f87f7763b65b4c445a5706ec99ac7",
+      "gasEstimate": "26582158",
+      "gasLimit": "27911266",
+      "maxFeePerGas": "122400000000",
+      "nonce": 10,
+      "status": "success",
+      "gasUsed": "27911266",
+      "blockNumber": "71744350",
+      "contractAddress": null,
+      "effectiveGasPrice": "100000000000",
+      "chargedFeeWei": "2791126600000000000"
+    },
+    "chunk-2": {
+      "hash": "0x18ea1b2a67a6bbed8b952a6f2e0d0d7995bd8575f9bc52b9b8a19ba152ad018e",
+      "dataHash": "0x3960ad7cbbeec4b773c8a4c7814d9dc3992c63e6a5cb7024898bc123cc7b7ac1",
+      "to": "0x8ada3505df9f87f7763b65b4c445a5706ec99ac7",
+      "gasEstimate": "26582938",
+      "gasLimit": "27912085",
+      "maxFeePerGas": "122400000000",
+      "nonce": 11,
+      "status": "success",
+      "gasUsed": "27912085",
+      "blockNumber": "71744436",
+      "contractAddress": null,
+      "effectiveGasPrice": "100000000000",
+      "chargedFeeWei": "2791208500000000000"
+    },
+    "chunk-3": {
+      "hash": "0x7605273e4c00757b194279cc8c94d5d3992a7de8aee6035094de02d7cc149b42",
+      "dataHash": "0x15fd1fc389d599c63e2e5ee845775490607bc1342911fa3b1850bf516b930c5f",
+      "to": "0x8ada3505df9f87f7763b65b4c445a5706ec99ac7",
+      "gasEstimate": "11611392",
+      "gasLimit": "12191962",
+      "maxFeePerGas": "122400000000",
+      "nonce": 12,
+      "status": "success",
+      "gasUsed": "12191962",
+      "blockNumber": "71744464",
+      "contractAddress": null,
+      "effectiveGasPrice": "100000000000",
+      "chargedFeeWei": "1219196200000000000"
+    },
+    "chunk-4": {
+      "hash": "0x631b3f81fd9b9cfa316ddbdaa1d69847c0aaffb8306638badf803d4efde04701",
+      "dataHash": "0x50430e68d05f828161dc4198b75d423a2f30ad854c7811b80b74acccde421d7f",
+      "to": "0x8ada3505df9f87f7763b65b4c445a5706ec99ac7",
+      "gasEstimate": "1912072",
+      "gasLimit": "2007676",
+      "maxFeePerGas": "122400000000",
+      "nonce": 13,
+      "status": "success",
+      "gasUsed": "2007676",
+      "blockNumber": "71744483",
+      "contractAddress": null,
+      "effectiveGasPrice": "100000000000",
+      "chargedFeeWei": "200767600000000000"
+    },
+    "actor": {
+      "hash": "0xbfeb2d6195605f552bf8acb81260192177516d80f5f5c0613beac14eb2d82df4",
+      "dataHash": "0xe41e70b93f1d006186ae7d826b19f814313b891e750fb4c76461133227aed2bf",
+      "to": null,
+      "gasEstimate": "1050256",
+      "gasLimit": "1102769",
+      "maxFeePerGas": "122400000000",
+      "nonce": 14,
+      "status": "success",
+      "gasUsed": "1102769",
+      "blockNumber": "71744491",
+      "contractAddress": "0x3f63f7586c696b5d9ff52774b4895c51bc280906",
+      "effectiveGasPrice": "100000000000",
+      "chargedFeeWei": "110276900000000000",
+      "runtimeHash": "0xba8b82f3201d4fdcafb9b8a0790b62d26ee02c3dacb2456fa0d937515f519b39"
+    },
+    "recorder": {
+      "hash": "0x3071e8fd4c578512ad0eecf0e6666fc20cc6b9fa99ae6378ea3234fc9d2bf5d1",
+      "dataHash": "0xc8ce8afbc52148b77e4fda8ea67cb7f8ab319ed2e74fc3f9c70f24f98f1dd6f4",
+      "to": null,
+      "gasEstimate": "248844",
+      "gasLimit": "261287",
+      "maxFeePerGas": "122400000000",
+      "nonce": 15,
+      "status": "success",
+      "gasUsed": "261287",
+      "blockNumber": "71744499",
+      "contractAddress": "0x6903f12a39135374f9ced70178466d2dba3e7794",
+      "effectiveGasPrice": "100000000000",
+      "chargedFeeWei": "26128700000000000",
+      "runtimeHash": "0xc023515f30e5d56127b4030e4292e32363341f6118338d4d36f3a17ceebe8b71"
+    },
+    "decision-0": {
+      "hash": "0xe0aacf6812fe589a41331be67c429c5be23769cbf21f478c252df4db069e89c7",
+      "dataHash": "0xb31b4a35604f4f44d8ed4fb7b17a571b0273f2d1b5a89751795278de44e5dbbc",
+      "to": "0x6903f12a39135374f9ced70178466d2dba3e7794",
+      "gasEstimate": "17076173",
+      "gasLimit": "17929982",
+      "maxFeePerGas": "122400000000",
+      "nonce": 16,
+      "status": "success",
+      "gasUsed": "17929982",
+      "blockNumber": "71744513",
+      "contractAddress": null,
+      "effectiveGasPrice": "100000000000",
+      "chargedFeeWei": "1792998200000000000",
+      "eventVerified": true
+    },
+    "decision-4": {
+      "hash": "0x17f37f6b5f3c0420a446ec91a5c28ac322eca3abc2c2e199ea11fef6bdb097f5",
+      "dataHash": "0xe33c8a2232d73aad68a32aef5d4389725b2ddc3a288522e804e2f3fcd129f3c7",
+      "to": "0x6903f12a39135374f9ced70178466d2dba3e7794",
+      "gasEstimate": "17189716",
+      "gasLimit": "18049202",
+      "maxFeePerGas": "122400000000",
+      "nonce": 17,
+      "status": "success",
+      "gasUsed": "18049202",
+      "blockNumber": "71744532",
+      "contractAddress": null,
+      "effectiveGasPrice": "100000000000",
+      "chargedFeeWei": "1804920200000000000",
+      "eventVerified": true
+    },
+    "decision-5": {
+      "hash": "0x7a88f98e1548da4464e7c1c781c97dbfc8329b64b8ba0ffa1feb7cbc12854c8b",
+      "dataHash": "0x37cc4e1120f9d9afbc6f3294654e84e92d071e0813bfb2bc296e04f792747f57",
+      "to": "0x6903f12a39135374f9ced70178466d2dba3e7794",
+      "gasEstimate": "17190973",
+      "gasLimit": "18050522",
+      "maxFeePerGas": "122400000000",
+      "nonce": 18,
+      "status": "success",
+      "gasUsed": "18050522",
+      "blockNumber": "71744554",
+      "contractAddress": null,
+      "effectiveGasPrice": "100000000000",
+      "chargedFeeWei": "1805052200000000000",
+      "eventVerified": true
+    }
+  },
+  "startedAt": "2026-10-17T05:59:36.542Z",
+  "status": "verified",
+  "factory": "0x8ada3505df9f87f7763b65b4c445a5706ec99ac7",
+  "actor": "0x3f63f7586c696b5d9ff52774b4895c51bc280906",
+  "recorder": "0x6903f12a39135374f9ced70178466d2dba3e7794",
+  "vectors": [
+    {
+      "index": 0,
+      "inputHash": "0x762bbdcf5995b82ae31b97f3172d8582bbee19f38ebef8d41a2b4fdf7aaf5751",
+      "raw": [
+        "7742",
+        "-13867"
+      ],
+      "action": 0,
+      "sizeQ16": "0",
+      "gasEstimate": "16922427",
+      "matches": true
+    },
+    {
+      "index": 1,
+      "inputHash": "0xadb23b8fb9881adf492bc1adc2fa6ef2afcc5e63f9f43b2d94758406371a556e",
+      "raw": [
+        "34421",
+        "-1929"
+      ],
+      "action": 0,
+      "sizeQ16": "0",
+      "gasEstimate": "16922462",
+      "matches": true
+    },
+    {
+      "index": 2,
+      "inputHash": "0x66165f2f49f5aeb594c902666bbc1f186e71b86e4f1b664ca307411bae0ceec9",
+      "raw": [
+        "18444",
+        "-12140"
+      ],
+      "action": 0,
+      "sizeQ16": "0",
+      "gasEstimate": "16920721",
+      "matches": true
+    },
+    {
+      "index": 3,
+      "inputHash": "0xf9fe76839a4e5e4c007baf0f858861b707018e8ee25d8e05c2c3a87eeb6a507d",
+      "raw": [
+        "-9550",
+        "3750"
+      ],
+      "action": 0,
+      "sizeQ16": "3750",
+      "gasEstimate": "16957172",
+      "matches": true
+    },
+    {
+      "index": 4,
+      "inputHash": "0xce4549095eca69e4f01c6a1b7ea33ad09dfa26ae61aa9fc1e99abbfbd8f319c4",
+      "raw": [
+        "85114",
+        "25757"
+      ],
+      "action": 1,
+      "sizeQ16": "25757",
+      "gasEstimate": "17035083",
+      "matches": true
+    },
+    {
+      "index": 5,
+      "inputHash": "0x617b3b56036eb87ff3c12827a2735e8da8cd10692f1855857b6011bb1a5571d2",
+      "raw": [
+        "190042",
+        "16449"
+      ],
+      "action": 2,
+      "sizeQ16": "16449",
+      "gasEstimate": "17036330",
+      "matches": true
+    }
+  ],
+  "finalBalanceWei": "33864236940000000000",
+  "balanceDecreaseMon": "15.3698288",
+  "totalChargedFeeMon": "15.3698288",
+  "explorer": "https://testnet.monadscan.com/address/0x3f63f7586c696b5d9ff52774b4895c51bc280906",
+  "verifiedAt": "2026-10-17T06:02:21.682Z"
+}

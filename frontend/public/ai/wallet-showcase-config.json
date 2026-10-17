@@ -1,0 +1,15 @@
+{
+  "chainId": 10143,
+  "address": "0xd225a1d94e7bae1ec4e25817eba6f4d2c0a3c14b",
+  "model": "0x5dd31af6d70b7633fd5da3e30c03feb5fde00618",
+  "router": "0x430c23895c8D44883526e3E0B09327dAD8766660",
+  "usdc": "0x534b2f3A21130d7a60830c2Df862319e593943A3",
+  "wmon": "0x97B3070F9Da6C002343862b35E68Bd8e22608943",
+  "transaction": "0xda07d6dcff458b00dc832d619144d2ff93d450182a52297731884818fb1bbdc3",
+  "explorer": "https://testnet.monadscan.com/address/0xd225a1d94e7bae1ec4e25817eba6f4d2c0a3c14b",
+  "rounds": 6,
+  "cooldownSeconds": 10,
+  "buyUSDC": "0.4",
+  "sellWMON": "0.1",
+  "mode": "wallet-signed"
+}

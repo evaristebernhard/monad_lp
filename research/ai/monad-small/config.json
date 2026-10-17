@@ -1,0 +1,26 @@
+{
+  "network": "monad",
+  "chain_id": 143,
+  "assets": [
+    {"symbol": "CHOG", "address": "0x350035555e10d9afaf1566aaebfced5ba6c27777"},
+    {"symbol": "WMON", "address": "0x3bd359c1119da7da1d913d1c4d2b7c461115433a"},
+    {"symbol": "WETH", "address": "0xee8c0e9f1bffb4eb878d8f15f368a02a35481242"}
+  ],
+  "timeframe_seconds": 3600,
+  "pages_per_asset": 2,
+  "history_limit_per_page": 1000,
+  "lookback_hours": 24,
+  "horizon_hours": 4,
+  "label_threshold_bps": 100,
+  "split_fractions": [0.6, 0.2, 0.2],
+  "seed": 143,
+  "epochs": 240,
+  "learning_rate": 0.008,
+  "hidden_width": 8,
+  "input_q": 4096,
+  "weight_q": 16384,
+  "input_clip": 4,
+  "slippage_bps_per_side": 20,
+  "fallback_fee_bps_per_side": 100,
+  "features": ["return_1h", "return_3h", "return_6h", "return_12h", "return_24h", "range_to_close", "body_to_open", "close_vs_sma_6h", "close_vs_sma_24h", "volatility_6h", "volatility_24h", "log_volume_vs_mean_24h"]
+}

@@ -1,0 +1,14 @@
+{
+  "origin": "https://lp.chayu123.me",
+  "chainCalls": [
+    "eth_chainId",
+    "eth_call",
+    "eth_call",
+    "eth_call",
+    "eth_gasPrice",
+    "eth_estimateGas"
+  ],
+  "errors": [],
+  "realReplay": "✓ 链上与本地一致 · 买入\n\n分数 [-9435, 12488, 8165]\n\n估算 gas 53,745 · 若发交易约 0.005482 测试 MON",
+  "status": "passed"
+}
