@@ -1,0 +1,32 @@
+name: ETH Uniswap LP vs Deribit fractional contract research
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '20 4 * * *'
+  push:
+    branches: ['main','research/eth-uniswap-options-20261009']
+    paths: ['research/eth_uniswap_option_screen.py','research/sol_cross_protocol_option_screen.py','.github/workflows/eth-uniswap-option-screen.yml']
+permissions:
+  contents: read
+jobs:
+  eth-options:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install model solver
+        run: python3 -m pip install 'numpy>=1.26,<3' 'scipy>=1.13,<2'
+      - name: Verify ETH minimum lots and order book integration offline
+        run: python3 research/eth_uniswap_option_screen.py --self-test
+      - name: Fetch Deribit public ETH_USDC books and compare Uniswap pools
+        run: |
+          mkdir -p research-artifacts
+          python3 research/eth_uniswap_option_screen.py --output research-artifacts/eth_uniswap_option_screen.json
+      - name: Preserve only public quotes and research results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eth-uniswap-option-screen-${{ github.run_id }}
+          path: research-artifacts/*.json
+          retention-days: 14
+          if-no-files-found: warn

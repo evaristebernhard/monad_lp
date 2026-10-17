@@ -1,0 +1,34 @@
+Compiling 2 files with Solc 0.8.28
+Solc 0.8.28 finished in 967.52ms
+Compiler run successful!
+
+Ran 8 tests for test/ExperimentalPpoActor.t.sol:ExperimentalPpoActorTest
+[PASS] testBuy() (gas: 17239871)
+Logs:
+  inference_call_gas: 17223738
+
+[PASS] testInitialPortfolio() (gas: 17247282)
+Logs:
+  inference_call_gas: 17231044
+
+[PASS] testNegative() (gas: 17209534)
+Logs:
+  inference_call_gas: 17193313
+
+[PASS] testOutOfBounds() (gas: 59027)
+[PASS] testPositive() (gas: 17209422)
+Logs:
+  inference_call_gas: 17193245
+
+[PASS] testSell() (gas: 17239895)
+Logs:
+  inference_call_gas: 17223740
+
+[PASS] testWrongLength() (gas: 9728)
+[PASS] testZero() (gas: 17247081)
+Logs:
+  inference_call_gas: 17231028
+
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 115.02ms (537.32ms CPU time)
+
+Ran 1 test suite in 116.22ms (115.02ms CPU time): 8 tests passed, 0 failed, 0 skipped (8 total tests)

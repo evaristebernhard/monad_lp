@@ -1,0 +1,14 @@
+# Dependencies for the Hugging Face Space (app.py + the algotrader package).
+#
+# Deliberately minimal: a Space that takes ten minutes to build is a Space
+# nobody waits for. The v1 agentic system's heavier stack (torch,
+# stable-baselines3, dash, alpaca-py) lives in requirements.txt and is not
+# needed to run the Lab.
+#
+# Do not pin gradio, spaces, or huggingface_hub here. The Space runtime
+# preinstalls and manages those; pinning them breaks ZeroGPU / Gradio upgrades.
+numpy>=1.24
+pandas>=2.0
+scipy>=1.10
+plotly>=5.18
+yfinance>=1.0

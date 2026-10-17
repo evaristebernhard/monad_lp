@@ -1,0 +1,173 @@
+{
+  "asOf": "2026-10-17T04:17:09.856095+00:00",
+  "source": "Local Monad pool catalog; not an exhaustive on-chain index",
+  "totalMonadPools": 1574,
+  "samePairPools": 15,
+  "pools": [
+    {
+      "pool_address": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+      "pair": "MON/USDC",
+      "protocol": "Uniswap V4",
+      "token_a_address": "0x0000000000000000000000000000000000000000",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 500.0,
+      "tick_spacing": 10.0,
+      "liquidity_usd": 1114386.9993952522,
+      "updated_at": "2026-10-06T05:52:33Z"
+    },
+    {
+      "pool_address": "0x8b926a72640b5766c5daa65365c24009618a91cab560946b550e4aa5ce2ae5f2",
+      "pair": "MON/USDC",
+      "protocol": "Uniswap V4",
+      "token_a_address": "0x0000000000000000000000000000000000000000",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 10000.0,
+      "tick_spacing": 200.0,
+      "liquidity_usd": 1625.0675901127534,
+      "updated_at": "2026-10-06T05:52:33Z"
+    },
+    {
+      "pool_address": "0x7d892749d0562b0f78a26cdec26e97ec9dc7f8d1997cb590643ab69f10a1da0e",
+      "pair": "MON/USDC",
+      "protocol": "Uniswap V4",
+      "token_a_address": "0x0000000000000000000000000000000000000000",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 3000.0,
+      "tick_spacing": 60.0,
+      "liquidity_usd": 4407.485985960849,
+      "updated_at": "2026-10-06T05:52:33Z"
+    },
+    {
+      "pool_address": "0x659bd0bc4167ba25c62e05656f78043e7ed4a9da",
+      "pair": "MON/USDC",
+      "protocol": "Uniswap V3",
+      "token_a_address": "0x3bd359c1119da7da1d913d1c4d2b7c461115433a",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 30.0,
+      "tick_spacing": 60.0,
+      "liquidity_usd": 1228940.06,
+      "updated_at": "1790837967"
+    },
+    {
+      "pool_address": "0xc33e9e441e6f4e74cdb34f878be51189c9cb00d8",
+      "pair": "MON/USDC",
+      "protocol": "Uniswap V3",
+      "token_a_address": "0x3bd359c1119da7da1d913d1c4d2b7c461115433a",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 100.0,
+      "tick_spacing": 200.0,
+      "liquidity_usd": 2023.77,
+      "updated_at": "1790837967"
+    },
+    {
+      "pool_address": "0x5bc39a29ea5d8315263ec8939d6ad393debc34e9",
+      "pair": "MON/USDC",
+      "protocol": "Uniswap V3",
+      "token_a_address": "0x3bd359c1119da7da1d913d1c4d2b7c461115433a",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 5.0,
+      "tick_spacing": 10.0,
+      "liquidity_usd": 6.27,
+      "updated_at": "1790837967"
+    },
+    {
+      "pool_address": "0x63e48b725540a3db24acf6682a29f877808c53f2",
+      "pair": "WMON/USDC",
+      "protocol": "PancakeSwap V3",
+      "token_a_address": "0x3bd359c1119da7da1d913d1c4d2b7c461115433a",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 5.0,
+      "tick_spacing": null,
+      "liquidity_usd": 151689.0136308802,
+      "updated_at": "1790837967"
+    },
+    {
+      "pool_address": "0xb9897986847472cd08b9a0e7bcd31ea4f1322361",
+      "pair": "WMON/USDC",
+      "protocol": "PancakeSwap V3",
+      "token_a_address": "0x3bd359c1119da7da1d913d1c4d2b7c461115433a",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 100.0,
+      "tick_spacing": null,
+      "liquidity_usd": 18957.87276010926,
+      "updated_at": "1790837967"
+    },
+    {
+      "pool_address": "0x85717a98d195c9306bbf7c9523ba71f044fea0f7",
+      "pair": "WMON/USDC",
+      "protocol": "PancakeSwap V3",
+      "token_a_address": "0x3bd359c1119da7da1d913d1c4d2b7c461115433a",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 25.0,
+      "tick_spacing": null,
+      "liquidity_usd": 2074.279681194098,
+      "updated_at": "1790837967"
+    },
+    {
+      "pool_address": "0xadcb23117ee93b4e77ac9321a5c7e42c5c7ca2c12dde86ef2df97a53e0058be6",
+      "pair": "MON/USDC",
+      "protocol": "Uniswap V4",
+      "token_a_address": "0x0000000000000000000000000000000000000000",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 90.0,
+      "tick_spacing": 90.0,
+      "liquidity_usd": 15475.751809488189,
+      "updated_at": "2026-10-06T05:52:33Z"
+    },
+    {
+      "pool_address": "0x3fe12728ea1b89e4bac6e59a9130b61a27d032f8",
+      "pair": "WMON/USDC",
+      "protocol": "Uniswap V2",
+      "token_a_address": "0x3bd359c1119da7da1d913d1c4d2b7c461115433a",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 30.0,
+      "tick_spacing": null,
+      "liquidity_usd": 436.79621123615254,
+      "updated_at": "1790837967"
+    },
+    {
+      "pool_address": "0xec865b668bb7026fb853c26b8a478d333261d7fd41d1ef713795c87ccbb48175",
+      "pair": "MON/USDC",
+      "protocol": "Uniswap V4",
+      "token_a_address": "0x0000000000000000000000000000000000000000",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 5.0,
+      "tick_spacing": 10.0,
+      "liquidity_usd": 35.87157450328107,
+      "updated_at": "2026-10-06T05:52:33Z"
+    },
+    {
+      "pool_address": "0x531dffc6f4bff190d95f794e35e3dd00dd78010643be9ceaf0115e113183ab77",
+      "pair": "MON/USDC",
+      "protocol": "Uniswap V4",
+      "token_a_address": "0x0000000000000000000000000000000000000000",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 1.0,
+      "tick_spacing": 1.0,
+      "liquidity_usd": 5499.684831730071,
+      "updated_at": "2026-10-06T05:52:33Z"
+    },
+    {
+      "pool_address": "0x58249cb3e44c955d48c6176b1dd5888b7300f0d0b2d1ae934ca8063d16968f9b",
+      "pair": "MON/USDC",
+      "protocol": "Uniswap V4",
+      "token_a_address": "0x0000000000000000000000000000000000000000",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 3.0,
+      "tick_spacing": 600.0,
+      "liquidity_usd": 1405.1221793773484,
+      "updated_at": "2026-10-06T05:52:33Z"
+    },
+    {
+      "pool_address": "0x83fef384587d07731880416db8850f8af66fda03",
+      "pair": "WMON/USDC",
+      "protocol": "Uniswap V3",
+      "token_a_address": "0x3bd359c1119da7da1d913d1c4d2b7c461115433a",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 1.0,
+      "tick_spacing": 1.0,
+      "liquidity_usd": 0.0,
+      "updated_at": "1790837967"
+    }
+  ]
+}

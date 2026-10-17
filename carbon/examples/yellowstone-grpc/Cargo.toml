@@ -1,0 +1,24 @@
+[package]
+name = "yellowstone-grpc-carbon-example"
+version = "2.0.0"
+publish = false
+rust-version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+carbon-core = { workspace = true }
+carbon-helius-laserstream-datasource = { workspace = true }
+carbon-jupiter-swap-decoder = { workspace = true }
+carbon-log-metrics = { workspace = true }
+carbon-yellowstone-grpc-datasource = { workspace = true }
+
+dotenv = { workspace = true }
+env_logger = { workspace = true }
+log = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+yellowstone-grpc-proto = { workspace = true }
+
+[dependencies.rustls]
+default-features = false
+features = ["std", "aws_lc_rs"]
+version = "0.23.35"

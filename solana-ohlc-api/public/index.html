@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-YC4CGLBD54"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-YC4CGLBD54');
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1150" />
+    <title>Solana OHLC API</title>
+    <meta name="description" content="Build Solana OHLC charts with the Vybe Solana API for SPL and Token-2022 tokens: resolutions, wick filters, backtesting exports and on-chain charting tools." />
+    <meta name="keywords" content="Solana OHLC, candlestick API, Vybe API, SPL token, Token-2022, price charts, backtesting, market candles, trade history, candlestick data, Solana DEX" />
+    <meta name="author" content="Vybe Network" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#0f0f12" />
+    <link rel="canonical" href="https://solana-ohlc-api.vybenetwork.com/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Vybe Network" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://solana-ohlc-api.vybenetwork.com/" />
+    <meta property="og:title" content="Solana OHLC API" />
+    <meta property="og:description" content="Build Solana OHLC charts with the Vybe Solana API for SPL and Token-2022 tokens: resolutions, wick filters, backtesting exports and on-chain charting tools." />
+    <meta property="og:image" content="https://solana-ohlc-api.vybenetwork.com/solana-ohlc-candlestick-data-api.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:alt" content="Solana OHLC API app powered by Vybe API" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@Vybe_Network" />
+    <meta name="twitter:creator" content="@Vybe_Network" />
+    <meta name="twitter:title" content="Solana OHLC API" />
+    <meta name="twitter:description" content="Build Solana OHLC charts with the Vybe Solana API for SPL and Token-2022 tokens: resolutions, wick filters, backtesting exports and on-chain charting tools." />
+    <meta name="twitter:image" content="https://solana-ohlc-api.vybenetwork.com/solana-ohlc-candlestick-data-api.jpg" />
+    <meta name="twitter:image:alt" content="Solana OHLC API app powered by Vybe API" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="app.css?v=116" />
+    <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <header class="page-masthead" aria-label="About and resources">
+        <div class="page-masthead__head">
+          <div class="page-masthead__title-block">
+            <div class="page-masthead__eyebrow">
+              <span class="page-masthead__logo">Vybe</span>
+              <span class="page-masthead__pill">OHLC Candles API</span>
+            </div>
+            <h1 class="page-masthead__title">
+            Solana <span class="page-masthead__title-accent">OHLC</span> API
+          </h1>
+            <p class="page-masthead__description">
+ Build Solana OHLC charts with the Vybe Solana API for SPL and Token-2022 tokens: resolutions, wick filters, backtesting exports and on-chain charting tools.
+ </p>
+          </div>
+          <div class="page-masthead__visual" aria-hidden="true">
+            <img src="/solana-candlestick-api.png" alt="Solana OHLC API demo screenshot showing candlestick charts and historical price data for Solana tokens" width="400" height="251" loading="lazy" decoding="async" />
+          </div>
+        </div>
+        <nav class="page-masthead__nav" aria-label="Documentation and community links">
+          <div class="page-masthead__nav-row page-masthead__nav-row--primary">
+          <div class="page-masthead__nav-cluster">
+          <div class="page-masthead__group page-masthead__group--repo">
+            <span class="page-masthead__label">Repository</span>
+            <div class="page-masthead__btns">
+              <a class="page-masthead__btn page-masthead__btn--github" href="https://github.com/vybenetwork/solana-ohlc-api" target="_blank">
+                <span class="page-masthead__btn-icon page-masthead__btn-icon--github" aria-hidden="true"></span>
+                Clone this repo
+              </a>
+            </div>
+          </div>
+          <div class="page-masthead__group">
+            <span class="page-masthead__label">Guides</span>
+            <div class="page-masthead__btns">
+              <a class="page-masthead__btn page-masthead__btn--docs" href="https://docs.vybenetwork.com/docs/fetch-ohlc-candles" target="_blank">
+                <span class="page-masthead__btn-icon page-masthead__btn-icon--docs" aria-hidden="true"></span>
+                <span class="page-masthead__btn-text"><span class="page-masthead__btn-prefix">Docs:</span> Fetch OHLC Candles</span>
+              </a>
+            </div>
+          </div>
+          </div>
+          <div class="page-masthead__group page-masthead__group--endpoints">
+            <span class="page-masthead__label">Main Endpoint Used</span>
+            <div class="page-masthead__btns">
+              <a class="page-masthead__btn page-masthead__btn--api" href="https://docs.vybenetwork.com/reference/get_token_trade_ohlc_v4" target="_blank">
+                <span class="page-masthead__btn-icon page-masthead__btn-icon--endpoint" aria-hidden="true"></span>
+                <span class="page-masthead__btn-text"><span class="page-masthead__btn-prefix">Docs:</span> Token OHLC</span>
+              </a>
+              <a class="page-masthead__btn page-masthead__btn--api" href="https://docs.vybenetwork.com/reference/get_market_filtered_ohlcv_v4" target="_blank">
+                <span class="page-masthead__btn-icon page-masthead__btn-icon--endpoint" aria-hidden="true"></span>
+                <span class="page-masthead__btn-text"><span class="page-masthead__btn-prefix">Docs:</span> Market OHLCV</span>
+              </a>
+            </div>
+          </div>
+          <div class="page-masthead__group page-masthead__group--community">
+            <span class="page-masthead__label">Community</span>
+            <div class="page-masthead__btns">
+              <a class="page-masthead__btn page-masthead__btn--social" href="https://t.me/VybeNetwork_Official" target="_blank">
+                <span class="page-masthead__btn-icon page-masthead__btn-icon--telegram" aria-hidden="true"></span>
+                Telegram
+              </a>
+              <a class="page-masthead__btn page-masthead__btn--social" href="https://x.com/Vybe_Network" target="_blank">
+                <span class="page-masthead__btn-icon page-masthead__btn-icon--x" aria-hidden="true"></span>
+                Follow Us on X
+              </a>
+            </div>
+          </div>
+          </div>
+        <div class="page-masthead__nav-row page-masthead__nav-row--secondary-endpoints">
+          <div class="page-masthead__group page-masthead__group--secondary-endpoints">
+            <span class="page-masthead__label">Secondary Endpoints Used</span>
+            <div class="page-masthead__btns page-masthead__btns--secondary-endpoints">
+              <a class="page-masthead__btn page-masthead__btn--api" href="https://docs.vybenetwork.com/reference/get_trade_data_program_v4" target="_blank" rel="noopener noreferrer">
+                <span class="page-masthead__btn-icon page-masthead__btn-icon--endpoint" aria-hidden="true"></span>
+                <span class="page-masthead__btn-text"><span class="page-masthead__btn-prefix">Docs:</span> Historical Trades API</span>
+              </a>
+              <a class="page-masthead__btn page-masthead__btn--api" href="https://docs.vybenetwork.com/reference/get_token_details_v4" target="_blank" rel="noopener noreferrer">
+                <span class="page-masthead__btn-icon page-masthead__btn-icon--endpoint" aria-hidden="true"></span>
+                <span class="page-masthead__btn-text"><span class="page-masthead__btn-prefix">Docs:</span> Token Details API</span>
+              </a>
+              <a class="page-masthead__btn page-masthead__btn--api" href="https://docs.vybenetwork.com/reference/get_known_program_accounts_v4" target="_blank" rel="noopener noreferrer">
+                <span class="page-masthead__btn-icon page-masthead__btn-icon--endpoint" aria-hidden="true"></span>
+                <span class="page-masthead__btn-text"><span class="page-masthead__btn-prefix">Docs:</span> Labeled Programs API</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="page-masthead__nav-row page-masthead__nav-row--related">
+          <div class="page-masthead__group page-masthead__group--related">
+            <span class="page-masthead__label">Other Related API Demos</span>
+            <div class="page-masthead__btns page-masthead__btns--related">
+              <a class="page-masthead__btn page-masthead__btn--demo page-masthead__btn--demo-token" href="https://solana-token-metadata-api.vybenetwork.com/">
+                <span class="page-masthead__demo-preview" aria-hidden="true">
+                  <img
+                      src="https://solana-token-metadata-api.vybenetwork.com/solana-token-stats-metadata-api-273x144.jpg"
+                      alt="Preview of the Solana Token Metadata API demo by Vybe Network"
+                      width="91"
+                      height="48"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                </span>
+                <span class="page-masthead__btn-text">Token Metadata API</span>
+              </a>
+              <a class="page-masthead__btn page-masthead__btn--demo page-masthead__btn--demo-trades" href="https://solana-trades-api.vybenetwork.com/">
+                <span class="page-masthead__demo-preview" aria-hidden="true">
+                  <img
+                      src="https://solana-trades-api.vybenetwork.com/solana-historical-trade-data-api-273x144.jpg"
+                      alt="Preview of the Solana Historical Trades API demo by Vybe Network"
+                      width="91"
+                      height="48"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                </span>
+                <span class="page-masthead__btn-text">Historical Trades API</span>
+              </a>
+              <a class="page-masthead__btn page-masthead__btn--demo page-masthead__btn--demo-swap" href="https://solana-swap-api.vybenetwork.com/">
+                <span class="page-masthead__demo-preview" aria-hidden="true">
+                  <img
+                      src="https://solana-swap-api.vybenetwork.com/solana-swap-api-app-273x144.jpg"
+                      alt="Preview of the Solana Swap API and Router demo by Vybe Network"
+                      width="91"
+                      height="48"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                </span>
+                <span class="page-masthead__btn-text">Swap API &amp; Router</span>
+              </a>
+              <a class="page-masthead__btn page-masthead__btn--demo page-masthead__btn--demo-wallet" href="https://solana-trader-pnl-api.vybenetwork.com/">
+                <span class="page-masthead__demo-preview" aria-hidden="true">
+                  <img
+                      src="https://solana-trader-pnl-api.vybenetwork.com/solana-wallet-pnl-profit-and-loss-api-app-273x144.jpg"
+                      alt="Preview of the Solana Trader PnL API demo by Vybe Network"
+                      width="91"
+                      height="48"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                </span>
+                <span class="page-masthead__btn-text">Trader PnL API</span>
+              </a>
+              <a class="page-masthead__btn page-masthead__btn--demo page-masthead__btn--demo-holders" href="https://solana-top-holders-api.vybenetwork.com/">
+                <span class="page-masthead__demo-preview" aria-hidden="true">
+                  <img
+                      src="https://solana-top-holders-api.vybenetwork.com/solana-top-token-holders-and-whales-api-app-273x144.jpg"
+                      alt="Preview of the Solana Top Holders API demo by Vybe Network"
+                      width="91"
+                      height="48"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                </span>
+                <span class="page-masthead__btn-text">Top Holders API</span>
+              </a>
+              <a class="page-masthead__btn page-masthead__btn--demo page-masthead__btn--demo-traders" href="https://solana-top-traders-api.vybenetwork.com/">
+                <span class="page-masthead__demo-preview" aria-hidden="true">
+                  <img
+                      src="https://solana-top-traders-api.vybenetwork.com/solana-top-traders-wallets-and-tokens-api-app-273x144.jpg"
+                      alt="Preview of the Solana Top Traders API demo by Vybe Network"
+                      width="91"
+                      height="48"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                </span>
+                <span class="page-masthead__btn-text">Top Traders API</span>
+              </a>
+              <a class="page-masthead__btn page-masthead__btn--demo page-masthead__btn--demo-balances" href="https://solana-balances-api.vybenetwork.com/">
+                <span class="page-masthead__demo-preview" aria-hidden="true">
+                  <img
+                      src="https://solana-balances-api.vybenetwork.com/solana-wallet-balances-api-273x144.jpg"
+                      alt="Preview of the Solana Wallet Balances API demo by Vybe Network"
+                      width="91"
+                      height="48"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                </span>
+                <span class="page-masthead__btn-text">Wallet Balances API</span>
+              </a>
+              <a class="page-masthead__btn page-masthead__btn--demo page-masthead__btn--demo-defi" href="https://solana-defi-positions-api.vybenetwork.com/">
+                <span class="page-masthead__demo-preview" aria-hidden="true">
+                  <img
+                      src="https://solana-defi-positions-api.vybenetwork.com/solana-defi-positions-api-273x144.jpg"
+                      alt="Preview of the Solana DeFi Positions API demo by Vybe Network"
+                      width="91"
+                      height="48"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                </span>
+                <span class="page-masthead__btn-text">DeFi Positions API</span>
+              </a>
+            
+                            <a class="page-masthead__btn page-masthead__btn--demo page-masthead__btn--demo-pyth" href="https://solana-pyth-api.vybenetwork.com/">
+                  <span class="page-masthead__demo-preview" aria-hidden="true">
+                    <img
+                      src="https://solana-pyth-api.vybenetwork.com/solana-pyth-api-273x144.jpg"
+                      alt="Preview of the Solana Pyth Oracle API demo by Vybe Network"
+                      width="91"
+                      height="48"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </span>
+                  <span class="page-masthead__btn-text">Pyth Oracle API</span>
+                </a>
+</div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+      <section class="section-card section-card--remote inputs panel">
+        <div class="section-heading">
+          <div class="section-header">
+            <span class="section-header__marker" aria-hidden="true"></span>
+            <h2 class="section-header__title">Remote Filters</h2>
+            <div class="section-loading" id="loadingIndicator" hidden aria-hidden="true">
+              <span class="loading-spinner"></span>
+              <span class="loading-text">Loading…</span>
+            </div>
+            <span class="candles-pages-progress section-header-status" id="candlesPagesProgress" aria-live="polite"></span>
+          </div>
+          <div class="section-lede meta remote-filters-help">
+            <strong>Remote filters</strong> fetch trades from the Vybe API and change the dataset.
+          </div>
+        </div>
+        <div class="candles-controls candles-controls--remote">
+          <div class="field field-switch candles-source-switch">
+            <div class="field-switch-header">
+              <span class="label-icon field-icon icon-market" aria-hidden="true"></span>
+              <span class="field-switch-title">Candles source</span>
+              <span
+                class="field-switch-info icon-info-wrap"
+                title="Vybe OHLC API (Full), candles rebuilt from trades, or Vybe OHLC by market address."
+                aria-label="More info"
+              >
+                <span
+                  class="label-icon field-icon icon-info"
+                  aria-hidden="true"
+                  title="Vybe OHLC API (Full), candles rebuilt from trades, or Vybe OHLC by market address."
+                ></span>
+              </span>
+            </div>
+            <div class="candles-source-row">
+              <div class="field-control">
+                <span class="field-icon icon-market" aria-hidden="true"></span>
+                <select id="candlesSourceSelect" class="candles-source-select" aria-label="Candles source">
+                  <option value="full">Vybe API: OHLC Vetted Markets</option>
+                  <option value="trades">Vybe API: OHLC from Trades</option>
+                  <option value="market">Vybe API: OHLC from Market</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="candles-mint-resolution-row">
+          <div class="field">
+            <div id="tokenMintWrap">
+              <label for="mintAddress">
+                <span class="label-icon field-icon icon-tag" aria-hidden="true"></span>
+                Token mint (either side)
+              </label>
+              <div class="field-control">
+                <span class="field-icon icon-tag" aria-hidden="true"></span>
+                <input
+                  type="text"
+                  id="mintAddress"
+                  placeholder="e.g. DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
+                  value="DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
+                />
+              </div>
+            </div>
+            <div class="candles-market-address-wrap" id="candlesMarketAddressWrap" hidden>
+              <label for="candlesMarketAddress">
+                <span class="label-icon field-icon icon-tag" aria-hidden="true"></span>
+                Market Address
+              </label>
+              <div class="field-control">
+                <span class="field-icon icon-tag" aria-hidden="true"></span>
+                <input type="text" id="candlesMarketAddress" class="candles-market-address-input" placeholder="Market / pool address" value="6oFWm7KPLfxnwMb3z5xwBoXNSPP3JJyirAPqPSiVcnsp" title="Vybe market address for GET /v4/markets/{marketAddress}/candles" />
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label for="candlesResolution">
+              <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
+              Candle resolution
+            </label>
+            <div class="field-control">
+              <span class="field-icon icon-grid" aria-hidden="true"></span>
+              <select id="candlesResolution">
+                <option value="1m" selected>1m</option>
+                <option value="3m">3m</option>
+                <option value="5m">5m</option>
+                <option value="15m">15m</option>
+                <option value="30m">30m</option>
+                <option value="1h">1h</option>
+                <option value="2h">2h</option>
+                <option value="3h">3h</option>
+                <option value="4h">4h</option>
+                <option value="1d">1d</option>
+                <option value="1w">1w</option>
+                <option value="1mo">1mo</option>
+                <option value="1y">1y</option>
+              </select>
+            </div>
+          </div>
+          <div id="remoteNoGapsTarget">
+            <div id="noGapsSwitchWrap" class="field field-switch" title="Eliminate gaps between candles by using previous close as next open. Default is true.">
+              <div class="field-switch-header">
+                <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
+                <span class="field-switch-title">No gaps</span>
+                <span class="field-switch-info icon-info-wrap" title="Eliminate gaps between candles by using previous close as next open. Default is true." aria-label="More info">
+                  <span class="label-icon field-icon icon-info" aria-hidden="true" title="Eliminate gaps between candles by using previous close as next open. Default is true."></span>
+                </span>
+              </div>
+              <label class="trades-fetch-switch" title="Eliminate gaps between candles by using previous close as next open. Default is true.">
+                <input type="checkbox" id="eliminateCloseToOpenGaps" class="trades-fetch-switch-input" checked aria-hidden="true" />
+                <span class="trades-fetch-switch-track">
+                  <span class="trades-fetch-switch-option" data-value="off">Show Gaps</span>
+                  <span class="trades-fetch-switch-option" data-value="on">On</span>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="timeStart">
+            <span class="label-icon field-icon icon-clock" aria-hidden="true"></span>
+            Start time
+          </label>
+          <div class="field-control">
+            <span class="field-icon icon-clock" aria-hidden="true"></span>
+            <input type="datetime-local" id="timeStart" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="timeEnd">
+            <span class="label-icon field-icon icon-clock" aria-hidden="true"></span>
+            End time
+          </label>
+          <div class="field-control">
+            <span class="field-icon icon-clock" aria-hidden="true"></span>
+            <input type="datetime-local" id="timeEnd" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="sort">
+            <span class="label-icon field-icon icon-sort" aria-hidden="true"></span>
+            Sort
+          </label>
+          <div class="field-control">
+            <span class="field-icon icon-sort" aria-hidden="true"></span>
+            <select id="sort">
+              <option value="blockTime:desc" selected>blockTime desc</option>
+              <option value="blockTime:asc">blockTime asc</option>
+              <option value="price:desc">price desc</option>
+              <option value="price:asc">price asc</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>
+            <span class="label-icon field-icon icon-pages" aria-hidden="true"></span>
+            Page(s)
+          </label>
+          <div class="page-range">
+            <div class="field-control">
+              <span class="field-icon icon-pages" aria-hidden="true"></span>
+              <input type="number" id="pageFrom" min="0" step="1" value="0" />
+            </div>
+            <span class="page-range-sep">to</span>
+            <div class="field-control">
+              <span class="field-icon icon-pages" aria-hidden="true"></span>
+              <input type="number" id="pageTo" min="0" step="1" placeholder="-" />
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="limit">
+            <span class="label-icon field-icon icon-hash" aria-hidden="true"></span>
+            Limit
+          </label>
+          <div class="field-control">
+            <span class="field-icon icon-hash" aria-hidden="true"></span>
+            <select id="limit">
+              <option value="100">100</option>
+              <option value="250">250</option>
+              <option value="500">500</option>
+              <option value="1000" selected>1000</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" id="fetchBtn" class="vybe-action-btn vybe-action-btn--fetch fetch-btn-attention"><span class="vybe-action-btn__icon vybe-action-btn__icon--fetch" aria-hidden="true"></span><span class="vybe-action-btn__text" id="fetchBtnText">Fetch Candles</span></button>
+          <button type="button" id="exportBtn" class="vybe-action-btn vybe-action-btn--export" disabled><span class="vybe-action-btn__icon vybe-action-btn__icon--export" aria-hidden="true"></span><span class="vybe-action-btn__text">Export Current Page CSV</span></button>
+          <button type="button" id="exportAllBtn" class="vybe-action-btn vybe-action-btn--export" disabled><span class="vybe-action-btn__icon vybe-action-btn__icon--export-pages" aria-hidden="true"></span><span class="vybe-action-btn__text">Export Paginated CSV</span></button>
+        </div>
+
+      </section>
+
+      <section class="section-card section-card--token token-section panel" id="tokenSection">
+        <div class="section-header section-header--token">
+          <div class="section-header-left">
+            <span class="section-header__marker" aria-hidden="true"></span>
+            <h2 class="section-header__title">Token Stats &amp; Metadata</h2>
+            <div class="section-loading" id="tokenLoading" hidden aria-hidden="true">
+              <span class="loading-spinner"></span>
+              <span class="loading-text">Loading…</span>
+            </div>
+            <span class="section-error" id="tokenError" hidden aria-hidden="true"></span>
+          </div>
+        </div>
+        <div class="token-section-intro">
+          <div class="token-header">
+            <img id="tokenLogo" alt="Selected token logo in the Solana OHLC API demo" class="token-logo" style="display:none" />
+            <div>
+              <span id="tokenSymbol" class="symbol">—</span>
+              <span id="tokenName" class="name">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="token-section-content" id="tokenSectionContent">
+          <div class="token-stats-groups" id="tokenStats"></div>
+        </div>
+      </section>
+
+      <section class="section-card section-card--chart panel" id="candlesSection">
+        <div class="section-header">
+          <span class="section-header__marker" aria-hidden="true"></span>
+          <h2 class="section-header__title">Price Candlestick Chart</h2>
+          <div class="section-loading" id="candlesLoading" hidden aria-hidden="true">
+            <span class="loading-spinner"></span>
+            <span class="loading-text" id="candlesLoadingText">Loading…</span>
+          </div>
+          <span class="section-error" id="candlesError" hidden aria-hidden="true"></span>
+        </div>
+        <div class="section-lede meta">
+          Candles from Vybe OHLC API (Full), rebuilt from trades, or by market via Vybe OHLC by Market API.
+        </div>
+        <div class="candles-chart-wrapper">
+          <div id="candlesChart" class="candles-chart" aria-label="Price candlestick chart"></div>
+          <div id="candlesChartOverlay" class="candles-chart-overlay" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section class="section-card section-card--rebuild panel local-filters-panel" id="perQuoteSection" hidden aria-hidden="true">
+        <div class="section-header">
+          <span class="section-header__marker" aria-hidden="true"></span>
+          <h2 class="section-header__title">Rebuild From Trades</h2>
+          <div class="section-loading" id="rebuildLoading" hidden aria-hidden="true">
+            <span class="loading-spinner"></span>
+            <span class="loading-text" id="rebuildLoadingText">Loading…</span>
+          </div>
+        </div>
+        <div class="local-filters">
+          <div class="local-filters-global">
+            <div class="local-filters-global-row local-filters-pages-chart-row local-filters-row-type-checkbox" id="localFiltersCheckboxRow">
+              <div class="field field-chart-quote" id="chartQuotesWrap" title="Which quote mint to use for the chart.">
+                <div class="field-switch-header">
+                  <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
+                  <span class="field-switch-title">Chart quote</span>
+                  <span class="field-switch-info icon-info-wrap" title="Quote mint used for the candlestick chart when rebuilding from trades." aria-label="More info">
+                    <span class="label-icon field-icon icon-info" aria-hidden="true" title="Quote mint for the chart."></span>
+                  </span>
+                </div>
+                <div class="field-control">
+                  <select id="chartQuoteSelect" aria-label="Chart quote" style="width:100%;"></select>
+                </div>
+              </div>
+              <div class="field field-pages" id="candlesPagesWrap">
+                <div class="field-switch-header">
+                  <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
+                  <span class="field-switch-title">Pages to fetch</span>
+                  <span class="field-switch-info icon-info-wrap" title="When rebuilding from trades, fetch this many pages (1 at a time); chart updates after each page." aria-label="More info">
+                    <span class="label-icon field-icon icon-info" aria-hidden="true" title="When rebuilding from trades, fetch this many pages."></span>
+                  </span>
+                </div>
+                <div class="field-control">
+                  <select id="candlesPages" title="When rebuilding from trades, fetch this many pages (1 at a time); chart updates after each page." aria-label="Pages to fetch">
+                    <option value="1">1 (1,000)</option>
+                    <option value="5">5 (5,000)</option>
+                    <option value="10" selected>10 (10,000)</option>
+                    <option value="15">15 (15,000)</option>
+                    <option value="20">20 (20,000)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field field-switch">
+                <div class="field-switch-header">
+                  <span class="label-icon field-icon icon-user" aria-hidden="true"></span>
+                  <span class="field-switch-title">Authority = fee payer</span>
+                  <span class="field-switch-info icon-info-wrap" title="Show only trades where the signer (authority) is also the fee payer." aria-label="More info">
+                    <span class="label-icon field-icon icon-info" aria-hidden="true" title="Show only trades where the signer (authority) is also the fee payer."></span>
+                  </span>
+                </div>
+                <label class="trades-fetch-switch" title="Show only trades where the signer (authority) is also the fee payer.">
+                  <input type="checkbox" id="authorityEqualsFeePayer" class="trades-fetch-switch-input" aria-hidden="true">
+                  <span class="trades-fetch-switch-track">
+                    <span class="trades-fetch-switch-option" data-value="off">Any signer</span>
+                    <span class="trades-fetch-switch-option" data-value="on">Same only</span>
+                  </span>
+                </label>
+              </div>
+              <div id="localNoGapsTarget" style="flex: 0 0 auto;"></div>
+              <div id="filterWicksWrap" class="field field-switch">
+                <div class="field-switch-header">
+                  <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
+                  <span class="field-switch-title">Filter Wicks</span>
+                  <span class="field-switch-info icon-info-wrap" title="Remove highest-deviating trade(s) from top 5 high/low markets (rebuild from trades)." aria-label="More info">
+                    <span class="label-icon field-icon icon-info" aria-hidden="true" title="Remove highest-deviating trade(s) from top 5 high/low markets (rebuild from trades)."></span>
+                  </span>
+                </div>
+                <label class="trades-fetch-switch" title="Remove highest-deviating trade(s) from top 5 high/low markets.">
+                  <input type="checkbox" id="filterWicks" class="trades-fetch-switch-input" checked aria-hidden="true" />
+                  <span class="trades-fetch-switch-track">
+                    <span class="trades-fetch-switch-option" data-value="off">Show Wicks</span>
+                    <span class="trades-fetch-switch-option" data-value="on">On</span>
+                  </span>
+                </label>
+              </div>
+              <div class="field field-lookback">
+                <div class="field-switch-header">
+                  <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
+                  <span class="field-switch-title">Lookback</span>
+                  <span class="field-switch-info icon-info-wrap" title="Number of prior trades per market used for median when cleaning highs/lows." aria-label="More info">
+                    <span class="label-icon field-icon icon-info" aria-hidden="true" title="Lookback trades for median."></span>
+                  </span>
+                </div>
+                <div class="field-control">
+                  <input type="number" id="wickLookback" min="1" max="500" value="10" aria-label="Lookback trades" />
+                </div>
+              </div>
+              <div class="field field-wick-deviation">
+                <div class="field-switch-header">
+                  <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
+                  <span class="field-switch-title">Deviation</span>
+                  <span class="field-switch-info icon-info-wrap" title="(1) Exclude trades whose price is more than this % above/below the lookback median. (2) Exclude candles whose close is more than this % away from the next open (0 = no deviation filter)." aria-label="More info">
+                    <span class="label-icon field-icon icon-info" aria-hidden="true" title="Wick filter: trades beyond lookback median; candles with close-to-next-open gap &gt; this %."></span>
+                  </span>
+                </div>
+                <div class="field-control field-control-input-suffix">
+                  <input type="number" id="wickDeviationPct" min="0" max="100" step="0.01" value="0.99" placeholder="0.99" style="width:100%;max-width:4rem;" aria-label="Deviation percent" />
+                  <span class="input-suffix" aria-hidden="true">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <h3 class="section-subtitle local-filters-subtitle">Per-quote mint (min/max size, spam filter)</h3>
+        <div class="section-lede meta">Set min/max quote size per quote token. Filled after fetch from loaded trades.</div>
+        <div id="perQuoteFiltersContainer" class="local-filters-dynamic"></div>
+      </section>
+
+      <section class="section-card section-card--summary panel" id="summarySection">
+        <div class="section-header">
+          <span class="section-header__marker" aria-hidden="true"></span>
+          <h2 class="section-header__title" id="summaryTitle">Trades Summary</h2>
+          <div class="section-loading" id="summaryLoading" hidden aria-hidden="true">
+            <span class="loading-spinner"></span>
+            <span class="loading-text">Loading…</span>
+          </div>
+          <span class="section-error" id="summaryError" hidden aria-hidden="true"></span>
+        </div>
+        <div class="section-lede meta" id="summaryMeta">—</div>
+        <div class="summary-grid">
+          <div class="summary-box">
+            <h3 id="topProgramsTitle">Programs (Top 5)</h3>
+            <div class="table-wrap">
+              <table class="summary-mini-table summary-mini-table--programs">
+                <colgroup>
+                  <col class="summary-col-program" />
+                  <col class="summary-col-markets-stat" />
+                  <col class="summary-col-quote-tokens-stat" />
+                  <col class="summary-col-count" style="width:94px" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th style="text-align:left">Program</th>
+                    <th style="text-align:center">Markets</th>
+                    <th style="text-align:center" title="Quote tokens">Quotes</th>
+                    <th style="text-align:center">Count</th>
+                  </tr>
+                </thead>
+                <tbody id="topProgramsBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="summary-box">
+            <h3 id="topMarketsTitle">Markets / Pools (Top 5)</h3>
+            <div class="table-wrap">
+              <table class="summary-mini-table summary-mini-table--markets">
+                <colgroup>
+                  <col class="summary-col-market" style="width:75px" />
+                  <col class="summary-col-pair" />
+                  <col class="summary-col-program" style="width:105px" />
+                  <col class="summary-col-count" style="width:94px" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th style="text-align:left">Market</th>
+                    <th style="text-align:left">Pair</th>
+                    <th style="text-align:left">Program</th>
+                    <th style="text-align:center">Count</th>
+                  </tr>
+                </thead>
+                <tbody id="topMarketsBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="summary-box">
+            <h3 id="topQuotesTitle">Quote mints (Top 5)</h3>
+            <div class="table-wrap">
+              <table class="summary-mini-table summary-mini-table--quotes">
+                <colgroup>
+                  <col class="summary-col-symbol" />
+                  <col class="summary-col-mint" style="width:86px" />
+                  <col class="summary-col-markets-stat" style="width:45px" />
+                  <col class="summary-col-programs-stat" style="width:55px" />
+                  <col class="summary-col-count" style="width:94px" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th style="text-align:left">Symbol</th>
+                    <th style="text-align:left">Mint</th>
+                    <th style="text-align:center">Markets</th>
+                    <th style="text-align:center">Programs</th>
+                    <th style="text-align:center">Count</th>
+                  </tr>
+                </thead>
+                <tbody id="topQuotesBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-card section-card--trades panel">
+        <div class="section-header">
+          <span class="section-header__marker" aria-hidden="true"></span>
+          <h2 class="section-header__title">Trades</h2>
+          <div class="section-loading" id="tradesLoading" hidden aria-hidden="true">
+            <span class="loading-spinner"></span>
+            <span class="loading-text" id="tradesLoadingText">Loading…</span>
+          </div>
+          <span class="section-error" id="tradesError" hidden aria-hidden="true"></span>
+        </div>
+        <div class="section-lede meta" id="tradesMeta">—</div>
+        <div class="trades-summary-grid" id="tradesSummary" aria-live="polite">
+          <div class="trades-summary-item trades-summary-item--count">
+            <span class="trades-summary-label"><span class="trades-summary-label-icon field-icon icon-pages" aria-hidden="true"></span>Trades loaded</span>
+            <span class="trades-summary-value" id="tradesSummaryCount">0</span>
+          </div>
+          <div class="trades-summary-item trades-summary-item--programs">
+            <span class="trades-summary-label"><span class="trades-summary-label-icon field-icon icon-grid" aria-hidden="true"></span>Programs</span>
+            <span class="trades-summary-value" id="tradesSummaryPrograms">0</span>
+          </div>
+          <div class="trades-summary-item trades-summary-item--markets">
+            <span class="trades-summary-label"><span class="trades-summary-label-icon field-icon icon-pool" aria-hidden="true"></span>Markets</span>
+            <span class="trades-summary-value" id="tradesSummaryMarkets">0</span>
+          </div>
+          <div class="trades-summary-item trades-summary-item--quotes">
+            <span class="trades-summary-label"><span class="trades-summary-label-icon field-icon icon-coins" aria-hidden="true"></span>Quote tokens</span>
+            <span class="trades-summary-value" id="tradesSummaryQuotes">0</span>
+          </div>
+          <div class="trades-summary-item trades-summary-item--range">
+            <span class="trades-summary-label"><span class="trades-summary-label-icon field-icon icon-clock" aria-hidden="true"></span>Time range</span>
+            <span class="trades-summary-value trades-summary-value--range" id="tradesSummaryTime">—</span>
+          </div>
+        </div>
+        <div class="table-wrap table-wrap--scroll">
+          <table id="tradesTable">
+            <thead>
+              <tr>
+                <th>Date (Local Time)</th>
+                <th>Type</th>
+                <th>Volume</th>
+                <th>Price</th>
+                <th>Input Token</th>
+                <th>Output Token</th>
+                <th>Market/Pool (Frequency)</th>
+                <th>Program (DEX)</th>
+                <th>Authority<br /><span class="trades-th-fee-payer-label">(Fee Payer)</span></th>
+                <th>Count</th>
+                <th>TXID</th>
+              </tr>
+            </thead>
+            <tbody id="tradesBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <script type="module" src="app.js?v=2"></script>
+  </body>
+</html>
+

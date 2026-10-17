@@ -1,0 +1,47 @@
+name: Research Solana LP data coverage (read only)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'research/sol-lp-fees-rpc-db-20261009'
+    paths:
+      - '.github/workflows/solana-lp-fee-audit.yml'
+      - 'research/sol_lp_fee_snapshot.py'
+      - 'research/sol_pool_live_quote.py'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - name: Fetch Git LFS SQLite inputs without revealing RPC secrets
+        shell: bash
+        run: |
+          git lfs install --local
+          git lfs pull --include="rpc/data/rpc.db,rpc/data/solana_events.db,rpc/data/solana_market.db,data/lp_price_history.db,data/lp_screener.db" --exclude="" || echo "::warning::Some LFS files unavailable; coverage report will record missing data."
+      - name: Retrieve published LP catalog SQLite release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          mkdir -p research-data
+          if head -c 16 data/lp_screener.db | grep -q "SQLite format 3"; then cp data/lp_screener.db research-data/lp_screener.db; else gh release download lp-screener-db-2026-10-07 --pattern 'lp_screener.db.gz' --dir research-data --clobber || true; fi
+          if [ -f research-data/lp_screener.db.gz ]; then gzip -dc research-data/lp_screener.db.gz > research-data/lp_screener.db; fi
+      - name: Produce sanitized database and Solana LP coverage metrics
+        run: |
+          python3 research/sol_lp_fee_snapshot.py --output research-artifacts/solana_lp_coverage.json
+      - name: Fetch latest public observations for four representative Solana LP pools
+        run: |
+          python3 research/sol_pool_live_quote.py --coverage research-artifacts/solana_lp_coverage.json --output research-artifacts/solana_live_pool_compare.json
+      - name: Upload only sanitized aggregates (no database, credentials, or wallet data)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: solana-lp-db-audit-${{ github.run_id }}
+          path: research-artifacts/*.json
+          retention-days: 7

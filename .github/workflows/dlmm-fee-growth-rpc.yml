@@ -1,0 +1,61 @@
+name: Meteora DLMM bin fee-growth RPC audit
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '15 */4 * * *'
+  push:
+    branches: ['main','research/dlmm-real-fee-growth-rpc-20261009']
+    paths:
+      - 'research/dlmm_fee_growth_rpc_probe.py'
+      - '.github/workflows/dlmm-fee-growth-rpc.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  fee-growth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - name: Fetch existing read-only research DB and configured RPC catalog from LFS
+        run: |
+          git lfs install --local
+          git lfs pull --include="rpc/data/rpc.db,data/sol_dlmm_deribit.db" --exclude=""
+      - name: Install Solana Pubkey (read-only account PDA derivation)
+        run: python3 -m pip install 'solders>=0.21,<2'
+      - name: Verify official Bin layout, fee u128 parsing, RPC guards
+        run: python3 research/dlmm_fee_growth_rpc_probe.py --self-test
+      - name: Restore latest sanitized fee-counter snapshot from Actions cache
+        uses: actions/cache/restore@v4
+        with:
+          path: research-artifacts/prior/dlmm_bin_fee_growth.json
+          key: dlmm-fee-snapshot-${{ github.run_id }}
+          restore-keys: |
+            dlmm-fee-snapshot-
+      - name: Read current 1-bp 4-bps 20-bps Meteora Bin fee-growth counters
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 research/dlmm_fee_growth_rpc_probe.py             --rpc-db rpc/data/rpc.db             --old-db data/sol_dlmm_deribit.db             --out research-artifacts/dlmm_bin_fee_growth.json \
+            --prior-local research-artifacts/prior/dlmm_bin_fee_growth.json
+      - name: Preserve current public-only fee snapshot as next cached baseline
+        if: success()
+        run: |
+          mkdir -p research-artifacts/prior
+          cp research-artifacts/dlmm_bin_fee_growth.json research-artifacts/prior/dlmm_bin_fee_growth.json
+      - name: Save new run-unique fee-counter baseline for next schedule
+        if: success()
+        uses: actions/cache/save@v4
+        with:
+          path: research-artifacts/prior/dlmm_bin_fee_growth.json
+          key: dlmm-fee-snapshot-${{ github.run_id }}
+      - name: Upload only public pool fee counters and scrubbed audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dlmm-fee-growth-${{ github.run_id }}
+          path: research-artifacts/dlmm_bin_fee_growth.json
+          retention-days: 30
+          if-no-files-found: warn

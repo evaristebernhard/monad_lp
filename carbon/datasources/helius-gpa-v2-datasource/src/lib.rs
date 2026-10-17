@@ -1,0 +1,297 @@
+mod types;
+
+use {
+    crate::types::HeliusGpaV2Result,
+    async_trait::async_trait,
+    base64::{engine::general_purpose::STANDARD, Engine},
+    carbon_core::{
+        datasource::{AccountUpdate, Datasource, DatasourceId, Update, UpdateType},
+        error::CarbonResult,
+        metrics::{Counter, Histogram, MetricsRegistry},
+    },
+    solana_account::Account,
+    solana_client::rpc_config::RpcProgramAccountsConfig,
+    solana_pubkey::Pubkey,
+    std::{str::FromStr, sync::LazyLock},
+    tokio::sync::mpsc::Sender,
+    tokio_util::sync::CancellationToken,
+    types::{FetchHeliusGpaV2AccountsPageResult, HeliusGpaV2Request, HeliusGpaV2Response},
+};
+
+const DEFAULT_LIMIT: u32 = 1000;
+
+static FETCH_DURATION_MILLIS: LazyLock<Histogram> = LazyLock::new(|| {
+    Histogram::new(
+        "helius_gpa_v2_fetch_duration_milliseconds",
+        "Time to fetch a page from Helius gPA V2 API in milliseconds",
+        vec![1.0, 5.0, 10.0, 25.0, 50.0, 100.0, 250.0, 500.0, 1000.0],
+    )
+});
+static PAGES_FETCHED: Counter = Counter::new(
+    "helius_gpa_v2_pages_fetched_total",
+    "Pages fetched from Helius gPA V2 API",
+);
+static ACCOUNTS_PROCESSED: Counter = Counter::new(
+    "helius_gpa_v2_accounts_processed_total",
+    "Account updates processed (sent) by Helius gPA V2 datasource",
+);
+
+fn register_helius_gpa_v2_metrics() {
+    let registry = MetricsRegistry::global();
+    registry.register_counter(&PAGES_FETCHED);
+    registry.register_counter(&ACCOUNTS_PROCESSED);
+    registry.register_histogram(&FETCH_DURATION_MILLIS);
+}
+const MAX_LIMIT: u32 = 10000;
+
+#[derive(Debug, Clone)]
+pub struct HeliusGpaV2Config {
+    pub program_accounts_config: RpcProgramAccountsConfig,
+    pub changed_since_slot: Option<u64>,
+    pub limit: Option<u32>,
+}
+
+impl HeliusGpaV2Config {
+    pub fn new(
+        program_accounts_config: Option<RpcProgramAccountsConfig>,
+        changed_since_slot: Option<u64>,
+        limit: Option<u32>,
+    ) -> Self {
+        Self {
+            program_accounts_config: program_accounts_config.unwrap_or_default(),
+            changed_since_slot,
+            limit: limit.or(Some(DEFAULT_LIMIT)),
+        }
+    }
+}
+
+impl Default for HeliusGpaV2Config {
+    fn default() -> Self {
+        Self {
+            program_accounts_config: RpcProgramAccountsConfig::default(),
+            changed_since_slot: None,
+            limit: Some(DEFAULT_LIMIT),
+        }
+    }
+}
+
+pub struct HeliusGpaV2Datasource {
+    pub helius_rpc_url: String,
+    pub program_id: Pubkey,
+    pub config: HeliusGpaV2Config,
+}
+
+impl HeliusGpaV2Datasource {
+    pub fn new(helius_rpc_url: String, program_id: Pubkey) -> Self {
+        Self::new_with_config(helius_rpc_url, program_id, HeliusGpaV2Config::default())
+    }
+
+    pub fn new_with_config(
+        helius_rpc_url: String,
+        program_id: Pubkey,
+        config: HeliusGpaV2Config,
+    ) -> Self {
+        Self {
+            helius_rpc_url,
+            program_id,
+            config,
+        }
+    }
+
+    async fn fetch_accounts_page(
+        &self,
+        client: &reqwest::Client,
+        pagination_key: Option<&str>,
+    ) -> CarbonResult<FetchHeliusGpaV2AccountsPageResult> {
+        let mut params = vec![serde_json::Value::String(self.program_id.to_string())];
+        let mut config = serde_json::Map::new();
+
+        let limit = self.config.limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT);
+
+        config.insert(
+            "encoding".to_string(),
+            serde_json::Value::String("base64".to_string()),
+        );
+        config.insert("limit".to_string(), serde_json::Value::Number(limit.into()));
+        config.insert("withContext".to_string(), serde_json::Value::Bool(true));
+
+        if let Some(changed_since_slot) = self.config.changed_since_slot {
+            config.insert(
+                "changedSinceSlot".to_string(),
+                serde_json::Value::Number(changed_since_slot.into()),
+            );
+        }
+        if let Some(commitment) = self
+            .config
+            .program_accounts_config
+            .account_config
+            .commitment
+        {
+            config.insert(
+                "commitment".to_string(),
+                serde_json::Value::String(commitment.commitment.to_string()),
+            );
+        }
+        if let Some(pagination_key) = pagination_key {
+            config.insert(
+                "paginationKey".to_string(),
+                serde_json::Value::String(pagination_key.to_string()),
+            );
+        }
+        if let Some(filters) = &self.config.program_accounts_config.filters {
+            let filter_array: Vec<serde_json::Value> = filters
+                .iter()
+                .map(|f| {
+                    serde_json::to_value(f).unwrap_or_else(|_| {
+                        log::warn!("Failed to serialize filter, using null");
+                        serde_json::Value::Null
+                    })
+                })
+                .collect();
+            config.insert(
+                "filters".to_string(),
+                serde_json::Value::Array(filter_array),
+            );
+        }
+
+        params.push(serde_json::Value::Object(config));
+
+        let request = HeliusGpaV2Request {
+            jsonrpc: "2.0".to_string(),
+            id: "1".to_string(),
+            method: "getProgramAccountsV2".to_string(),
+            params,
+        };
+
+        let response = client
+            .post(&self.helius_rpc_url)
+            .json(&request)
+            .send()
+            .await
+            .map_err(|e| {
+                carbon_core::error::Error::FailedToConsumeDatasource(format!(
+                    "HTTP request failed: {e}"
+                ))
+            })?
+            .json::<HeliusGpaV2Response>()
+            .await
+            .map_err(|e| {
+                carbon_core::error::Error::FailedToConsumeDatasource(format!(
+                    "Failed to parse response: {e}"
+                ))
+            })?;
+
+        if let Some(error) = response.error {
+            return Err(carbon_core::error::Error::FailedToConsumeDatasource(
+                format!("RPC error: {} (code: {})", error.message, error.code),
+            ));
+        }
+
+        let Some(HeliusGpaV2Result {
+            context: Some(context),
+            value: Some(value),
+        }) = response.result
+        else {
+            return Err(carbon_core::error::Error::FailedToConsumeDatasource(
+                "Response missing context or value field".to_string(),
+            ));
+        };
+
+        let accounts = value
+            .accounts
+            .into_iter()
+            .filter_map(|account| {
+                let pubkey = Pubkey::from_str(&account.pubkey).ok()?;
+                let account_data = account
+                    .account
+                    .data
+                    .first()
+                    .and_then(|data| STANDARD.decode(data).ok())?;
+                let account = Account {
+                    lamports: account.account.lamports,
+                    data: account_data,
+                    owner: Pubkey::from_str(&account.account.owner).ok()?,
+                    executable: account.account.executable,
+                    rent_epoch: account.account.rent_epoch,
+                };
+                Some((pubkey, account))
+            })
+            .collect();
+
+        Ok(FetchHeliusGpaV2AccountsPageResult {
+            accounts,
+            slot: context.slot,
+            pagination_key: value.pagination_key,
+        })
+    }
+}
+
+#[async_trait]
+impl Datasource for HeliusGpaV2Datasource {
+    async fn consume(
+        &self,
+        id: DatasourceId,
+        sender: Sender<(Update, DatasourceId)>,
+        cancellation_token: CancellationToken,
+    ) -> CarbonResult<()> {
+        register_helius_gpa_v2_metrics();
+
+        let client = reqwest::Client::new();
+
+        log::info!(
+            "Starting Helius gPA V2 account indexing for program {}",
+            self.program_id
+        );
+
+        let id_for_loop = id.clone();
+        let mut pagination_key: Option<String> = None;
+
+        loop {
+            if cancellation_token.is_cancelled() {
+                log::info!("Cancellation requested during account processing");
+                break;
+            }
+
+            let fetch_start = std::time::Instant::now();
+            let result = self
+                .fetch_accounts_page(&client, pagination_key.as_deref())
+                .await?;
+            let fetch_elapsed = fetch_start.elapsed();
+            FETCH_DURATION_MILLIS.record(fetch_elapsed.as_millis() as f64);
+            PAGES_FETCHED.inc();
+
+            for (pubkey, account) in result.accounts {
+                if cancellation_token.is_cancelled() {
+                    log::info!("Cancellation requested during account processing");
+                    break;
+                }
+
+                let update = Update::Account(AccountUpdate {
+                    pubkey,
+                    account,
+                    slot: result.slot,
+                    transaction_signature: None,
+                });
+
+                if let Err(e) = sender.send((update, id_for_loop.clone())).await {
+                    log::error!("Failed to send account update: {e:?}");
+                } else {
+                    ACCOUNTS_PROCESSED.inc();
+                }
+            }
+
+            pagination_key = result.pagination_key;
+
+            if pagination_key.is_none() {
+                log::info!("Reached end of pagination");
+                break;
+            }
+        }
+
+        Ok(())
+    }
+
+    fn update_types(&self) -> Vec<UpdateType> {
+        vec![UpdateType::AccountUpdate]
+    }
+}

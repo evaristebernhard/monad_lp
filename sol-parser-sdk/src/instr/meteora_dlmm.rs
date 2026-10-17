@@ -1,0 +1,859 @@
+//! Meteora DLMM 指令解析器
+//!
+//! 使用 match discriminator 模式解析 Meteora DLMM 指令
+
+use super::program_ids;
+use super::utils::*;
+use crate::core::events::*;
+use solana_sdk::{pubkey::Pubkey, signature::Signature};
+
+pub mod discriminators {
+    pub const ADD_LIQUIDITY: [u8; 8] = [181, 157, 89, 67, 143, 182, 52, 72];
+    pub const ADD_LIQUIDITY2: [u8; 8] = [228, 162, 78, 28, 70, 219, 116, 115];
+    pub const CLAIM_FEE: [u8; 8] = [169, 32, 79, 137, 136, 232, 70, 137];
+    pub const CLAIM_FEE2: [u8; 8] = [112, 191, 101, 171, 28, 144, 127, 187];
+    pub const CLOSE_POSITION: [u8; 8] = [123, 134, 81, 0, 49, 68, 98, 98];
+    pub const CLOSE_POSITION2: [u8; 8] = [174, 90, 35, 115, 186, 40, 147, 226];
+    pub const INITIALIZE_BIN_ARRAY: [u8; 8] = [35, 86, 19, 185, 78, 212, 75, 211];
+    pub const INITIALIZE_LB_PAIR: [u8; 8] = [45, 154, 237, 210, 221, 15, 166, 92];
+    pub const INITIALIZE_LB_PAIR2: [u8; 8] = [73, 59, 36, 120, 237, 83, 108, 198];
+    pub const INITIALIZE_POSITION: [u8; 8] = [219, 192, 234, 71, 190, 191, 102, 80];
+    pub const INITIALIZE_POSITION2: [u8; 8] = [143, 19, 242, 145, 213, 15, 104, 115];
+    pub const INITIALIZE_POSITION_PDA: [u8; 8] = [46, 82, 125, 146, 85, 141, 228, 153];
+    pub const REMOVE_LIQUIDITY: [u8; 8] = [80, 85, 209, 72, 24, 206, 177, 108];
+    pub const REMOVE_LIQUIDITY2: [u8; 8] = [230, 215, 82, 127, 241, 101, 227, 146];
+    pub const SWAP: [u8; 8] = [248, 198, 158, 145, 225, 117, 135, 200];
+    pub const SWAP2: [u8; 8] = [65, 75, 63, 76, 235, 91, 91, 136];
+    pub const SWAP_EXACT_OUT: [u8; 8] = [250, 73, 101, 33, 38, 207, 75, 184];
+    pub const SWAP_EXACT_OUT2: [u8; 8] = [43, 215, 247, 132, 137, 60, 243, 81];
+    pub const SWAP_WITH_PRICE_IMPACT: [u8; 8] = [56, 173, 230, 208, 173, 228, 156, 205];
+    pub const SWAP_WITH_PRICE_IMPACT2: [u8; 8] = [74, 98, 192, 214, 177, 51, 75, 51];
+}
+
+/// Meteora DLMM 程序 ID (使用常量)
+pub const PROGRAM_ID_PUBKEY: Pubkey = program_ids::METEORA_DLMM_PROGRAM_ID;
+
+/// Validate the fixed swap layout and Borsh remaining-account slices without allocation.
+/// Extra trailing data/accounts are allowed, as with Anchor argument decoding.
+pub(crate) fn validate_swap_layout(data: &[u8], account_count: usize) -> Option<usize> {
+    use discriminators::*;
+    let disc: [u8; 8] = data.get(..8)?.try_into().ok()?;
+    let (v2, price_impact) = match disc {
+        SWAP | SWAP_EXACT_OUT => (false, false),
+        SWAP2 | SWAP_EXACT_OUT2 => (true, false),
+        SWAP_WITH_PRICE_IMPACT => (false, true),
+        SWAP_WITH_PRICE_IMPACT2 => (true, true),
+        _ => return None,
+    };
+    let fixed = if v2 { 16 } else { 15 };
+    let remaining = account_count.checked_sub(fixed)?;
+    let args_end = if price_impact {
+        let option_size = match data.get(16)? {
+            0 => 1,
+            1 => 5,
+            _ => return None,
+        };
+        16 + option_size + 2
+    } else {
+        24
+    };
+    data.get(..args_end)?;
+    if !v2 {
+        return Some(fixed);
+    }
+    let tail = data.get(args_end..)?;
+    let count = u32::from_le_bytes(tail.get(..4)?.try_into().ok()?) as usize;
+    let mut slices = tail.get(4..)?;
+    // Each slice needs at least an enum tag and a length. Bound work by wire size.
+    if count > slices.len() / 2 {
+        return None;
+    }
+    let mut used = 0usize;
+    for _ in 0..count {
+        let enum_size = match slices.first()? {
+            0 | 1 | 2 | 4 => 1,
+            3 => 2,
+            _ => return None,
+        };
+        let length = *slices.get(enum_size)? as usize;
+        used = used.checked_add(length)?;
+        if used > remaining {
+            return None;
+        }
+        slices = slices.get(enum_size + 1..)?;
+    }
+    Some(fixed + used)
+}
+
+/// 主要的 Meteora DLMM 指令解析函数
+pub fn parse_instruction(
+    instruction_data: &[u8],
+    accounts: &[Pubkey],
+    signature: Signature,
+    slot: u64,
+    tx_index: u64,
+    block_time_us: Option<i64>,
+) -> Option<DexEvent> {
+    if instruction_data.len() < 8 {
+        return None;
+    }
+
+    let discriminator: [u8; 8] = instruction_data[..8].try_into().ok()?;
+    let data = &instruction_data[8..];
+
+    let bins_start = if matches!(
+        discriminator,
+        discriminators::SWAP
+            | discriminators::SWAP2
+            | discriminators::SWAP_EXACT_OUT
+            | discriminators::SWAP_EXACT_OUT2
+            | discriminators::SWAP_WITH_PRICE_IMPACT
+            | discriminators::SWAP_WITH_PRICE_IMPACT2
+    ) {
+        Some(validate_swap_layout(instruction_data, accounts.len())?)
+    } else {
+        None
+    };
+
+    let mut event = match discriminator {
+        discriminators::INITIALIZE_LB_PAIR => parse_initialize_lb_pair_instruction(
+            data,
+            accounts,
+            signature,
+            slot,
+            tx_index,
+            block_time_us,
+        ),
+        discriminators::INITIALIZE_LB_PAIR2 => parse_initialize_lb_pair2_instruction(
+            data,
+            accounts,
+            signature,
+            slot,
+            tx_index,
+            block_time_us,
+        ),
+        discriminators::INITIALIZE_BIN_ARRAY => parse_initialize_bin_array_instruction(
+            data,
+            accounts,
+            signature,
+            slot,
+            tx_index,
+            block_time_us,
+        ),
+        discriminators::ADD_LIQUIDITY => {
+            parse_add_liquidity_instruction(accounts, 11, signature, slot, tx_index, block_time_us)
+        }
+        discriminators::ADD_LIQUIDITY2 => {
+            parse_add_liquidity_instruction(accounts, 9, signature, slot, tx_index, block_time_us)
+        }
+        discriminators::REMOVE_LIQUIDITY => parse_remove_liquidity_instruction(
+            accounts,
+            11,
+            signature,
+            slot,
+            tx_index,
+            block_time_us,
+        ),
+        discriminators::REMOVE_LIQUIDITY2 => parse_remove_liquidity_instruction(
+            accounts,
+            9,
+            signature,
+            slot,
+            tx_index,
+            block_time_us,
+        ),
+        discriminators::INITIALIZE_POSITION | discriminators::INITIALIZE_POSITION2 => {
+            parse_initialize_position_instruction(
+                data,
+                accounts,
+                1,
+                2,
+                3,
+                signature,
+                slot,
+                tx_index,
+                block_time_us,
+            )
+        }
+        discriminators::INITIALIZE_POSITION_PDA => parse_initialize_position_instruction(
+            data,
+            accounts,
+            2,
+            3,
+            4,
+            signature,
+            slot,
+            tx_index,
+            block_time_us,
+        ),
+        discriminators::SWAP | discriminators::SWAP2 => {
+            parse_swap_instruction(data, accounts, signature, slot, tx_index, block_time_us)
+        }
+        discriminators::SWAP_EXACT_OUT | discriminators::SWAP_EXACT_OUT2 => {
+            parse_swap_exact_out_instruction(
+                data,
+                accounts,
+                signature,
+                slot,
+                tx_index,
+                block_time_us,
+            )
+        }
+        discriminators::SWAP_WITH_PRICE_IMPACT | discriminators::SWAP_WITH_PRICE_IMPACT2 => {
+            parse_swap_with_price_impact_instruction(
+                data,
+                accounts,
+                signature,
+                slot,
+                tx_index,
+                block_time_us,
+            )
+        }
+        discriminators::CLAIM_FEE => {
+            parse_claim_fee_instruction(accounts, 4, signature, slot, tx_index, block_time_us)
+        }
+        discriminators::CLAIM_FEE2 => {
+            parse_claim_fee_instruction(accounts, 2, signature, slot, tx_index, block_time_us)
+        }
+        discriminators::CLOSE_POSITION => parse_close_position_instruction(
+            accounts,
+            Some(1),
+            4,
+            signature,
+            slot,
+            tx_index,
+            block_time_us,
+        ),
+        discriminators::CLOSE_POSITION2 => parse_close_position_instruction(
+            accounts,
+            None,
+            1,
+            signature,
+            slot,
+            tx_index,
+            block_time_us,
+        ),
+        _ => None,
+    }?;
+    if let DexEvent::MeteoraDlmmSwap(swap) = &mut event {
+        let bins_start = bins_start?;
+        let v2 = matches!(
+            discriminator,
+            discriminators::SWAP2
+                | discriminators::SWAP_EXACT_OUT2
+                | discriminators::SWAP_WITH_PRICE_IMPACT2
+        );
+        crate::core::account_fillers::meteora::fill_dlmm_swap_accounts_with_layout(
+            swap,
+            &|i| accounts.get(i).copied().unwrap_or_default(),
+            bins_start,
+            accounts.len(),
+            v2,
+        );
+    }
+    Some(event)
+}
+
+/// Parse an `initialize_lb_pair2` instruction.
+fn parse_initialize_lb_pair2_instruction(
+    data: &[u8],
+    accounts: &[Pubkey],
+    signature: Signature,
+    slot: u64,
+    tx_index: u64,
+    block_time_us: Option<i64>,
+) -> Option<DexEvent> {
+    let active_id = read_i32_le(data, 0)?;
+    let pool = get_account(accounts, 0)?;
+    let metadata = create_metadata_simple(signature, slot, tx_index, block_time_us, pool);
+
+    Some(DexEvent::MeteoraDlmmInitializePool(MeteoraDlmmInitializePoolEvent {
+        metadata,
+        pool,
+        creator: get_account(accounts, 8).unwrap_or_default(),
+        active_bin_id: active_id,
+        bin_step: 0,
+    }))
+}
+
+/// 解析初始化LB池指令
+fn parse_initialize_lb_pair_instruction(
+    data: &[u8],
+    accounts: &[Pubkey],
+    signature: Signature,
+    slot: u64,
+    tx_index: u64,
+    block_time_us: Option<i64>,
+) -> Option<DexEvent> {
+    let mut offset = 0;
+
+    let active_id = read_i32_le(data, offset)?;
+    offset += 4;
+
+    let bin_step = read_u16_le(data, offset)?;
+
+    let pool = get_account(accounts, 0)?;
+    let metadata = create_metadata_simple(signature, slot, tx_index, block_time_us, pool);
+
+    Some(DexEvent::MeteoraDlmmInitializePool(MeteoraDlmmInitializePoolEvent {
+        metadata,
+        pool,
+        creator: get_account(accounts, 8).unwrap_or_default(),
+        active_bin_id: active_id,
+        bin_step,
+    }))
+}
+
+/// 解析初始化Bin数组指令
+fn parse_initialize_bin_array_instruction(
+    data: &[u8],
+    accounts: &[Pubkey],
+    signature: Signature,
+    slot: u64,
+    tx_index: u64,
+    block_time_us: Option<i64>,
+) -> Option<DexEvent> {
+    let index = read_i64_le(data, 0)?;
+
+    let pool = get_account(accounts, 0)?;
+    let metadata = create_metadata_simple(signature, slot, tx_index, block_time_us, pool);
+
+    Some(DexEvent::MeteoraDlmmInitializeBinArray(MeteoraDlmmInitializeBinArrayEvent {
+        metadata,
+        pool,
+        bin_array: get_account(accounts, 1).unwrap_or_default(),
+        index,
+    }))
+}
+
+/// 解析添加流动性指令
+fn parse_add_liquidity_instruction(
+    accounts: &[Pubkey],
+    sender_index: usize,
+    signature: Signature,
+    slot: u64,
+    tx_index: u64,
+    block_time_us: Option<i64>,
+) -> Option<DexEvent> {
+    let pool = get_account(accounts, 1)?;
+    let metadata = create_metadata_simple(signature, slot, tx_index, block_time_us, pool);
+
+    Some(DexEvent::MeteoraDlmmAddLiquidity(MeteoraDlmmAddLiquidityEvent {
+        metadata,
+        pool,
+        from: get_account(accounts, sender_index)?,
+        position: get_account(accounts, 0).unwrap_or_default(),
+        amounts: [0, 0],
+        active_bin_id: 0,
+    }))
+}
+
+/// 解析移除流动性指令
+fn parse_remove_liquidity_instruction(
+    accounts: &[Pubkey],
+    sender_index: usize,
+    signature: Signature,
+    slot: u64,
+    tx_index: u64,
+    block_time_us: Option<i64>,
+) -> Option<DexEvent> {
+    let pool = get_account(accounts, 1)?;
+    let metadata = create_metadata_simple(signature, slot, tx_index, block_time_us, pool);
+
+    Some(DexEvent::MeteoraDlmmRemoveLiquidity(MeteoraDlmmRemoveLiquidityEvent {
+        metadata,
+        pool,
+        from: get_account(accounts, sender_index)?,
+        position: get_account(accounts, 0).unwrap_or_default(),
+        amounts: [0, 0],
+        active_bin_id: 0,
+    }))
+}
+
+/// 解析初始化头寸指令
+fn parse_initialize_position_instruction(
+    data: &[u8],
+    accounts: &[Pubkey],
+    position_index: usize,
+    pool_index: usize,
+    owner_index: usize,
+    signature: Signature,
+    slot: u64,
+    tx_index: u64,
+    block_time_us: Option<i64>,
+) -> Option<DexEvent> {
+    let mut offset = 0;
+
+    let lower_bin_id = read_i32_le(data, offset)?;
+    offset += 4;
+
+    let width = u32::try_from(read_i32_le(data, offset)?).ok()?;
+
+    let pool = get_account(accounts, pool_index)?;
+    let metadata = create_metadata_simple(signature, slot, tx_index, block_time_us, pool);
+
+    Some(DexEvent::MeteoraDlmmCreatePosition(MeteoraDlmmCreatePositionEvent {
+        metadata,
+        pool,
+        position: get_account(accounts, position_index)?,
+        owner: get_account(accounts, owner_index)?,
+        lower_bin_id,
+        width,
+    }))
+}
+
+/// 解析交换指令
+fn parse_swap_instruction(
+    data: &[u8],
+    accounts: &[Pubkey],
+    signature: Signature,
+    slot: u64,
+    tx_index: u64,
+    block_time_us: Option<i64>,
+) -> Option<DexEvent> {
+    if data.len() < 16 {
+        return None;
+    }
+    let amount_in = read_u64_le(data, 0)?;
+    let min_amount_out = read_u64_le(data, 8)?;
+
+    let pool = get_account(accounts, 0)?;
+    let metadata = create_metadata_simple(signature, slot, tx_index, block_time_us, pool);
+
+    let event = MeteoraDlmmSwapEvent {
+        metadata,
+        token_x_mint: Pubkey::default(),
+        token_y_mint: Pubkey::default(),
+        user_token_in: get_account(accounts, 4).unwrap_or_default(),
+        user_token_out: get_account(accounts, 5).unwrap_or_default(),
+        min_amount_out,
+        pool,
+        from: get_account(accounts, 10).unwrap_or_default(),
+        start_bin_id: 0,
+        end_bin_id: 0,
+        amount_in,
+        amount_out: 0,
+        swap_for_y: false,
+        fee: 0,
+        protocol_fee: 0,
+        fee_bps: 0,
+        host_fee: 0,
+        ..Default::default()
+    };
+    Some(DexEvent::MeteoraDlmmSwap(event))
+}
+
+fn parse_swap_exact_out_instruction(
+    data: &[u8],
+    accounts: &[Pubkey],
+    signature: Signature,
+    slot: u64,
+    tx_index: u64,
+    block_time_us: Option<i64>,
+) -> Option<DexEvent> {
+    let max_in_amount = read_u64_le(data, 0)?;
+    let out_amount = read_u64_le(data, 8)?;
+
+    let pool = get_account(accounts, 0)?;
+    let metadata = create_metadata_simple(signature, slot, tx_index, block_time_us, pool);
+
+    let event = MeteoraDlmmSwapEvent {
+        metadata,
+        token_x_mint: Pubkey::default(),
+        token_y_mint: Pubkey::default(),
+        user_token_in: get_account(accounts, 4).unwrap_or_default(),
+        user_token_out: get_account(accounts, 5).unwrap_or_default(),
+        min_amount_out: 0,
+        pool,
+        from: get_account(accounts, 10).unwrap_or_default(),
+        start_bin_id: 0,
+        end_bin_id: 0,
+        amount_in: max_in_amount,
+        amount_out: out_amount,
+        swap_for_y: false,
+        fee: 0,
+        protocol_fee: 0,
+        fee_bps: 0,
+        host_fee: 0,
+        ..Default::default()
+    };
+    Some(DexEvent::MeteoraDlmmSwap(event))
+}
+
+fn parse_swap_with_price_impact_instruction(
+    data: &[u8],
+    accounts: &[Pubkey],
+    signature: Signature,
+    slot: u64,
+    tx_index: u64,
+    block_time_us: Option<i64>,
+) -> Option<DexEvent> {
+    let option_size = match data.get(8).copied()? {
+        0 => 1,
+        1 => 5,
+        _ => return None,
+    };
+    if data.len() < 8 + option_size + 2 {
+        return None;
+    }
+    let amount_in = read_u64_le(data, 0)?;
+
+    let pool = get_account(accounts, 0)?;
+    let metadata = create_metadata_simple(signature, slot, tx_index, block_time_us, pool);
+
+    let event = MeteoraDlmmSwapEvent {
+        metadata,
+        token_x_mint: Pubkey::default(),
+        token_y_mint: Pubkey::default(),
+        user_token_in: get_account(accounts, 4).unwrap_or_default(),
+        user_token_out: get_account(accounts, 5).unwrap_or_default(),
+        min_amount_out: 0,
+        pool,
+        from: get_account(accounts, 10).unwrap_or_default(),
+        start_bin_id: 0,
+        end_bin_id: 0,
+        amount_in,
+        amount_out: 0,
+        swap_for_y: false,
+        fee: 0,
+        protocol_fee: 0,
+        fee_bps: 0,
+        host_fee: 0,
+        ..Default::default()
+    };
+    Some(DexEvent::MeteoraDlmmSwap(event))
+}
+
+/// 解析费用领取指令
+fn parse_claim_fee_instruction(
+    accounts: &[Pubkey],
+    owner_index: usize,
+    signature: Signature,
+    slot: u64,
+    tx_index: u64,
+    block_time_us: Option<i64>,
+) -> Option<DexEvent> {
+    let pool = get_account(accounts, 0)?;
+    let metadata = create_metadata_simple(signature, slot, tx_index, block_time_us, pool);
+
+    Some(DexEvent::MeteoraDlmmClaimFee(MeteoraDlmmClaimFeeEvent {
+        metadata,
+        pool,
+        position: get_account(accounts, 1).unwrap_or_default(),
+        owner: get_account(accounts, owner_index)?,
+        fee_x: 0,
+        fee_y: 0,
+    }))
+}
+
+/// 解析关闭头寸指令
+fn parse_close_position_instruction(
+    accounts: &[Pubkey],
+    pool_index: Option<usize>,
+    owner_index: usize,
+    signature: Signature,
+    slot: u64,
+    tx_index: u64,
+    block_time_us: Option<i64>,
+) -> Option<DexEvent> {
+    let position = get_account(accounts, 0)?;
+    let pool = pool_index.and_then(|index| get_account(accounts, index)).unwrap_or_default();
+    let metadata = create_metadata_simple(signature, slot, tx_index, block_time_us, pool);
+
+    Some(DexEvent::MeteoraDlmmClosePosition(MeteoraDlmmClosePositionEvent {
+        metadata,
+        pool,
+        position,
+        owner: get_account(accounts, owner_index)?,
+    }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn accounts(count: usize) -> Vec<Pubkey> {
+        (0..count).map(|_| Pubkey::new_unique()).collect()
+    }
+
+    fn instruction(discriminator: [u8; 8], payload: &[u8]) -> Vec<u8> {
+        let mut data = Vec::with_capacity(8 + payload.len());
+        data.extend_from_slice(&discriminator);
+        data.extend_from_slice(payload);
+        data
+    }
+
+    #[test]
+    fn exact_in_swap_exposes_threshold_without_claiming_executed_output() {
+        let accounts = accounts(20);
+        let amount_in = 15_256_451_464u64;
+        let min_amount_out = 1_152_138_244u64;
+        let mut payload = Vec::with_capacity(16);
+        payload.extend_from_slice(&amount_in.to_le_bytes());
+        payload.extend_from_slice(&min_amount_out.to_le_bytes());
+
+        for discriminator in [discriminators::SWAP, discriminators::SWAP2] {
+            let mut payload = payload.clone();
+            if discriminator == discriminators::SWAP2 {
+                payload.extend_from_slice(&0u32.to_le_bytes());
+            }
+            let event = parse_instruction(
+                &instruction(discriminator, &payload),
+                &accounts,
+                Signature::default(),
+                1,
+                0,
+                None,
+            )
+            .expect("swap");
+            let DexEvent::MeteoraDlmmSwap(event) = event else {
+                panic!("unexpected event");
+            };
+            assert_eq!(event.amount_in, amount_in);
+            assert_eq!(event.min_amount_out, min_amount_out);
+            assert_eq!(event.amount_out, 0);
+            assert_eq!(event.user_token_in, accounts[4]);
+            assert_eq!(event.user_token_out, accounts[5]);
+        }
+    }
+
+    #[test]
+    fn exact_out_swap_keeps_requested_output_separate_from_threshold() {
+        let accounts = accounts(20);
+        let max_in_amount = 500u64;
+        let out_amount = 400u64;
+        let mut payload = Vec::with_capacity(16);
+        payload.extend_from_slice(&max_in_amount.to_le_bytes());
+        payload.extend_from_slice(&out_amount.to_le_bytes());
+
+        for discriminator in [discriminators::SWAP_EXACT_OUT, discriminators::SWAP_EXACT_OUT2] {
+            let mut payload = payload.clone();
+            if discriminator == discriminators::SWAP_EXACT_OUT2 {
+                payload.extend_from_slice(&0u32.to_le_bytes());
+            }
+            let event = parse_instruction(
+                &instruction(discriminator, &payload),
+                &accounts,
+                Signature::default(),
+                1,
+                0,
+                None,
+            )
+            .expect("swap_exact_out");
+            let DexEvent::MeteoraDlmmSwap(event) = event else {
+                panic!("unexpected event");
+            };
+            assert_eq!(event.amount_in, max_in_amount);
+            assert_eq!(event.min_amount_out, 0);
+            assert_eq!(event.amount_out, out_amount);
+            assert_eq!(event.user_token_in, accounts[4]);
+            assert_eq!(event.user_token_out, accounts[5]);
+        }
+    }
+
+    #[test]
+    fn price_impact_swap_exposes_user_token_accounts() {
+        let accounts = accounts(20);
+        let mut payload = Vec::with_capacity(11);
+        payload.extend_from_slice(&500u64.to_le_bytes());
+        payload.push(0); // no active-id limit
+        payload.extend_from_slice(&25u16.to_le_bytes());
+
+        for discriminator in
+            [discriminators::SWAP_WITH_PRICE_IMPACT, discriminators::SWAP_WITH_PRICE_IMPACT2]
+        {
+            let mut payload = payload.clone();
+            if discriminator == discriminators::SWAP_WITH_PRICE_IMPACT2 {
+                payload.extend_from_slice(&0u32.to_le_bytes());
+            }
+            let event = parse_instruction(
+                &instruction(discriminator, &payload),
+                &accounts,
+                Signature::default(),
+                1,
+                0,
+                None,
+            )
+            .expect("swap_with_price_impact");
+            let DexEvent::MeteoraDlmmSwap(event) = event else {
+                panic!("unexpected event");
+            };
+            assert_eq!(event.user_token_in, accounts[4]);
+            assert_eq!(event.user_token_out, accounts[5]);
+        }
+    }
+
+    #[test]
+    fn versioned_account_layouts_use_idl_indices() {
+        let accounts = accounts(16);
+        let event = parse_instruction(
+            &instruction(discriminators::ADD_LIQUIDITY2, &[]),
+            &accounts,
+            Signature::default(),
+            1,
+            0,
+            None,
+        )
+        .expect("add_liquidity2");
+        let DexEvent::MeteoraDlmmAddLiquidity(event) = event else {
+            panic!("unexpected event");
+        };
+        assert_eq!(event.position, accounts[0]);
+        assert_eq!(event.pool, accounts[1]);
+        assert_eq!(event.from, accounts[9]);
+
+        let mut payload = Vec::new();
+        payload.extend_from_slice(&(-5i32).to_le_bytes());
+        payload.extend_from_slice(&10i32.to_le_bytes());
+        let event = parse_instruction(
+            &instruction(discriminators::INITIALIZE_POSITION_PDA, &payload),
+            &accounts,
+            Signature::default(),
+            1,
+            0,
+            None,
+        )
+        .expect("initialize_position_pda");
+        let DexEvent::MeteoraDlmmCreatePosition(event) = event else {
+            panic!("unexpected event");
+        };
+        assert_eq!(event.position, accounts[2]);
+        assert_eq!(event.pool, accounts[3]);
+        assert_eq!(event.owner, accounts[4]);
+    }
+
+    #[test]
+    fn close_position2_does_not_treat_rent_receiver_as_owner() {
+        let accounts = accounts(5);
+        let event = parse_instruction(
+            &instruction(discriminators::CLOSE_POSITION2, &[]),
+            &accounts,
+            Signature::default(),
+            1,
+            0,
+            None,
+        )
+        .expect("close_position2");
+        let DexEvent::MeteoraDlmmClosePosition(event) = event else {
+            panic!("unexpected event");
+        };
+        assert_eq!(event.position, accounts[0]);
+        assert_eq!(event.owner, accounts[1]);
+        assert_eq!(event.pool, Pubkey::default());
+    }
+}
+
+#[cfg(test)]
+mod review_swap_layout_regressions {
+    use super::*;
+
+    #[test]
+    fn all_swap_versions_require_complete_fixed_accounts_and_borsh_arguments() {
+        let keys: Vec<_> = (0..22).map(|_| Pubkey::new_unique()).collect();
+        for (disc, v2, price) in [
+            (discriminators::SWAP, false, false),
+            (discriminators::SWAP2, true, false),
+            (discriminators::SWAP_EXACT_OUT, false, false),
+            (discriminators::SWAP_EXACT_OUT2, true, false),
+            (discriminators::SWAP_WITH_PRICE_IMPACT, false, true),
+            (discriminators::SWAP_WITH_PRICE_IMPACT2, true, true),
+        ] {
+            for with_active_id in [false, true] {
+                let mut wire = disc.to_vec();
+                wire.extend_from_slice(&123u64.to_le_bytes());
+                if price {
+                    wire.push(u8::from(with_active_id));
+                    if with_active_id {
+                        wire.extend_from_slice(&(-17i32).to_le_bytes());
+                    }
+                    wire.extend_from_slice(&100u16.to_le_bytes());
+                } else {
+                    wire.extend_from_slice(&0u64.to_le_bytes());
+                }
+                let args_end = wire.len();
+                if v2 {
+                    wire.extend_from_slice(&0u32.to_le_bytes());
+                }
+                let required = if v2 { 16 } else { 15 };
+                let parse = |data: &[u8], count| {
+                    parse_instruction(data, &keys[..count], Signature::default(), 1, 0, None)
+                };
+                for count in 0..required {
+                    assert!(parse(&wire, count).is_none(), "count={count}");
+                }
+                for length in 0..wire.len() {
+                    assert!(parse(&wire[..length], keys.len()).is_none(), "length={length}");
+                }
+                for count in required..=keys.len() {
+                    let Some(DexEvent::MeteoraDlmmSwap(e)) = parse(&wire, count) else {
+                        panic!("valid layout");
+                    };
+                    assert_eq!(e.pool, keys[0]);
+                    assert_eq!(e.from, keys[10]);
+                    assert_eq!(e.amount_in, 123);
+                }
+                if price {
+                    let mut invalid = wire.clone();
+                    invalid[16] = 2;
+                    assert!(parse(&invalid, keys.len()).is_none());
+                }
+                if v2 {
+                    for tail in [
+                        vec![1, 0, 0, 0],
+                        vec![1, 0, 0, 0, 5, 0],
+                        vec![1, 0, 0, 0, 3, 0],
+                        vec![255, 255, 255, 255],
+                        vec![1, 0, 0, 0, 0, 7],
+                    ] {
+                        let mut invalid = wire[..args_end].to_vec();
+                        invalid.extend_from_slice(&tail);
+                        assert!(parse(&invalid, keys.len()).is_none(), "tail={tail:?}");
+                    }
+                    // All five enum variants, including MultiReward's payload byte.
+                    let mut valid = wire[..args_end].to_vec();
+                    valid.extend_from_slice(&5u32.to_le_bytes());
+                    valid.extend_from_slice(&[0, 1, 1, 1, 2, 1, 3, 9, 1, 4, 1]);
+                    assert!(parse(&valid, required + 5).is_some());
+                    assert!(parse(&valid, required + 4).is_none());
+                }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod review_hook_bins_regressions {
+    use super::*;
+    #[test]
+    fn v2_hooks_are_skipped_and_all_bin_arrays_are_preserved() {
+        for disc in [
+            discriminators::SWAP2,
+            discriminators::SWAP_EXACT_OUT2,
+            discriminators::SWAP_WITH_PRICE_IMPACT2,
+        ] {
+            let mut data = disc.to_vec();
+            data.extend_from_slice(&100u64.to_le_bytes());
+            if disc == discriminators::SWAP_WITH_PRICE_IMPACT2 {
+                data.extend_from_slice(&[0, 1, 0]);
+            } else {
+                data.extend_from_slice(&50u64.to_le_bytes());
+            }
+            data.extend_from_slice(&2u32.to_le_bytes());
+            data.extend_from_slice(&[0, 2, 1, 3]);
+            // Five hooks precede 20 bins. Layout comes from discriminator, not memo guessing.
+            let accounts: Vec<_> = (0..41).map(|_| Pubkey::new_unique()).collect();
+            let Some(DexEvent::MeteoraDlmmSwap(e)) =
+                parse_instruction(&data, &accounts, Signature::default(), 1, 0, None)
+            else {
+                panic!("swap");
+            };
+            assert_eq!(e.bin_arrays, accounts[21..]);
+            let Some(DexEvent::MeteoraDlmmSwap(e)) =
+                parse_instruction(&data, &accounts[..21], Signature::default(), 1, 0, None)
+            else {
+                panic!("swap");
+            };
+            assert!(e.bin_arrays.is_empty());
+        }
+    }
+}

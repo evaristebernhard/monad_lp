@@ -1,0 +1,3560 @@
+/**
+ * OHLC candlestick UI — built from TypeScript; compiles to public/app.js.
+ */
+
+import { renderTokenStats, renderTokenStatsEmpty, vybeBodyToTokenData } from './token-stats-render.js';
+
+interface CrosshairParam {
+  time?: number;
+  seriesData?: Map<unknown, { open?: number; high?: number; low?: number; close?: number }>;
+}
+
+declare const LightweightCharts: {
+  createChart: (container: HTMLElement, options?: unknown) => {
+    addCandlestickSeries: (options?: unknown) => {
+      setData: (data: Array<{ time: number; open: number; high: number; low: number; close: number }>) => void;
+      update: (bar: { time: number; open: number; high: number; low: number; close: number }) => void;
+    };
+    subscribeCrosshairMove: (callback: (param: CrosshairParam) => void) => void;
+    timeScale: () => {
+      subscribeVisibleLogicalRangeChange: (callback: (range: { from: number; to: number } | null) => void) => void;
+      setVisibleLogicalRange: (range: { from: number; to: number } | null) => void;
+      getVisibleLogicalRange: () => { from: number; to: number } | null;
+      fitContent: () => void;
+    };
+    resize: (width: number, height: number) => void;
+  };
+};
+
+interface VybeTrade {
+  authorityAddress?: string;
+  feePayerAddress?: string;
+  baseMintAddress?: string;
+  quoteMintAddress?: string;
+  marketAddress?: string;
+  programAddress?: string;
+  signature?: string;
+  blockTime?: number;
+  price?: string;
+  baseSize?: string;
+  quoteSize?: string;
+  [key: string]: unknown;
+}
+
+interface TradesResponse {
+  data?: VybeTrade[];
+  [key: string]: unknown;
+}
+
+interface VybeToken {
+  mintAddress: string;
+  symbol?: string;
+  name?: string;
+  logoUrl?: string;
+  decimal?: number;
+  decimals?: number;
+  verified?: boolean;
+  category?: string;
+  subcategory?: string;
+  price?: number;
+  marketCap?: number;
+  usdValueVolume24h?: number;
+  tokenAmountVolume24h?: number;
+  updateTime?: number;
+  holders?: number;
+  [key: string]: unknown;
+}
+
+interface TokenSymbolResponse {
+  symbol?: string;
+  error?: string;
+}
+
+interface Candle {
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume?: number;
+}
+
+/** Default candle window length: five days before `timeEnd`. */
+const DEFAULT_OHLC_LOOKBACK_SECONDS = 5 * 24 * 60 * 60;
+/** Default `timeEnd` is this many seconds before the current moment (avoids incomplete latest bar). */
+const DEFAULT_OHLC_END_BEFORE_NOW_SECONDS = 5 * 60;
+
+const mintAddressInput = document.getElementById('mintAddress') as HTMLInputElement;
+const timeStartInput = document.getElementById('timeStart') as HTMLInputElement;
+const timeEndInput = document.getElementById('timeEnd') as HTMLInputElement;
+const limitSelect = document.getElementById('limit') as HTMLSelectElement;
+const sortSelect = document.getElementById('sort') as HTMLSelectElement;
+const pageFromInput = document.getElementById('pageFrom') as HTMLInputElement;
+const pageToInput = document.getElementById('pageTo') as HTMLInputElement;
+const eliminateCloseToOpenGapsCheckbox = document.getElementById('eliminateCloseToOpenGaps') as HTMLInputElement | null;
+const maxPagesInput = document.getElementById('maxPages') as HTMLInputElement | null;
+
+const fetchBtn = document.getElementById('fetchBtn') as HTMLButtonElement;
+const fetchBtnText = document.getElementById('fetchBtnText') as HTMLElement | null;
+const exportBtn = document.getElementById('exportBtn') as HTMLButtonElement;
+const exportAllBtn = document.getElementById('exportAllBtn') as HTMLButtonElement;
+const loadingIndicator = document.getElementById('loadingIndicator') as HTMLElement;
+const tradesLoading = document.getElementById('tradesLoading') as HTMLElement;
+const tradesLoadingText = document.getElementById('tradesLoadingText') as HTMLElement | null;
+
+
+const localProgramInput = document.getElementById('localProgram') as HTMLInputElement | null;
+const localSignatureInput = document.getElementById('localSignature') as HTMLInputElement | null;
+const localFeePayerInput = document.getElementById('localFeePayer') as HTMLInputElement;
+const localAuthorityInput = document.getElementById('localAuthority') as HTMLInputElement;
+const authorityEqualsFeePayerCheckbox = document.getElementById('authorityEqualsFeePayer') as HTMLInputElement;
+const filterWicksCheckbox = document.getElementById('filterWicks') as HTMLInputElement | null;
+const wickLookbackInput = document.getElementById('wickLookback') as HTMLInputElement | null;
+const wickDeviationPctInput = document.getElementById('wickDeviationPct') as HTMLInputElement | null;
+const perQuoteFiltersContainer = document.getElementById('perQuoteFiltersContainer') as HTMLElement;
+
+let wickFilteredTradesByQuote = new Map<string, VybeTrade[]>();
+
+const tradesError = document.getElementById('tradesError') as HTMLElement;
+const tradesMeta = document.getElementById('tradesMeta') as HTMLElement;
+const tradesSummaryEl = document.getElementById('tradesSummary') as HTMLElement | null;
+const tradesSummaryCountEl = document.getElementById('tradesSummaryCount') as HTMLElement | null;
+const tradesSummaryProgramsEl = document.getElementById('tradesSummaryPrograms') as HTMLElement | null;
+const tradesSummaryMarketsEl = document.getElementById('tradesSummaryMarkets') as HTMLElement | null;
+const tradesSummaryQuotesEl = document.getElementById('tradesSummaryQuotes') as HTMLElement | null;
+const tradesSummaryTimeEl = document.getElementById('tradesSummaryTime') as HTMLElement | null;
+const tradesBody = document.getElementById('tradesBody') as HTMLElement;
+const tradesTable = document.getElementById('tradesTable') as HTMLTableElement | null;
+
+const summaryLoading = document.getElementById('summaryLoading') as HTMLElement;
+const summaryError = document.getElementById('summaryError') as HTMLElement;
+const summaryTitle = document.getElementById('summaryTitle') as HTMLElement;
+const summaryMeta = document.getElementById('summaryMeta') as HTMLElement;
+const topProgramsBody = document.getElementById('topProgramsBody') as HTMLElement;
+const topMarketsBody = document.getElementById('topMarketsBody') as HTMLElement;
+const topQuotesBody = document.getElementById('topQuotesBody') as HTMLElement;
+const topProgramsTitle = document.getElementById('topProgramsTitle') as HTMLElement | null;
+const topMarketsTitle = document.getElementById('topMarketsTitle') as HTMLElement | null;
+const topQuotesTitle = document.getElementById('topQuotesTitle') as HTMLElement | null;
+
+const SUMMARY_TOP_MAX = 5;
+
+function summaryBoxTitle(label: string, itemCount: number): string {
+  const n = itemCount > 0 ? itemCount : SUMMARY_TOP_MAX;
+  return `${label} (Top ${n})`;
+}
+
+function updateSummaryBoxTitles(programs: number, markets: number, quotes: number): void {
+  if (topProgramsTitle) topProgramsTitle.textContent = summaryBoxTitle('Programs', programs);
+  if (topMarketsTitle) topMarketsTitle.textContent = summaryBoxTitle('Markets / Pools', markets);
+  if (topQuotesTitle) topQuotesTitle.textContent = summaryBoxTitle('Quote mints', quotes);
+}
+
+/** Empty trades table skeleton (stable layout before fetch). */
+const TRADES_PLACEHOLDER_ROW_COUNT = 20;
+
+const TRADES_PLACEHOLDER_ROW_HTML =
+  '<tr class="trades-placeholder-row"><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="authority-fee-payer-single">—</td><td>—</td><td>—</td></tr>';
+
+function buildTradesPlaceholderRowsHtml(): string {
+  return Array.from({ length: TRADES_PLACEHOLDER_ROW_COUNT }, () => TRADES_PLACEHOLDER_ROW_HTML).join('');
+}
+
+/** Empty summary mini-tables (stable layout before fetch). */
+const TOP_SUMMARY_PLACEHOLDER_ROW_COUNT = 5;
+
+const TOP_PROGRAMS_PLACEHOLDER_ROW_HTML =
+  '<tr class="summary-placeholder-row"><td>—</td><td class="summary-cell-stat">—</td><td class="summary-cell-stat">—</td><td class="summary-cell-count">—</td></tr>';
+
+const TOP_MARKETS_PLACEHOLDER_ROW_HTML =
+  '<tr class="summary-placeholder-row"><td>—</td><td>—</td><td>—</td><td class="summary-cell-count">—</td></tr>';
+
+const TOP_QUOTES_PLACEHOLDER_ROW_HTML =
+  '<tr class="summary-placeholder-row"><td>—</td><td>—</td><td class="summary-cell-stat">—</td><td class="summary-cell-stat">—</td><td class="summary-cell-count">—</td></tr>';
+
+function buildTopProgramsPlaceholderRowsHtml(): string {
+  return Array.from({ length: TOP_SUMMARY_PLACEHOLDER_ROW_COUNT }, () => TOP_PROGRAMS_PLACEHOLDER_ROW_HTML).join('');
+}
+
+function buildTopMarketsPlaceholderRowsHtml(): string {
+  return Array.from({ length: TOP_SUMMARY_PLACEHOLDER_ROW_COUNT }, () => TOP_MARKETS_PLACEHOLDER_ROW_HTML).join('');
+}
+
+function buildTopQuotesPlaceholderRowsHtml(): string {
+  return Array.from({ length: TOP_SUMMARY_PLACEHOLDER_ROW_COUNT }, () => TOP_QUOTES_PLACEHOLDER_ROW_HTML).join('');
+}
+
+const tokenLoading = document.getElementById('tokenLoading') as HTMLElement;
+const tokenError = document.getElementById('tokenError') as HTMLElement;
+const tokenSymbol = document.getElementById('tokenSymbol') as HTMLElement;
+const tokenName = document.getElementById('tokenName') as HTMLElement;
+
+
+const candlesLoading = document.getElementById('candlesLoading') as HTMLElement | null;
+const candlesLoadingText = document.getElementById('candlesLoadingText') as HTMLElement | null;
+const candlesError = document.getElementById('candlesError') as HTMLElement | null;
+const candlesResolutionSelect = document.getElementById('candlesResolution') as HTMLSelectElement | null;
+const candlesSourceSelect = document.getElementById('candlesSourceSelect') as HTMLSelectElement | null;
+const candlesMarketAddressInput = document.getElementById('candlesMarketAddress') as HTMLInputElement | null;
+const candlesMarketAddressWrap = document.getElementById('candlesMarketAddressWrap') as HTMLElement | null;
+const tokenMintWrap = document.getElementById('tokenMintWrap') as HTMLElement | null;
+const candlesPagesInput = document.getElementById('candlesPages') as HTMLSelectElement | null;
+const candlesPagesWrap = document.getElementById('candlesPagesWrap') as HTMLElement | null;
+const candlesPagesProgress = document.getElementById('candlesPagesProgress') as HTMLElement | null;
+const chartQuotesWrap = document.getElementById('chartQuotesWrap') as HTMLElement | null;
+const chartQuoteSelect = document.getElementById('chartQuoteSelect') as HTMLSelectElement | null;
+const perQuoteSectionEl = document.getElementById('perQuoteSection');
+const rebuildLoading = document.getElementById('rebuildLoading') as HTMLElement | null;
+const rebuildLoadingText = document.getElementById('rebuildLoadingText') as HTMLElement | null;
+const localNoGapsTarget = document.getElementById('localNoGapsTarget');
+const remoteNoGapsTarget = document.getElementById('remoteNoGapsTarget');
+const noGapsSwitchWrap = document.getElementById('noGapsSwitchWrap');
+const candlesChartEl = document.getElementById('candlesChart') as HTMLElement | null;
+
+/** Vybe explorer: wallet links only (vybe.fyi supports wallets, not markets/programs/mints). */
+const VYBE_ACCOUNT = 'https://vybe.fyi/wallet/';
+/** Solscan for transactions, markets, programs, and token/mint accounts. */
+const SOLSCAN_TX = 'https://solscan.io/tx/';
+const SOLSCAN_ACCOUNT = 'https://solscan.io/account/';
+
+const MAX_FETCH_RETRIES = 5;
+const FETCH_RETRY_DELAY_MS = 2000;
+
+let lastRemoteTrades: VybeTrade[] = [];
+let lastFilteredTrades: VybeTrade[] = [];
+/** Bumped on each fetch so in-flight summary refresh skips stale runs. */
+let tradeFetchGeneration = 0;
+// Local-filtered trades excluding per-quote rules. Used to keep the per-quote table stable while tweaking per-quote min/max.
+let lastFilteredTradesForPerQuote: VybeTrade[] = [];
+let lastBaseSymbol: string | undefined;
+const quoteSymbolCache: Record<string, string> = {};
+const programLabelCache: Record<string, string> = {};
+/** Per-quote-mint filter rules (key = quote mint address). Empty max = no cap. */
+const perQuoteRules: Record<string, { minQuoteSize?: number; maxQuoteSize?: number; minPrice?: number; maxPrice?: number }> = {};
+/** Persist per-quote table expanded/collapsed state across rebuilds. */
+let perQuoteExpanded = false;
+/** Quote mints excluded via per-quote table checkbox. */
+const excludedQuoteMints = new Set<string>();
+/** Market (pool) addresses excluded via per-quote sub-row checkbox. */
+const excludedMarkets = new Set<string>();
+/** Quote mint -> market addresses (for that quote). Updated in buildLocalFilterRows so we can include a quote's markets when user unchecks the quote. */
+let lastQuoteToMarketsList = new Map<string, string[]>();
+/** Market address -> quote mint (parent quote). So when user includes a market we can also include its quote. */
+let lastMarketToQuote = new Map<string, string>();
+
+let candlesChart:
+  | {
+      resize: (width: number, height: number) => void;
+      addCandlestickSeries: (options?: unknown) => { setData: (data: Candle[]) => void; update: (bar: { time: number; open: number; high: number; low: number; close: number }) => void };
+      subscribeCrosshairMove: (callback: (param: CrosshairParam) => void) => void;
+      timeScale: () => {
+        subscribeVisibleLogicalRangeChange: (callback: (range: { from: number; to: number } | null) => void) => void;
+        setVisibleLogicalRange: (range: { from: number; to: number } | null) => void;
+        getVisibleLogicalRange: () => { from: number; to: number } | null;
+        fitContent: () => void;
+      };
+    }
+  | null = null;
+let candlesSeries: { setData: (data: Candle[]) => void; update: (bar: { time: number; open: number; high: number; low: number; close: number }) => void } | null = null;
+let lastCandlesFromApi: Candle[] = [];
+let lastCandlesFromTrades: Candle[] = [];
+/** Number of bars currently on the chart; used to clamp scroll so we can't scroll past the oldest candle. */
+let candlesBarCount = 0;
+/** Current candles on chart; used for overlay lookup by time on crosshair move. */
+let lastCandlesForTooltip: Candle[] = [];
+const candlesChartOverlay = document.getElementById('candlesChartOverlay') as HTMLElement | null;
+
+const STABLE_QUOTE_SYMBOLS = new Set(['USD', 'USDC', 'USDT', 'PYUSD', 'USD1']);
+
+/** Hardcoded mint → symbol; never fetch these from API. */
+const HARDCODED_QUOTE_MINTS: Record<string, string> = {
+  So11111111111111111111111111111111111111112: 'wSOL',
+  EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v: 'USDC',
+  Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB: 'USDT',
+  USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX: 'USDH',
+};
+
+/** Quote mints we use for candle price (USD-stable). Same five as VYBE_OHLC_FULL_ALLOWED_QUOTE_MINTS. */
+const CANDLE_QUOTE_MINTS = new Set<string>([
+  'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
+  'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', // USDT
+  '2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo', // PYUSD
+  'EVLXHuz4aM57CiqMhPgZpzurwBGvxeZBBAGSVFAfsmN', // USD1
+  'USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX', // USDH
+]);
+
+/** When "Vybe OHLC API (Full)" is selected, only trades in markets that have one of these mints (base or quote) are shown. */
+const VYBE_OHLC_FULL_ALLOWED_QUOTE_MINTS = new Set<string>([
+  'So11111111111111111111111111111111111111112', // wSOL
+  'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
+  'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', // USDT
+  '2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo', // PYUSD
+  'EVLXHuz4aM57CiqMhPgZpzurwBGvxeZBBAGSVFAfsmN', // USD1
+  'USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX', // USDH
+]);
+
+/** Chart quote options: up to 5 selectable. Default all selected. */
+const CHART_QUOTE_OPTIONS: { mint: string; label: string }[] = [
+  { mint: 'So11111111111111111111111111111111111111112', label: 'WSOL' },
+  { mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', label: 'USDC' },
+  { mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', label: 'USDT' },
+  { mint: 'EVLXHuz4aM57CiqMhPgZpzurwBGvxeZBBAGSVFAfsmN', label: 'USDT1' },
+  { mint: '2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo', label: 'USD1' },
+];
+function getSelectedChartQuoteMint(): string {
+  const v = chartQuoteSelect?.value?.trim();
+  if (v) return v;
+  return CHART_QUOTE_OPTIONS[0]!.mint;
+}
+
+/** Well-known DEX program IDs → label (used when labeled-program-account has no match). Matches token-stats repo. */
+const WELL_KNOWN_PROGRAMS: Record<string, string> = {
+  '675kPX9MHTjS2zt1qwr1sgbV5tjF6n5paF8GcaxHfL8r': 'Raydium',
+  '9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP': 'Orca',
+  '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P': 'Pump.fun',
+  'EewxydAPCCVuNEyrVN68PuSYdQ7wKn27V9Gje1wcB3NH': 'Orca (Whirlpool)',
+  'CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK': 'Raydium CLMM',
+  'CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C': 'Raydium CPMM',
+  'Gswppe6ERWKpUTXvRPfXdzHhiCyJvLadVvXGfdpBqcE1': 'Guac Swap',
+  'PhoeNiXZ8ByJGLkxNfZRnkUfjvmuYqLR89jjFHGqdXY': 'Phoenix',
+  'LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo': 'Meteora DLMM',
+  'cpamdpZCGKUy5JxQXB4dcpGPiikHawvSWAd6mEn1sGG': 'Meteora DAMM v2',
+  'swapFpHZwjELNnjvThjajtiVmkz3yPQEHjLtka2fwHW': 'Stabble',
+  'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA': 'Pump.fun AMM',
+  'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4': 'Jupiter',
+};
+
+let fetchClickedOnce = false;
+/** Only allow candle fetch/refresh after user has clicked Fetch Candles (or Fetch Trades for Candles). */
+let userHasClickedFetchCandles = false;
+
+// Draw attention to Fetch trades until first click.
+fetchBtn.classList.add('fetch-btn-attention');
+
+interface ProgramItem {
+  programAddress?: string;
+  name?: string;
+  label?: string;
+  labels?: string[];
+  symbol?: string;
+}
+
+function showInlineError(el: HTMLElement, msg: string): void {
+  el.textContent = msg;
+  el.hidden = false;
+  el.removeAttribute('aria-hidden');
+}
+
+function clearInlineError(el: HTMLElement): void {
+  el.textContent = '';
+  el.hidden = true;
+  el.setAttribute('aria-hidden', 'true');
+}
+
+function showError(msg: string): void {
+  tradesError.textContent = msg;
+  tradesError.hidden = false;
+  tradesError.removeAttribute('aria-hidden');
+}
+
+function clearError(): void {
+  tradesError.textContent = '';
+  tradesError.hidden = true;
+  tradesError.setAttribute('aria-hidden', 'true');
+}
+
+function truncate(s: string | undefined, front = 4, back = 4): string {
+  if (!s) return '—';
+  if (s.length <= front + back + 4) return s;
+  return s.slice(0, front) + '....' + s.slice(-back);
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function fmtNum(n: number, maxFrac: number): string {
+  return n.toLocaleString(undefined, { maximumFractionDigits: maxFrac });
+}
+
+/** For 0 < n < 0.1: at most 3 digits after the leading zeros (e.g. 0.002978518 → 0.00297). Returns null otherwise. */
+function fmtTrailingAfterZero(n: number): string | null {
+  const abs = Math.abs(n);
+  if (abs >= 0.1 || abs === 0) return null;
+  const s = abs.toFixed(10);
+  if (!s.startsWith('0.')) return null;
+  let i = 2;
+  while (i < s.length && s[i] === '0') i++;
+  if (i >= s.length) return (n < 0 ? '-' : '') + s;
+  const prefix = s.slice(0, i);
+  const threeDigits = s.slice(i, i + 3);
+  const result = (n < 0 ? '-' : '') + prefix + threeDigits;
+  return result;
+}
+
+/** For 0.1 <= n < 1: at most 3 decimal places, truncated (e.g. 0.147888131 → 0.147). Returns null otherwise. */
+function fmtPointOneToOne(n: number): string | null {
+  const abs = Math.abs(n);
+  if (abs < 0.1 || abs >= 1) return null;
+  const truncated = Math.floor(n * 1000) / 1000;
+  return truncated.toString();
+}
+
+function fmtMaybeNumber(v: unknown, maxFrac = 2): string {
+  const n = typeof v === 'number' ? v : Number(v);
+  if (!Number.isFinite(n)) return '—';
+  return fmtNum(n, maxFrac);
+}
+
+const SUPERSCRIPT_DIGITS = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+function toSuperscript(exp: number): string {
+  if (exp >= 0) return SUPERSCRIPT_DIGITS[exp] ?? String(exp);
+  const s = String(exp);
+  return '⁻' + s.slice(1).replace(/\d/g, (d) => SUPERSCRIPT_DIGITS[Number(d)] ?? d);
+}
+
+/** Compact form for small numbers: 0.0ⁿ + 3 digits, where ⁿ = number of zeros after 0.0 (e.g. 0.0⁸736). Returns null if not in range. */
+function fmtSmallNumber(n: number): string | null {
+  const abs = Math.abs(n);
+  if (abs === 0 || abs >= 0.001) return null;
+  const exp = Math.floor(Math.log10(abs));
+  const numZeros = -exp; // e.g. 10^-8 → 8 zeros after 0.0
+  const mantissa = n * 10 ** -exp;
+  const rounded = Math.round(mantissa * 100) / 100;
+  const digits = String(rounded.toFixed(2)).replace('.', '').replace(/0+$/, '');
+  return `0.0${toSuperscript(numZeros)}${digits}`;
+}
+
+function fmtUsd(v: unknown): string {
+  const n = typeof v === 'number' ? v : Number(v);
+  if (!Number.isFinite(n)) return '—';
+  const small = fmtSmallNumber(n);
+  if (small !== null) return `$${small}`;
+  const trailing = fmtTrailingAfterZero(n);
+  if (trailing !== null) return `$${trailing}`;
+  const pointOneToOne = fmtPointOneToOne(n);
+  if (pointOneToOne !== null) return `$${pointOneToOne}`;
+  const abs = Math.abs(n);
+  const maxFrac = abs >= 9.99 ? 0 : abs >= 1 ? 2 : 9;
+  return `$${fmtNum(n, maxFrac)}`;
+}
+
+function fmtTokenAmount(v: unknown): string {
+  const n = typeof v === 'number' ? v : Number(v);
+  if (!Number.isFinite(n)) return '—';
+  const small = fmtSmallNumber(n);
+  if (small !== null) return small;
+  const trailing = fmtTrailingAfterZero(n);
+  if (trailing !== null) return trailing;
+  const pointOneToOne = fmtPointOneToOne(n);
+  if (pointOneToOne !== null) return pointOneToOne;
+  const abs = Math.abs(n);
+  const maxFrac = abs >= 10 ? 0 : abs >= 1 ? 2 : 4;
+  return fmtNum(n, maxFrac);
+}
+
+function fmtPriceAmount(v: unknown): string {
+  const n = typeof v === 'number' ? v : Number(v);
+  if (!Number.isFinite(n)) return '—';
+  const small = fmtSmallNumber(n);
+  if (small !== null) return small;
+  const trailing = fmtTrailingAfterZero(n);
+  if (trailing !== null) return trailing;
+  const pointOneToOne = fmtPointOneToOne(n);
+  if (pointOneToOne !== null) return pointOneToOne;
+  const abs = Math.abs(n);
+  const maxFrac = abs >= 10 ? 0 : abs >= 1 ? 2 : 9;
+  return fmtNum(n, maxFrac);
+}
+
+/** Format volume: commas; if >= 100,000,000 use M/B/T then append symbol (e.g. "5.85B BONK"). */
+function formatVolumeWithSymbol(value: number, symbol: string): string {
+  if (!Number.isFinite(value)) return '—';
+  const sym = (symbol && symbol !== '—') ? ` ${symbol}` : '';
+  const abs = Math.abs(value);
+  if (abs >= 1e12) return (value / 1e12).toFixed(2).replace(/\.?0+$/, '') + 'T' + sym;
+  if (abs >= 1e9) return (value / 1e9).toFixed(2).replace(/\.?0+$/, '') + 'B' + sym;
+  if (abs >= 1e8) return (value / 1e6).toFixed(2).replace(/\.?0+$/, '') + 'M' + sym;
+  return Math.round(value).toLocaleString() + sym;
+}
+
+/** Format Unix seconds as time only (e.g. "14:32:00"). */
+function formatTimeOnly(unixSeconds: number): string {
+  if (!Number.isFinite(unixSeconds)) return '—';
+  const d = new Date(unixSeconds * 1000);
+  return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+}
+
+/** Format Unix seconds as date with 2-digit year (e.g. "13/03/26"). */
+function formatDateYY(unixSeconds: number): string {
+  if (!Number.isFinite(unixSeconds)) return '—';
+  const d = new Date(unixSeconds * 1000);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const yy = String(d.getFullYear()).slice(-2);
+  return `${day}/${month}/${yy}`;
+}
+
+/** Format Unix seconds as time first, then date with 2-digit year (e.g. "14:32 13/03/26"). */
+function formatTimeFirstDateYY(unixSeconds: number): string {
+  if (!Number.isFinite(unixSeconds)) return '—';
+  return `${formatTimeOnly(unixSeconds)} ${formatDateYY(unixSeconds)}`;
+}
+
+/** Pad O/H/L/C strings to same length with trailing zeros (after decimal). */
+function padOhlcToSameLength(open: string, high: string, low: string, close: string): { open: string; high: string; low: string; close: string } {
+  const arr = [open, high, low, close];
+  const maxDecimals = Math.max(
+    ...arr.map((s) => {
+      const i = s.indexOf('.');
+      return i === -1 ? 0 : s.length - i - 1;
+    })
+  );
+  const padOne = (s: string): string => {
+    const i = s.indexOf('.');
+    if (i === -1) return maxDecimals > 0 ? s + '.' + '0'.repeat(maxDecimals) : s;
+    const after = s.slice(i + 1);
+    return s + '0'.repeat(Math.max(0, maxDecimals - after.length));
+  };
+  return {
+    open: padOne(open),
+    high: padOne(high),
+    low: padOne(low),
+    close: padOne(close),
+  };
+}
+
+function formatPriceForChart(n: number): string {
+  if (!Number.isFinite(n)) return '0';
+  if (n === 0) return '0';
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '-' : '';
+  if (abs >= 1) {
+    const maxFrac = abs >= 100 ? 0 : abs >= 10 ? 2 : 4;
+    return sign + Math.abs(n).toFixed(maxFrac);
+  }
+  const s = abs.toFixed(12);
+  const dot = s.indexOf('.');
+  const afterDot = dot >= 0 ? s.slice(dot + 1) : '';
+  let zeros = 0;
+  for (const c of afterDot) {
+    if (c === '0') zeros++;
+    else break;
+  }
+  if (zeros >= afterDot.length) {
+    return sign + s.replace(/0+$/, '');
+  }
+  const firstNonZeroIndex = (dot >= 0 ? dot + 1 : 0) + zeros;
+  const end = Math.min(s.length, firstNonZeroIndex + 3);
+  const trimmed = s.slice(0, end).replace(/0+$/, '');
+  return sign + trimmed;
+}
+
+function quoteSymOrTrunc(quoteMint: string | undefined): string {
+  if (!quoteMint) return '—';
+  return quoteSymbolCache[quoteMint] || HARDCODED_QUOTE_MINTS[quoteMint] || truncate(quoteMint);
+}
+
+/** Show SOL instead of wSOL in the trades table. */
+function displaySymbol(sym: string): string {
+  return sym === 'wSOL' ? 'SOL' : sym;
+}
+
+/** Truncate symbol to first 5 characters (no ellipsis) for table display. */
+function symbolMax5(sym: string): string {
+  if (!sym) return sym;
+  return sym.length > 5 ? sym.slice(0, 5) : sym;
+}
+
+/** Wrap amount/price HTML: stables = light green, SOL = light purple. When NOT the analysed mint and symbol is other = light yellow value + yellow symbol. */
+function wrapAmountClass(html: string, sym: string, isAnalysedMint = false): string {
+  const d = displaySymbol(sym);
+  if (isStableQuoteSymbol(sym)) return `<span class="amount-usdc">${html}</span>`;
+  if (d === 'SOL') return `<span class="amount-sol">${html}</span>`;
+  if (isAnalysedMint) return html;
+  const lastSpace = html.lastIndexOf(' ');
+  if (lastSpace === -1) return `<span class="amount-other-value">${html}</span>`;
+  const valuePart = html.slice(0, lastSpace);
+  const symbolPart = html.slice(lastSpace + 1);
+  return `<span class="amount-other-value">${valuePart}</span> <span class="amount-other-symbol">${symbolPart}</span>`;
+}
+
+/** Outlined BUY/SELL chip (same style as wallet PnL assets gain column). */
+function renderTradeTypeChip(type: string): string {
+  const norm = type.trim().toLowerCase();
+  if (norm === 'buy') {
+    return '<span class="trade-type-chip trade-type-chip--buy"><span class="trade-type-side-icon trade-type-side-icon--buy" aria-hidden="true">▲</span>BUY</span>';
+  }
+  if (norm === 'sell') {
+    return '<span class="trade-type-chip trade-type-chip--sell"><span class="trade-type-side-icon trade-type-side-icon--sell" aria-hidden="true">▼</span>SELL</span>';
+  }
+  return type === '—' || !type ? '—' : escapeHtml(type);
+}
+
+/** Analysed-token amount from input (base) or output (quote), whichever side matches the mint. */
+function getAnalysedTokenAmount(t: VybeTrade, analysedMint: string): number | null {
+  if (!analysedMint) return null;
+  const baseMint = (t.baseMintAddress ?? '').trim();
+  const quoteMint = (t.quoteMintAddress ?? '').trim();
+  if (baseMint === analysedMint) {
+    const n = Number(t.baseSize);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  }
+  if (quoteMint === analysedMint) {
+    const n = Number(t.quoteSize);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  }
+  return null;
+}
+
+function computeAnalysedTokenVolumeRange(
+  trades: VybeTrade[],
+  analysedMint: string
+): { min: number; max: number } | null {
+  let min = Infinity;
+  let max = -Infinity;
+  let has = false;
+  for (const t of trades) {
+    const amt = getAnalysedTokenAmount(t, analysedMint);
+    if (amt == null) continue;
+    has = true;
+    if (amt < min) min = amt;
+    if (amt > max) max = amt;
+  }
+  return has ? { min, max } : null;
+}
+
+function volumePercentileFromAmount(amount: number, min: number, max: number): number {
+  if (max <= min) return 100;
+  return ((amount - min) / (max - min)) * 100;
+}
+
+/** Trade count per entity (pool, DEX, etc.) in the loaded set. */
+function computeEntityTradeCounts(
+  trades: VybeTrade[],
+  getKey: (t: VybeTrade) => string
+): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const t of trades) {
+    const key = getKey(t);
+    if (!key) continue;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return counts;
+}
+
+function minMaxFromEntityCounts(counts: Map<string, number>): { min: number; max: number } | null {
+  if (counts.size === 0) return null;
+  let min = Infinity;
+  let max = -Infinity;
+  for (const c of counts.values()) {
+    if (c < min) min = c;
+    if (c > max) max = c;
+  }
+  return { min, max };
+}
+
+/** Compact integer for TX count columns: 1194 → "1.2k", 1.1M, 2.5b. */
+function formatCompactCount(n: number): string {
+  if (!Number.isFinite(n)) return '—';
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '-' : '';
+  const trim = (s: string) => s.replace(/\.0$/, '');
+  if (abs >= 1e9) return `${sign}${trim((abs / 1e9).toFixed(1))}b`;
+  if (abs >= 1e6) return `${sign}${trim((abs / 1e6).toFixed(1))}m`;
+  if (abs >= 1000) return `${sign}${trim((abs / 1000).toFixed(1))}k`;
+  return `${sign}${Math.round(abs).toLocaleString()}`;
+}
+
+/** 1 bar = 0–20%, …, 5 bars = 80–100% of analysed-token amount in the loaded set. */
+function volumeBarsFromPercentile(percentile: number): number {
+  if (percentile >= 80) return 5;
+  if (percentile >= 60) return 4;
+  if (percentile >= 40) return 3;
+  if (percentile >= 20) return 2;
+  return 1;
+}
+
+const VOLUME_BAR_TIER_LABELS = ['0–20%', '20–40%', '40–60%', '60–80%', '80–100%'] as const;
+
+function renderTradeVolumeBars(type: string, bars: number, labelPrefix = 'Volume'): string {
+  const norm = type.trim().toLowerCase();
+  if (norm !== 'buy' && norm !== 'sell') return '';
+  if (bars < 1 || bars > 5) return '';
+  const tone = norm === 'buy' ? 'trade-volume-bars--buy' : 'trade-volume-bars--sell';
+  const tierLabel = VOLUME_BAR_TIER_LABELS[bars - 1];
+  const barHtml = Array.from({ length: 5 }, (_, i) =>
+    `<span class="trade-volume-bar${i < bars ? ' trade-volume-bar--active' : ''}"></span>`
+  ).join('');
+  return `<span class="trade-volume-bars ${tone}" aria-label="${labelPrefix} ${tierLabel}" title="${labelPrefix} ${tierLabel}">${barHtml}</span>`;
+}
+
+function renderColoredVolumeBars(bars: number, activeColor: string, labelPrefix = 'Volume'): string {
+  if (bars < 1 || bars > 5) return '';
+  const tierLabel = VOLUME_BAR_TIER_LABELS[bars - 1];
+  const barHtml = Array.from({ length: 5 }, (_, i) => {
+    const active = i < bars;
+    const style = active ? ` style="background:${activeColor}"` : '';
+    return `<span class="trade-volume-bar${active ? ' trade-volume-bar--active' : ''}"${style}></span>`;
+  }).join('');
+  return `<span class="trade-volume-bars" aria-label="${labelPrefix} ${tierLabel}" title="${labelPrefix} ${tierLabel}">${barHtml}</span>`;
+}
+
+const MARKET_TONE_BAR_COLORS: Record<string, string> = {
+  'amount-usdc': '#86efac',
+  'amount-sol': '#c4b5fd',
+  'market-other-yellow': '#facc15',
+  'market-pool-chip--neutral': '#a1a1aa',
+};
+
+function marketToneClassToBarColor(toneClass: string): string {
+  return MARKET_TONE_BAR_COLORS[toneClass] ?? '#a1a1aa';
+}
+
+function renderScopedFrequencyBars(
+  entityKey: string | undefined,
+  entityCounts: Map<string, number>,
+  countRange: { min: number; max: number } | null,
+  labelPrefix: string,
+  activeColor: string
+): string {
+  if (!entityKey || !countRange) return '';
+  const count = entityCounts.get(entityKey);
+  if (count == null || count === 0) return '';
+  const pct = volumePercentileFromAmount(count, countRange.min, countRange.max);
+  return renderColoredVolumeBars(volumeBarsFromPercentile(pct), activeColor, labelPrefix);
+}
+
+function wrapCellWithVolumeBars(mainHtml: string, barsHtml: string): string {
+  if (!mainHtml || mainHtml === '—') return mainHtml || '—';
+  if (!barsHtml) return mainHtml;
+  return `<span class="trades-cell-with-volume"><span class="trades-cell-with-volume__bars">${barsHtml}</span><span class="trades-cell-with-volume__main">${mainHtml}</span></span>`;
+}
+
+const AUTHORITY_TX_TIER_COLORS = {
+  low: '#22c55e',
+  mid: '#facc15',
+  high: '#fb923c',
+  veryHigh: '#ef4444',
+} as const;
+
+function authorityTxTierClass(count: number): string {
+  if (count <= 4) return 'authority-tx-tier--low';
+  if (count <= 10) return 'authority-tx-tier--mid';
+  if (count <= 20) return 'authority-tx-tier--high';
+  return 'authority-tx-tier--very-high';
+}
+
+function authorityTxTierColor(count: number): string {
+  if (count <= 4) return AUTHORITY_TX_TIER_COLORS.low;
+  if (count <= 10) return AUTHORITY_TX_TIER_COLORS.mid;
+  if (count <= 20) return AUTHORITY_TX_TIER_COLORS.high;
+  return AUTHORITY_TX_TIER_COLORS.veryHigh;
+}
+
+function wrapAuthorityTierText(html: string, tierClass: string): string {
+  if (!html || html === '—' || !tierClass) return html;
+  return `<span class="authority-tier-text ${tierClass}">${html}</span>`;
+}
+
+function renderAuthorityCountCell(
+  authorityKey: string,
+  authorityCounts: Map<string, number>,
+  authorityCountRange: { min: number; max: number } | null
+): string {
+  if (!authorityKey) return '—';
+  const count = authorityCounts.get(authorityKey);
+  if (count == null || count === 0) return '—';
+  const tierClass = authorityTxTierClass(count);
+  const barColor = authorityTxTierColor(count);
+  const countCompact = formatCompactCount(count);
+  const txLabel = count === 1 ? 'TX' : 'TXs';
+  const countMain = `<span class="authority-tx-count ${tierClass}"><span class="authority-tx-count-num">${countCompact}</span> <span class="authority-tx-count-label">${txLabel}</span></span>`;
+  const bars = renderScopedFrequencyBars(
+    authorityKey,
+    authorityCounts,
+    authorityCountRange,
+    'Authority frequency',
+    barColor
+  );
+  const inner = bars ? wrapCellWithVolumeBars(countMain, bars) : countMain;
+  return `<span class="authority-count-cell ${tierClass}">${inner}</span>`;
+}
+
+/** Outlined pool symbol chip in market column (stables / SOL / other colours unchanged). */
+function renderMarketPoolChip(symbol: string, toneClass: string): string {
+  const label = (symbol || '').trim();
+  if (!label || label === '—') return '';
+  const tone = toneClass || 'market-pool-chip--neutral';
+  return `<span class="market-pool-chip ${tone}">${escapeHtml(label)}</span>`;
+}
+
+function quoteSymbolToneClass(sym: string): string {
+  if (isStableQuoteSymbol(sym)) return 'amount-usdc';
+  if (displaySymbol(sym) === 'SOL') return 'amount-sol';
+  return 'market-other-yellow';
+}
+
+function renderQuoteSymbolChip(sym: string): string {
+  const label = (sym || '').trim();
+  if (!label || label === '—') return '—';
+  return renderMarketPoolChip(label, quoteSymbolToneClass(label));
+}
+
+const SUMMARY_BAR_TIER_COLORS = {
+  red: '#ef4444',
+  orange: '#fb923c',
+  yellow: '#facc15',
+  lightGreen: '#86efac',
+  green: '#22c55e',
+} as const;
+
+function summaryBarTierFromActiveBars(activeBars: number): { tierClass: string; color: string } {
+  if (activeBars <= 1) {
+    return { tierClass: 'summary-bar-tier--red', color: SUMMARY_BAR_TIER_COLORS.red };
+  }
+  if (activeBars === 2) {
+    return { tierClass: 'summary-bar-tier--orange', color: SUMMARY_BAR_TIER_COLORS.orange };
+  }
+  if (activeBars === 3) {
+    return { tierClass: 'summary-bar-tier--yellow', color: SUMMARY_BAR_TIER_COLORS.yellow };
+  }
+  if (activeBars === 4) {
+    return { tierClass: 'summary-bar-tier--light-green', color: SUMMARY_BAR_TIER_COLORS.lightGreen };
+  }
+  return { tierClass: 'summary-bar-tier--green', color: SUMMARY_BAR_TIER_COLORS.green };
+}
+
+function activeBarCountForEntity(
+  entityKey: string,
+  entityCounts: Map<string, number>,
+  countRange: { min: number; max: number } | null
+): number {
+  if (!entityKey || !countRange) return 0;
+  const entityCount = entityCounts.get(entityKey);
+  if (entityCount == null || entityCount === 0) return 0;
+  const pct = volumePercentileFromAmount(entityCount, countRange.min, countRange.max);
+  return volumeBarsFromPercentile(pct);
+}
+
+function renderSummaryCountCell(
+  entityKey: string,
+  count: number,
+  entityCounts: Map<string, number>,
+  countRange: { min: number; max: number } | null
+): string {
+  if (!entityKey || count <= 0) return '—';
+  const activeBars = activeBarCountForEntity(entityKey, entityCounts, countRange);
+  const { tierClass, color: barColor } = summaryBarTierFromActiveBars(activeBars || 1);
+  const countCompact = formatCompactCount(count);
+  const txLabel = count === 1 ? 'TX' : 'TXs';
+  const countMain = `<span class="summary-tx-count"><span class="summary-tx-count-num">${countCompact}</span> <span class="summary-tx-count-label">${txLabel}</span></span>`;
+  const bars =
+    activeBars > 0
+      ? renderColoredVolumeBars(activeBars, barColor, 'Trade count')
+      : '';
+  const inner = bars ? wrapCellWithVolumeBars(countMain, bars) : countMain;
+  return `<span class="summary-count-cell ${tierClass}">${inner}</span>`;
+}
+
+/** Market address text — tone colour only (no chip border/small font). */
+function renderMarketAddressLabel(text: string, toneClass: string): string {
+  const label = (text || '').trim();
+  if (!label || label === '—') return '';
+  const tone = toneClass || 'market-pool-chip--neutral';
+  return `<span class="market-address-label ${tone}">${escapeHtml(label)}</span>`;
+}
+
+const PROGRAM_DEX_CHIP_COLORS = [
+  '#60a5fa',
+  '#34d399',
+  '#f472b6',
+  '#a78bfa',
+  '#fb923c',
+  '#2dd4bf',
+  '#f87171',
+  '#e879f9',
+  '#38bdf8',
+  '#4ade80',
+  '#facc15',
+  '#c4b5fd',
+] as const;
+
+function programFullLabel(addr: string): string {
+  return (programLabelCache[addr] ?? WELL_KNOWN_PROGRAMS[addr] ?? addr).trim();
+}
+
+/** First word of program label — e.g. Raydium and Raydium CLMM share one colour group. */
+function programGroupKey(label: string): string {
+  const words = label.trim().split(/\s+/);
+  return (words[0] ?? label).toLowerCase();
+}
+
+function buildProgramGroupColorMap(trades: VybeTrade[]): Map<string, string> {
+  const keys = new Set<string>();
+  for (const t of trades) {
+    const addr = (t.programAddress ?? '').trim();
+    if (!addr) continue;
+    keys.add(programGroupKey(programFullLabel(addr)));
+  }
+  const sorted = [...keys].sort();
+  const map = new Map<string, string>();
+  sorted.forEach((key, i) => {
+    map.set(key, PROGRAM_DEX_CHIP_COLORS[i % PROGRAM_DEX_CHIP_COLORS.length]);
+  });
+  return map;
+}
+
+function renderProgramDexChip(addr: string | undefined, colorMap: Map<string, string>): string {
+  const a = (addr ?? '').trim();
+  if (!a) return '—';
+  const display = programDisplayLabel(a);
+  if (!display || display === '—') return '—';
+  const color = colorMap.get(programGroupKey(programFullLabel(a))) ?? '#a1a1aa';
+  const href = `${SOLSCAN_ACCOUNT}${encodeURIComponent(a)}`;
+  return `<a href="${href}" target="_blank" class="program-dex-chip-link" title="${escapeHtml(a)}"><span class="program-dex-chip" style="color:${color}">${escapeHtml(display)}</span></a>`;
+}
+
+function isStableQuoteSymbol(sym: string): boolean {
+  return STABLE_QUOTE_SYMBOLS.has(sym.toUpperCase());
+}
+
+function vybeLinkAccount(addr: string | undefined, text?: string): string {
+  if (!addr) return '—';
+  const href = VYBE_ACCOUNT + encodeURIComponent(addr);
+  const label = text ?? truncate(addr, 3, 3);
+  return `<a href="${href}" target="_blank" title="${addr}">${label}</a>`;
+}
+
+/** Solscan link for accounts (markets, programs, mints). Use vybeLinkAccount for wallets only. */
+function solscanLinkAccount(addr: string | undefined, text?: string): string {
+  if (!addr) return '—';
+  const href = SOLSCAN_ACCOUNT + encodeURIComponent(addr);
+  const label = text ?? truncate(addr, 3, 3);
+  return `<a href="${href}" target="_blank" title="${addr}">${label}</a>`;
+}
+
+function formatTimeParts(blockTime: number | undefined): { time: string; date: string } | null {
+  if (!blockTime) return null;
+  const d = new Date(blockTime * 1000);
+  const time = d.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  });
+  const weekday = d.toLocaleString('en-US', { weekday: 'short' }).replace(/\.$/, '');
+  const month = d.toLocaleString('en-US', { month: 'short' });
+  const day = d.getDate();
+  return { time, date: `${weekday} ${month} ${day}` };
+}
+
+function formatTime(blockTime: number | undefined): string {
+  const parts = formatTimeParts(blockTime);
+  return parts ? `${parts.time} ${parts.date}` : '—';
+}
+
+function formatTimeCellHtml(blockTime: number | undefined): string {
+  const parts = formatTimeParts(blockTime);
+  if (!parts) return '—';
+  return `<span class="trades-date-time">${escapeHtml(parts.time)}</span> ${escapeHtml(parts.date)}`;
+}
+
+function parseUnixSecondsFromDatetimeLocal(v: string): number | undefined {
+  const raw = (v ?? '').trim();
+  if (!raw) return undefined;
+  const ms = Date.parse(raw);
+  if (!Number.isFinite(ms)) return undefined;
+  return Math.floor(ms / 1000);
+}
+
+/** Local timestamp string for `<input type="datetime-local">`. */
+function formatDatetimeLocalFromDate(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+/** Populate Start/End remote filters: 5 days ending at now − 5 minutes. */
+function applyDefaultRemoteTimeRange(): void {
+  if (!timeStartInput || !timeEndInput) return;
+  const end = new Date(Date.now() - DEFAULT_OHLC_END_BEFORE_NOW_SECONDS * 1000);
+  const start = new Date(end.getTime() - DEFAULT_OHLC_LOOKBACK_SECONDS * 1000);
+  timeStartInput.value = formatDatetimeLocalFromDate(start);
+  timeEndInput.value = formatDatetimeLocalFromDate(end);
+}
+
+function parseNumberOrUndefined(v: string): number | undefined {
+  const raw = (v ?? '').trim();
+  if (!raw) return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+/**
+ * Format a number for display in per-quote inputs:
+ * - >= 100: 0 decimals
+ * - 1 to 100: 2 decimals
+ * - < 1: 4 decimals, unless first non-zero is after more than 3 zeros (then show 3 non-zero digits only)
+ */
+function formatDecimalForDisplay(n: number): string {
+  if (!Number.isFinite(n)) return String(n);
+  const abs = Math.abs(n);
+  if (abs >= 100) return String(Math.round(n));
+  if (abs >= 1) return n.toFixed(2);
+  if (abs === 0) return '0';
+  const s = abs < 1e-4 ? abs.toFixed(14) : abs.toString();
+  const dot = s.indexOf('.');
+  const afterDot = dot >= 0 ? s.slice(dot + 1) : '';
+  let zeros = 0;
+  for (const c of afterDot) {
+    if (c === '0') zeros++;
+    else break;
+  }
+  if (zeros >= 3) return n.toFixed(zeros + 3);
+  return n.toFixed(4);
+}
+
+function parseIntOrUndefined(v: string): number | undefined {
+  const n = parseNumberOrUndefined(v);
+  if (n == null) return undefined;
+  return Math.max(0, Math.trunc(n));
+}
+
+async function fetchWithRetry(url: string, init?: RequestInit): Promise<Response> {
+  let lastErr: unknown;
+  for (let attempt = 0; attempt <= MAX_FETCH_RETRIES; attempt++) {
+    try {
+      const res = await fetch(url, init);
+      if (res.status === 502 || res.status === 503 || res.status === 504) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      return res;
+    } catch (err) {
+      lastErr = err;
+      if (attempt < MAX_FETCH_RETRIES) {
+        await new Promise((r) => setTimeout(r, FETCH_RETRY_DELAY_MS));
+        continue;
+      }
+      throw lastErr;
+    }
+  }
+  throw lastErr;
+}
+
+function buildTradesParamsBase(): URLSearchParams {
+  const params = new URLSearchParams();
+
+  const mintAddress = mintAddressInput.value.trim();
+  if (mintAddress) params.set('mintAddress', mintAddress);
+
+  if (candlesSourceSelect?.value === 'market') {
+    const marketAddress = candlesMarketAddressInput?.value.trim() ?? '';
+    if (marketAddress) params.set('marketAddress', marketAddress);
+  }
+
+  const timeStart = parseUnixSecondsFromDatetimeLocal(timeStartInput.value);
+  if (timeStart != null) params.set('timeStart', String(timeStart));
+  const timeEnd = parseUnixSecondsFromDatetimeLocal(timeEndInput.value);
+  if (timeEnd != null) params.set('timeEnd', String(timeEnd));
+
+  return params;
+}
+
+function buildTradesQueryForTable(pageOverride?: number): string {
+  const params = buildTradesParamsBase();
+  const limit = Number(limitSelect.value);
+  if (Number.isFinite(limit)) params.set('limit', String(limit));
+  const page =
+    pageOverride != null ? Math.max(0, Math.trunc(pageOverride)) : Math.max(0, Math.trunc(Number(pageFromInput.value || '0')));
+  params.set('page', String(page));
+
+  const [sortField, sortDir] = (sortSelect.value || 'blockTime:desc').split(':');
+  if (sortField && sortDir === 'asc') params.set('sortByAsc', sortField);
+  if (sortField && sortDir === 'desc') params.set('sortByDesc', sortField);
+
+  return params.toString();
+}
+
+function applyLocalFiltersCore(trades: VybeTrade[], includePerQuoteRules: boolean, includeExclusions: boolean): VybeTrade[] {
+  const localProgram = (localProgramInput?.value ?? '').trim().toLowerCase();
+  const localSignature = (localSignatureInput?.value ?? '').trim().toLowerCase();
+  const localFeePayer = (localFeePayerInput?.value ?? '').trim().toLowerCase();
+  const localAuthority = (localAuthorityInput?.value ?? '').trim().toLowerCase();
+  const authorityEqualsFeePayer = authorityEqualsFeePayerCheckbox?.checked === true;
+  const analysedMint = mintAddressInput.value.trim();
+
+  return trades.filter((t) => {
+    if (localProgram) {
+      const p = (t.programAddress ?? '').toLowerCase();
+      if (!p.includes(localProgram)) return false;
+    }
+
+    if (localSignature) {
+      const sig = (t.signature ?? '').toLowerCase();
+      if (!sig.includes(localSignature)) return false;
+    }
+
+    if (localFeePayer) {
+      const fp = (t.feePayerAddress ?? '').toLowerCase();
+      if (!fp.includes(localFeePayer)) return false;
+    }
+
+    if (localAuthority) {
+      const auth = (t.authorityAddress ?? '').toLowerCase();
+      if (!auth.includes(localAuthority)) return false;
+    }
+
+    if (authorityEqualsFeePayer) {
+      const auth = (t.authorityAddress ?? '').trim();
+      const fee = (t.feePayerAddress ?? '').trim();
+      if (!auth || !fee || auth !== fee) return false;
+    }
+
+    // Exclusions from per-quote table.
+    if (includeExclusions && analysedMint) {
+      const other = otherMint(t, analysedMint).trim();
+      if (other && excludedQuoteMints.has(other)) return false;
+    }
+
+    if (includeExclusions) {
+      const m = (t.marketAddress ?? '').trim();
+      if (m && excludedMarkets.has(m)) return false;
+    }
+
+    if (includePerQuoteRules) {
+      const quoteMint = otherMint(t, analysedMint || '');
+      const ruleQ = quoteMint ? perQuoteRules[quoteMint] : undefined;
+      if (ruleQ) {
+        const quoteMintAddr = (t.quoteMintAddress ?? '').trim();
+        const sizeQ = quoteMintAddr === quoteMint ? Number(t.quoteSize) : Number(t.baseSize);
+        const priceQ =
+          quoteMintAddr === quoteMint
+            ? Number(t.price)
+            : (() => {
+                const p = Number(t.price);
+                return Number.isFinite(p) && p !== 0 ? 1 / p : NaN;
+              })();
+        if (ruleQ.minQuoteSize != null) {
+          if (!Number.isFinite(sizeQ) || sizeQ < ruleQ.minQuoteSize) return false;
+        }
+        if (ruleQ.maxQuoteSize != null) {
+          if (!Number.isFinite(sizeQ) || sizeQ > ruleQ.maxQuoteSize) return false;
+        }
+        if (ruleQ.minPrice != null) {
+          if (!Number.isFinite(priceQ) || priceQ < ruleQ.minPrice) return false;
+        }
+        if (ruleQ.maxPrice != null) {
+          if (!Number.isFinite(priceQ) || priceQ > ruleQ.maxPrice) return false;
+        }
+      }
+    }
+
+    return true;
+  });
+}
+
+function applyLocalFilters(trades: VybeTrade[]): VybeTrade[] {
+  return applyLocalFiltersCore(trades, true, true);
+}
+
+function applyLocalFiltersWithoutPerQuoteRules(trades: VybeTrade[]): VybeTrade[] {
+  return applyLocalFiltersCore(trades, false, true);
+}
+
+function applyLocalFiltersWithoutExclusionsAndPerQuoteRules(trades: VybeTrade[]): VybeTrade[] {
+  return applyLocalFiltersCore(trades, false, false);
+}
+
+/** When candles source is "Vybe OHLC API (Full)", only these trades are shown. When "Rebuild from trades" or "Vybe OHLC by Market API", all fetched trades are used. */
+function getRemoteTradesForDisplay(): VybeTrade[] {
+  if (candlesSourceSelect?.value === 'full') {
+    return lastRemoteTrades.filter((t) => {
+      const base = (t.baseMintAddress ?? '').trim();
+      const quote = (t.quoteMintAddress ?? '').trim();
+      return VYBE_OHLC_FULL_ALLOWED_QUOTE_MINTS.has(base) || VYBE_OHLC_FULL_ALLOWED_QUOTE_MINTS.has(quote);
+    });
+  }
+  return lastRemoteTrades;
+}
+
+/** Trades to show in the table (and export). When "Rebuild from trades", filter by selected chart quote so table matches chart. */
+function getTradesForTableDisplay(): VybeTrade[] {
+  if (candlesSourceSelect?.value !== 'trades') return lastFilteredTrades;
+  const baseMint = mintAddressInput.value.trim();
+  const chartQuote = getSelectedChartQuoteMint();
+  if (!chartQuote) return lastFilteredTrades;
+  return lastFilteredTrades.filter((t) => otherMint(t, baseMint) === chartQuote);
+}
+
+const TOP_QUOTE_MINTS_FOR_FILTER = 10;
+
+/** Observed min/max from last fetch, used to lock per-quote inputs. */
+let quoteBounds: Record<string, { minQuoteSize: number; maxQuoteSize: number; minPrice: number; maxPrice: number }> = {};
+
+const PER_QUOTE_PLACEHOLDER_MARKET_ROW_COUNT = 5;
+
+/** Skeleton per-quote table (quote row + market sub-rows) before trades are loaded. */
+function buildPerQuotePlaceholderTable(): void {
+  if (!perQuoteFiltersContainer) return;
+  const placeholderQuoteMint = getSelectedChartQuoteMint();
+  const placeholderLabelRaw =
+    CHART_QUOTE_OPTIONS.find((o) => o.mint === placeholderQuoteMint)?.label ??
+    HARDCODED_QUOTE_MINTS[placeholderQuoteMint] ??
+    truncate(placeholderQuoteMint, 4, 4);
+  const placeholderLabel =
+    placeholderLabelRaw === 'WSOL' || placeholderLabelRaw === 'wSOL' ? 'SOL' : placeholderLabelRaw;
+  const marketRows = Array.from({ length: PER_QUOTE_PLACEHOLDER_MARKET_ROW_COUNT }, () => `
+    <tr class="per-quote-market-row per-quote-placeholder-row">
+      <td class="per-quote-market-cell"><span class="per-quote-market-indent"></span>—</td>
+      <td class="per-quote-market-status-cell" style="text-align:center">—</td>
+      <td class="per-quote-wick-cell per-quote-score-cell">—</td>
+      <td class="per-quote-market-details">—</td>
+      <td class="per-quote-market-details">—</td>
+      <td class="per-quote-market-details">—</td>
+      <td class="per-quote-market-details">—</td>
+    </tr>`).join('');
+  perQuoteFiltersContainer.innerHTML = `<table class="per-quote-table per-quote-table--placeholder"><thead><tr><th>Quote</th><th style="text-align:center">Select All</th><th>Score</th><th>High</th><th>Low</th><th>Min price</th><th>Max price</th></tr></thead><tbody>
+    <tr class="per-quote-placeholder-row" data-quote-mint="${escapeHtml(placeholderQuoteMint)}">
+      <td title="${escapeHtml(placeholderQuoteMint)}"><div>${escapeHtml(placeholderLabel)}</div><div class="meta">(—/—)</div></td>
+      <td style="text-align:center"><label class="per-quote-status"><input type="checkbox" class="per-quote-exclude" disabled tabindex="-1" aria-hidden="true" /><span class="per-quote-status-text">—</span></label></td>
+      <td class="per-quote-main-wick-cell">—</td>
+      <td class="per-quote-main-price-cell">—</td>
+      <td class="per-quote-main-price-cell">—</td>
+      <td class="per-quote-main-price-cell">—</td>
+      <td class="per-quote-main-price-cell">—</td>
+    </tr>
+    ${marketRows}
+  </tbody></table>`;
+}
+
+/**
+ * Build dynamic per-quote filter rows from lastFilteredTradesForPerQuote.
+ * Preserves existing rule values. Min/max inputs are locked to observed range in the filtered set.
+ * Rebuilds when local filters change so counts and bounds reflect the current filtered trades.
+ * @param remoteTradesOverride - When provided (e.g. after fetch with all pages), use this for bounds/counts so min/max/wick use full data.
+ */
+function buildLocalFilterRows(remoteTradesOverride?: VybeTrade[]): void {
+  if (!perQuoteFiltersContainer) return;
+  const baseMint = mintAddressInput.value.trim();
+  const remoteForDisplay = remoteTradesOverride ?? getRemoteTradesForDisplay();
+
+  // Total counts from loaded trades (does not change with local filters).
+  const totalQuoteCounts = new Map<string, number>();
+  for (const t of remoteForDisplay) {
+    const q = otherMint(t, baseMint);
+    if (q && q !== baseMint) totalQuoteCounts.set(q, (totalQuoteCounts.get(q) ?? 0) + 1);
+  }
+
+  // Filtered counts from the current trades table (includes per-quote rules).
+  const filteredQuoteCounts = new Map<string, number>();
+  for (const t of lastFilteredTrades) {
+    const q = otherMint(t, baseMint);
+    if (q && q !== baseMint) filteredQuoteCounts.set(q, (filteredQuoteCounts.get(q) ?? 0) + 1);
+  }
+
+  const quoteCounts = new Map<string, number>();
+  const quoteStats = new Map<
+    string,
+    { minQuoteSize: number; maxQuoteSize: number; minPrice: number; maxPrice: number }
+  >();
+
+  // Bounds are computed from local filters but IGNORING exclusions and per-quote rules,
+  // so excluded rows keep their place and still show meaningful min/max placeholders.
+  const tradesForBounds = applyLocalFiltersWithoutExclusionsAndPerQuoteRules(remoteForDisplay);
+  for (const t of tradesForBounds) {
+    const q = otherMint(t, baseMint);
+    if (q && q !== baseMint) {
+      quoteCounts.set(q, (quoteCounts.get(q) ?? 0) + 1);
+      const quoteMintAddr = (t.quoteMintAddress ?? '').trim();
+      const baseMintAddr = (t.baseMintAddress ?? '').trim();
+      let sizeForQ: number;
+      let priceForQ: number;
+      if (quoteMintAddr === q) {
+        sizeForQ = Number(t.quoteSize);
+        priceForQ = Number(t.price);
+      } else {
+        sizeForQ = Number(t.baseSize);
+        const p = Number(t.price);
+        priceForQ = Number.isFinite(p) && p !== 0 ? 1 / p : NaN;
+      }
+      const cur = quoteStats.get(q);
+      if (!cur) {
+        quoteStats.set(q, {
+          minQuoteSize: Number.isFinite(sizeForQ) ? sizeForQ : 0,
+          maxQuoteSize: Number.isFinite(sizeForQ) ? sizeForQ : 0,
+          minPrice: Number.isFinite(priceForQ) ? priceForQ : 0,
+          maxPrice: Number.isFinite(priceForQ) ? priceForQ : 0,
+        });
+      } else {
+        if (Number.isFinite(sizeForQ)) {
+          cur.minQuoteSize = Math.min(cur.minQuoteSize, sizeForQ);
+          cur.maxQuoteSize = Math.max(cur.maxQuoteSize, sizeForQ);
+        }
+        if (Number.isFinite(priceForQ)) {
+          cur.minPrice = Math.min(cur.minPrice, priceForQ);
+          cur.maxPrice = Math.max(cur.maxPrice, priceForQ);
+        }
+      }
+    }
+  }
+
+  quoteBounds = Object.fromEntries(quoteStats);
+
+  // Per-market bounds (quote + market) so sub-rows show each market's own min/max.
+  const marketBounds = new Map<
+    string,
+    Map<string, { minQuoteSize: number; maxQuoteSize: number; minPrice: number; maxPrice: number }>
+  >();
+  for (const t of tradesForBounds) {
+    const q = otherMint(t, baseMint);
+    const m = (t.marketAddress ?? '').trim();
+    if (!q || q === baseMint || !m) continue;
+    const quoteMintAddr = (t.quoteMintAddress ?? '').trim();
+    const baseMintAddr = (t.baseMintAddress ?? '').trim();
+    let sizeForQ: number;
+    let priceForQ: number;
+    if (quoteMintAddr === q) {
+      sizeForQ = Number(t.quoteSize);
+      priceForQ = Number(t.price);
+    } else {
+      sizeForQ = Number(t.baseSize);
+      const p = Number(t.price);
+      priceForQ = Number.isFinite(p) && p !== 0 ? 1 / p : NaN;
+    }
+    if (!marketBounds.has(q)) marketBounds.set(q, new Map());
+    const byMarket = marketBounds.get(q)!;
+    const cur = byMarket.get(m);
+    if (!cur) {
+      byMarket.set(m, {
+        minQuoteSize: Number.isFinite(sizeForQ) ? sizeForQ : 0,
+        maxQuoteSize: Number.isFinite(sizeForQ) ? sizeForQ : 0,
+        minPrice: Number.isFinite(priceForQ) ? priceForQ : 0,
+        maxPrice: Number.isFinite(priceForQ) ? priceForQ : 0,
+      });
+    } else {
+      if (Number.isFinite(sizeForQ)) {
+        cur.minQuoteSize = Math.min(cur.minQuoteSize, sizeForQ);
+        cur.maxQuoteSize = Math.max(cur.maxQuoteSize, sizeForQ);
+      }
+      if (Number.isFinite(priceForQ)) {
+        cur.minPrice = Math.min(cur.minPrice, priceForQ);
+        cur.maxPrice = Math.max(cur.maxPrice, priceForQ);
+      }
+    }
+  }
+
+  const quoteToMarkets = new Map<
+    string,
+    Map<string, { totalCount: number; filteredCount: number; programAddress?: string }>
+  >();
+  for (const t of remoteForDisplay) {
+    const q = otherMint(t, baseMint);
+    const m = (t.marketAddress ?? '').trim();
+    if (!q || q === baseMint || !m) continue;
+    let byMarket = quoteToMarkets.get(q);
+    if (!byMarket) {
+      byMarket = new Map();
+      quoteToMarkets.set(q, byMarket);
+    }
+    const entry = byMarket.get(m) ?? { totalCount: 0, filteredCount: 0 };
+    entry.totalCount += 1;
+    if (!entry.programAddress && t.programAddress) entry.programAddress = (t.programAddress ?? '').trim();
+    byMarket.set(m, entry);
+  }
+  for (const t of lastFilteredTrades) {
+    const q = otherMint(t, baseMint);
+    const m = (t.marketAddress ?? '').trim();
+    if (!q || q === baseMint || !m) continue;
+    const byMarket = quoteToMarkets.get(q);
+    if (byMarket?.has(m)) {
+      const e = byMarket.get(m)!;
+      e.filteredCount += 1;
+    }
+  }
+  const quoteToMarketsList = new Map<
+    string,
+    Array<{ marketAddress: string; totalCount: number; filteredCount: number; programAddress?: string }>
+  >();
+  quoteToMarkets.forEach((byMarket, q) => {
+    const list = [...byMarket.entries()]
+      .map(([marketAddress, v]) => ({ marketAddress, ...v }))
+      .sort((a, b) => b.totalCount - a.totalCount);
+    quoteToMarketsList.set(q, list);
+  });
+  lastQuoteToMarketsList = new Map(
+    [...quoteToMarketsList.entries()].map(([q, list]) => [q, list.map((x) => x.marketAddress)])
+  );
+  lastMarketToQuote = new Map<string, string>();
+  quoteToMarketsList.forEach((list, q) => {
+    for (const { marketAddress } of list) {
+      lastMarketToQuote.set(marketAddress, q);
+    }
+  });
+
+  // Use TOTAL counts so excluded rows don't disappear/reorder.
+  // We sort all quote mints by total count, but we do NOT slice here so that
+  // "Show all" truly shows all mints, even those with a single trade.
+  const topQuotes = [...totalQuoteCounts.entries()].sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0));
+  // Only show per-quote row for the single quote currently selected for the chart (the radio-selected slot).
+  const selectedChartMint = getSelectedChartQuoteMint();
+  const topQuotesForTable = selectedChartMint
+    ? ([[selectedChartMint, totalQuoteCounts.get(selectedChartMint) ?? 0]] as [string, number][])
+    : topQuotes;
+  const hasNoTradesYet = totalQuoteCounts.size === 0;
+
+  function quoteLabel(mint: string): string {
+    return quoteSymbolCache[mint] || HARDCODED_QUOTE_MINTS[mint] || truncate(mint, 4, 4);
+  }
+  function quoteLabelShort(mint: string): string {
+    const sym = quoteSymbolCache[mint] || HARDCODED_QUOTE_MINTS[mint];
+    // If symbol lookup failed and echoed the mint (or missing), show XX...XX.
+    if (!sym || sym === mint) {
+      if (mint.length <= 6) return mint;
+      return `${mint.slice(0, 2)}...${mint.slice(-2)}`;
+    }
+    // Match trades table: show SOL (not wSOL) and truncate to 5 chars.
+    return symbolMax5(displaySymbol(sym));
+  }
+
+  /** Step = 1 in the last displayed digit (e.g. 0.0021 → 0.0001, 0.0000042 → 0.0000001). */
+  function stepFor(v: number): number {
+    if (!Number.isFinite(v)) return 0.01;
+    const abs = Math.abs(v);
+    if (abs >= 100) return 1;
+    if (abs >= 1) return 0.01;
+    if (abs === 0) return 0.0001;
+    const s = abs < 1e-4 ? abs.toFixed(14) : abs.toString();
+    const dot = s.indexOf('.');
+    const afterDot = dot >= 0 ? s.slice(dot + 1) : '';
+    let zeros = 0;
+    for (const c of afterDot) {
+      if (c === '0') zeros++;
+      else break;
+    }
+    const decimals = zeros >= 3 ? zeros + 2 : 4;
+    return Math.pow(10, -decimals);
+  }
+
+  function clampQuote(qMint: string, minQ?: number, maxQ?: number, minP?: number, maxP?: number) {
+    const b = quoteBounds[qMint];
+    if (!b) return { minQuoteSize: minQ, maxQuoteSize: maxQ, minPrice: minP, maxPrice: maxP };
+    return {
+      minQuoteSize: minQ != null ? Math.max(b.minQuoteSize, minQ) : undefined,
+      maxQuoteSize: maxQ != null ? Math.min(b.maxQuoteSize, maxQ) : undefined,
+      minPrice: minP != null ? Math.max(b.minPrice, minP) : undefined,
+      maxPrice: maxP != null ? Math.min(b.maxPrice, maxP) : undefined,
+    };
+  }
+
+  if (topQuotesForTable.length === 0 || hasNoTradesYet) {
+    buildPerQuotePlaceholderTable();
+    return;
+  }
+
+  perQuoteFiltersContainer.innerHTML = '';
+  const table = document.createElement('table');
+  table.innerHTML = `<thead><tr><th>Quote</th><th style="text-align:center">Select All</th><th>Score</th><th>High</th><th>Low</th><th>Min price</th><th>Max price</th></tr></thead><tbody></tbody>`;
+  {
+    const tbody = table.querySelector('tbody')!;
+    const TOP_VISIBLE = 100000; /* show all quote rows and market sub-rows */
+    for (let i = 0; i < topQuotesForTable.length; i++) {
+      const [quoteMint, count] = topQuotesForTable[i];
+      const b = quoteBounds[quoteMint];
+      const tr = document.createElement('tr');
+      const isExcluded = excludedQuoteMints.has(quoteMint);
+      const minP = b?.minPrice;
+      const maxP = b?.maxPrice;
+      const fmt = (x: number | undefined) => (x != null && Number.isFinite(x) ? formatDecimalForDisplay(x) : '—');
+      const quoteSym = quoteLabelShort(quoteMint);
+      const totalForMint = totalQuoteCounts.get(quoteMint) ?? count;
+      const filteredForMint = filteredQuoteCounts.get(quoteMint) ?? 0;
+      const minPStr = fmt(minP) + (minP != null && Number.isFinite(minP) ? ' ' + quoteSym : '');
+      const maxPStr = fmt(maxP) + (maxP != null && Number.isFinite(maxP) ? ' ' + quoteSym : '');
+      tr.innerHTML = `
+        <td title="${quoteMint}"><div>${quoteSym}</div><div class="meta">(${isExcluded ? 0 : filteredForMint}/${totalForMint})</div></td>
+        <td style="text-align:center"><label class="per-quote-status"><input type="checkbox" class="per-quote-exclude" ${!isExcluded ? 'checked' : ''} aria-label="Include ${quoteSym}" /><span class="per-quote-status-text">${isExcluded ? 'Excluded' : 'Included'}</span></label></td>
+        <td class="per-quote-main-wick-cell"></td>
+        <td class="per-quote-main-price-cell"></td>
+        <td class="per-quote-main-price-cell"></td>
+        <td class="per-quote-main-price-cell">${escapeHtml(minPStr)}</td>
+        <td class="per-quote-main-price-cell">${escapeHtml(maxPStr)}</td>
+      `;
+      tr.dataset.quoteMint = quoteMint;
+      tr.classList.toggle('per-quote-row-excluded', isExcluded);
+      if (i >= TOP_VISIBLE) {
+        tr.classList.add('per-quote-row-collapsible');
+        if (!perQuoteExpanded) tr.classList.add('per-quote-row-hidden');
+      }
+      const excludeCb = tr.querySelector('.per-quote-exclude') as HTMLInputElement | null;
+      const statusText = tr.querySelector('.per-quote-status-text') as HTMLElement | null;
+      if (excludeCb) {
+        const updateStatusText = () => {
+          if (!statusText) return;
+          statusText.textContent = excludeCb.checked ? 'Included' : 'Excluded';
+        };
+        updateStatusText();
+        excludeCb.addEventListener('change', () => {
+          if (excludeCb.checked) {
+            excludedQuoteMints.delete(quoteMint);
+            const marketsForQuote = lastQuoteToMarketsList.get(quoteMint);
+            if (marketsForQuote) {
+              for (const m of marketsForQuote) excludedMarkets.delete(m);
+            }
+          } else {
+            excludedQuoteMints.add(quoteMint);
+            delete perQuoteRules[quoteMint];
+            const marketsForQuote = lastQuoteToMarketsList.get(quoteMint);
+            if (marketsForQuote) {
+              for (const m of marketsForQuote) excludedMarkets.add(m);
+            }
+          }
+          updateStatusText();
+          onLocalFilterChange();
+        });
+      }
+      tbody.appendChild(tr);
+
+      const marketsList = quoteToMarketsList.get(quoteMint) ?? [];
+      const resolution = candlesResolutionSelect?.value ?? '1m';
+      const candlesByMarket = new Map<string, Candle[]>();
+      const marketRows: Array<{
+        marketAddress: string;
+        totalCount: number;
+        filteredCount: number;
+        programAddress?: string;
+        highVal: number;
+        lowVal: number;
+        highVsMedianPct: number;
+        lowVsMedianPct: number;
+      }> = [];
+      for (const { marketAddress, totalCount, filteredCount, programAddress } of marketsList) {
+        const candles = buildCandlesFromTradesForMarket(
+          lastFilteredTrades.filter((t) => otherMint(t, baseMint) === quoteMint),
+          resolution,
+          baseMint,
+          quoteMint,
+          marketAddress
+        );
+        candlesByMarket.set(marketAddress, candles);
+        const highVal = candles.length > 0 ? Math.max(...candles.map((c) => c.high)) : -Infinity;
+        const lowVal = candles.length > 0 ? Math.min(...candles.map((c) => c.low)) : Infinity;
+        const h = Number.isFinite(highVal) ? highVal : -Infinity;
+        const l = Number.isFinite(lowVal) ? lowVal : Infinity;
+        marketRows.push({
+          marketAddress,
+          totalCount,
+          filteredCount,
+          programAddress,
+          highVal: h,
+          lowVal: l,
+          highVsMedianPct: 0,
+          lowVsMedianPct: 0,
+        });
+      }
+
+      const allHighs = marketRows.map((r) => r.highVal).filter((v) => Number.isFinite(v) && v !== -Infinity);
+      const allLows = marketRows.map((r) => r.lowVal).filter((v) => Number.isFinite(v) && v !== Infinity);
+      const top50Highs = [...allHighs].sort((a, b) => b - a).slice(0, 50);
+      const bottom50Lows = [...allLows].sort((a, b) => a - b).slice(0, 50);
+      const medianHigh = top50Highs.length > 0 ? median(top50Highs) : 0;
+      const medianLow = bottom50Lows.length > 0 ? median(bottom50Lows) : 0;
+
+      for (const row of marketRows) {
+        if (medianHigh > 0 && row.highVal !== -Infinity) {
+          row.highVsMedianPct = ((row.highVal - medianHigh) / medianHigh) * 100;
+        }
+        if (medianLow > 0 && row.lowVal !== Infinity) {
+          row.lowVsMedianPct = ((row.lowVal - medianLow) / medianLow) * 100;
+        }
+      }
+
+      const combinedByMarket = marketRows;
+      combinedByMarket.sort((a, b) => b.totalCount - a.totalCount);
+
+      const byHighVsMedianDesc = [...combinedByMarket].sort((a, b) => b.highVsMedianPct - a.highVsMedianPct);
+      const byLowVsMedianAsc = [...combinedByMarket].sort((a, b) => a.lowVsMedianPct - b.lowVsMedianPct);
+      const rowHighRank = new Map<string, number>();
+      const rowLowRank = new Map<string, number>();
+      byHighVsMedianDesc.forEach((e, i) => {
+        if (i < 10) rowHighRank.set(e.marketAddress, i + 1);
+      });
+      byLowVsMedianAsc.forEach((e, i) => {
+        if (i < 10) rowLowRank.set(e.marketAddress, i + 1);
+      });
+
+      const tradesForQuote = lastFilteredTrades.filter((t) => otherMint(t, baseMint) === quoteMint);
+      let tradesForQuoteToUse = tradesForQuote;
+
+      if (filterWicksCheckbox?.checked) {
+        const filterMarketSet = new Set<string>();
+        for (const entry of combinedByMarket) {
+          const inTop10High = rowHighRank.has(entry.marketAddress);
+          const inTop10Low = rowLowRank.has(entry.marketAddress);
+          const extremeHigh = Number.isFinite(entry.highVsMedianPct) && entry.highVsMedianPct > 100;
+          const extremeLow = Number.isFinite(entry.lowVsMedianPct) && entry.lowVsMedianPct < -100;
+          const hasScore = entry.highVsMedianPct !== 0 || entry.lowVsMedianPct !== 0;
+          if ((inTop10High || inTop10Low || extremeHigh || extremeLow) && hasScore) filterMarketSet.add(entry.marketAddress);
+        }
+        const rawLookback = Number(wickLookbackInput?.value ?? 10);
+        const WICK_LOOKBACK_TRADES = Number.isFinite(rawLookback) ? Math.max(1, Math.min(500, Math.trunc(rawLookback))) : 10;
+        const rawPct = Number(wickDeviationPctInput?.value ?? 0);
+        const WICK_DEVIATION_PCT = Number.isFinite(rawPct) ? rawPct : 0;
+        const excludedSignatures = new Set<string>();
+        const getPrice = (t: VybeTrade) => {
+          const base = (t.baseMintAddress ?? '').trim();
+          const raw = Number(t.price);
+          if (!Number.isFinite(raw) || raw <= 0) return NaN;
+          return base === baseMint ? raw : 1 / raw;
+        };
+        const deviationFactor = WICK_DEVIATION_PCT <= 0 ? 0 : Math.max(0.01, Math.min(100, WICK_DEVIATION_PCT)) / 100;
+        for (const marketAddress of filterMarketSet) {
+          const marketTrades = [...tradesForQuote.filter((t) => (t.marketAddress ?? '').trim() === marketAddress)].sort(
+            (a, b) => (a.blockTime ?? 0) - (b.blockTime ?? 0)
+          );
+          if (marketTrades.length === 0) continue;
+          const entry = combinedByMarket.find((e) => e.marketAddress === marketAddress);
+          if (!entry) continue;
+          const inTop10High = rowHighRank.has(marketAddress);
+          const inTop10Low = rowLowRank.has(marketAddress);
+          const extremeHigh = Number.isFinite(entry.highVsMedianPct) && entry.highVsMedianPct > 100;
+          const extremeLow = Number.isFinite(entry.lowVsMedianPct) && entry.lowVsMedianPct < -100;
+          const excludeHighWick = inTop10High || extremeHigh;
+          const excludeLowWick = inTop10Low || extremeLow;
+          for (let i = 0; i < marketTrades.length; i++) {
+            const t = marketTrades[i]!;
+            const p = getPrice(t);
+            if (!Number.isFinite(p) || !t.signature) continue;
+            const lookbackStart = Math.max(0, i - WICK_LOOKBACK_TRADES);
+            const lookbackTrades = marketTrades.slice(lookbackStart, i);
+            if (lookbackTrades.length === 0) continue;
+            const lookbackPrices = lookbackTrades.map((x) => getPrice(x)).filter(Number.isFinite);
+            if (lookbackPrices.length === 0) continue;
+            const lookbackMin = Math.min(...lookbackPrices);
+            const lookbackMax = Math.max(...lookbackPrices);
+            if (!Number.isFinite(lookbackMin) || !Number.isFinite(lookbackMax) || lookbackMax <= 0) continue;
+            // Only exclude trades that extend *beyond* the lookback range (true wicks), not trades within the range.
+            if (deviationFactor > 0) {
+              if (excludeHighWick && p > lookbackMax * (1 + deviationFactor)) excludedSignatures.add(t.signature);
+              else if (excludeLowWick && p < lookbackMin * (1 - deviationFactor)) excludedSignatures.add(t.signature);
+            }
+          }
+        }
+        tradesForQuoteToUse = tradesForQuote.filter((t) => !t.signature || !excludedSignatures.has(t.signature));
+
+        const filteredCandlesByMarket = new Map<string, Candle[]>();
+        const filteredMarketRows: Array<{
+          marketAddress: string;
+          totalCount: number;
+          filteredCount: number;
+          programAddress?: string;
+          highVal: number;
+          lowVal: number;
+          highVsMedianPct: number;
+          lowVsMedianPct: number;
+        }> = [];
+        for (const { marketAddress, totalCount, programAddress } of marketsList) {
+          const marketTradesAfterWickFilter = tradesForQuoteToUse.filter((t) => (t.marketAddress ?? '').trim() === marketAddress);
+          const filteredCount = marketTradesAfterWickFilter.length;
+          // Build candles from all trades (candle-based rule), then drop candles with close-to-open gap > deviation %
+          let candles = buildCandlesFromTradesForMarket(tradesForQuote, resolution, baseMint, quoteMint, marketAddress);
+          if (deviationFactor > 0) candles = filterCandlesByCloseOpenGap(candles, deviationFactor);
+          filteredCandlesByMarket.set(marketAddress, candles);
+          const highVal = candles.length > 0 ? Math.max(...candles.map((c) => c.high)) : -Infinity;
+          const lowVal = candles.length > 0 ? Math.min(...candles.map((c) => c.low)) : Infinity;
+          const h = Number.isFinite(highVal) ? highVal : -Infinity;
+          const l = Number.isFinite(lowVal) ? lowVal : Infinity;
+          filteredMarketRows.push({
+            marketAddress,
+            totalCount,
+            filteredCount,
+            programAddress,
+            highVal: h,
+            lowVal: l,
+            highVsMedianPct: 0,
+            lowVsMedianPct: 0,
+          });
+        }
+        const filtHighs = filteredMarketRows.map((r) => r.highVal).filter((v) => Number.isFinite(v) && v !== -Infinity);
+        const filtLows = filteredMarketRows.map((r) => r.lowVal).filter((v) => Number.isFinite(v) && v !== Infinity);
+        const filtMedHigh = filtHighs.length > 0 ? median([...filtHighs].sort((a, b) => b - a).slice(0, 50)) : 0;
+        const filtMedLow = filtLows.length > 0 ? median([...filtLows].sort((a, b) => a - b).slice(0, 50)) : 0;
+        for (const row of filteredMarketRows) {
+          if (filtMedHigh > 0 && row.highVal !== -Infinity) row.highVsMedianPct = ((row.highVal - filtMedHigh) / filtMedHigh) * 100;
+          if (filtMedLow > 0 && row.lowVal !== Infinity) row.lowVsMedianPct = ((row.lowVal - filtMedLow) / filtMedLow) * 100;
+        }
+        filteredMarketRows.sort((a, b) => b.totalCount - a.totalCount);
+        combinedByMarket.length = 0;
+        combinedByMarket.push(...filteredMarketRows);
+        const byHighFilt = [...filteredMarketRows].sort((a, b) => b.highVsMedianPct - a.highVsMedianPct);
+        const byLowFilt = [...filteredMarketRows].sort((a, b) => a.lowVsMedianPct - b.lowVsMedianPct);
+        rowHighRank.clear();
+        rowLowRank.clear();
+        byHighFilt.forEach((e, i) => { if (i < 10) rowHighRank.set(e.marketAddress, i + 1); });
+        byLowFilt.forEach((e, i) => { if (i < 10) rowLowRank.set(e.marketAddress, i + 1); });
+        wickFilteredTradesByQuote.set(quoteMint, tradesForQuoteToUse);
+      } else {
+        wickFilteredTradesByQuote.set(quoteMint, tradesForQuote);
+      }
+
+      // When filter wicks is on, auto-exclude low-count or low-rank markets.
+      if (filterWicksCheckbox?.checked && combinedByMarket.length > 0) {
+        if (combinedByMarket.length > 10) {
+          // More than 10 pools: include only the top 5 by count. Min count = 500 if top market >= 500, else 50.
+          const topMarketCount = combinedByMarket[0]?.totalCount ?? 0;
+          const MIN_COUNT_TOP5 = topMarketCount >= 500 ? 500 : 50;
+          const top5 = combinedByMarket.slice(0, 5);
+          for (const entry of top5) {
+            if (entry.totalCount >= MIN_COUNT_TOP5) excludedMarkets.delete(entry.marketAddress);
+          }
+          for (const entry of combinedByMarket) {
+            const inTop5 = top5.includes(entry);
+            if (!inTop5 || entry.totalCount < MIN_COUNT_TOP5) excludedMarkets.add(entry.marketAddress);
+          }
+        } else if (combinedByMarket.length > 1) {
+          // 2–10 pools: exclude if < 10% of max count or count < 10. Single market: exclude nothing.
+          const MIN_COUNT = 10;
+          const maxCount = Math.max(...combinedByMarket.map((e) => e.totalCount));
+          const threshold = maxCount * 0.1;
+          for (const entry of combinedByMarket) {
+            if (entry.totalCount < threshold || entry.totalCount < MIN_COUNT) excludedMarkets.add(entry.marketAddress);
+          }
+        }
+      }
+
+      combinedByMarket.forEach((entry, idx) => {
+        const { marketAddress, totalCount, filteredCount, programAddress, highVal, lowVal, highVsMedianPct, lowVsMedianPct } = entry;
+        const mb = marketBounds.get(quoteMint)?.get(marketAddress);
+        const subMinPVal = mb?.minPrice;
+        const subMaxPVal = mb?.maxPrice;
+        const subMinP = subMinPVal != null && Number.isFinite(subMinPVal) ? fmt(subMinPVal) + ' ' + quoteSym : '—';
+        const subMaxP = subMaxPVal != null && Number.isFinite(subMaxPVal) ? fmt(subMaxPVal) + ' ' + quoteSym : '—';
+        const subHigh = highVal !== -Infinity && Number.isFinite(highVal) ? fmt(highVal) + ' ' + quoteSym : '—';
+        const subLow = lowVal !== Infinity && Number.isFinite(lowVal) ? fmt(lowVal) + ' ' + quoteSym : '—';
+
+        const rHigh = rowHighRank.get(marketAddress);
+        const rLow = rowLowRank.get(marketAddress);
+        let rowClass = '';
+        if (rHigh != null) rowClass = `row-high-${rHigh}`;
+        else if (rLow != null) rowClass = `row-low-${rLow}`;
+
+        const subTr = document.createElement('tr');
+        subTr.className = 'per-quote-market-row' + (rowClass ? ' ' + rowClass : '');
+        if (idx >= TOP_VISIBLE) {
+          subTr.classList.add('per-quote-row-collapsible');
+          if (!perQuoteExpanded) subTr.classList.add('per-quote-row-hidden');
+        }
+        const isMarketExcluded = excludedMarkets.has(marketAddress);
+        const marketLink = `${SOLSCAN_ACCOUNT}${encodeURIComponent(marketAddress)}`;
+        const poolTitle = programAddress
+          ? (programLabelCache[programAddress] ?? WELL_KNOWN_PROGRAMS[programAddress] ?? truncate(programAddress, 4, 4))
+          : truncate(marketAddress, 4, 4);
+        const highR = Number.isFinite(highVsMedianPct) ? Math.round(highVsMedianPct) : null;
+        const lowR = Number.isFinite(lowVsMedianPct) ? Math.round(lowVsMedianPct) : null;
+        const highPart = highR !== null && highR !== 0 ? `${highR > 0 ? '+' : ''}${highR}%` : '';
+        const lowPart = lowR !== null && lowR !== 0 ? `${lowR > 0 ? '+' : ''}${lowR}%` : '';
+        const scoreStr =
+          highPart && lowPart
+            ? `${highPart} / ${lowPart}`
+            : highPart || lowPart || '—';
+        subTr.innerHTML = `
+          <td class="per-quote-market-cell" title="${marketAddress}">
+            <label class="per-quote-market-check-wrap">
+              <input type="checkbox" class="per-quote-exclude-market" ${!isMarketExcluded ? 'checked' : ''} data-market="${marketAddress}" aria-label="Include market" />
+            </label>
+            <span class="per-quote-market-indent"></span>
+            <a href="${marketLink}" target="_blank" class="per-quote-market-link" title="${marketAddress}">${escapeHtml(poolTitle)}</a>
+            <span class="meta">(${isMarketExcluded ? 0 : filteredCount}/${totalCount})</span>
+          </td>
+          <td class="per-quote-market-status-cell" style="text-align:center"></td>
+          <td class="per-quote-wick-cell per-quote-score-cell">${escapeHtml(scoreStr)}</td>
+          <td class="per-quote-market-details">${escapeHtml(subHigh)}</td>
+          <td class="per-quote-market-details">${escapeHtml(subLow)}</td>
+          <td class="per-quote-market-details">${escapeHtml(subMinP)}</td>
+          <td class="per-quote-market-details">${escapeHtml(subMaxP)}</td>
+        `;
+        const subExcludeCb = subTr.querySelector('.per-quote-exclude-market') as HTMLInputElement | null;
+        if (subExcludeCb) {
+          subExcludeCb.addEventListener('change', () => {
+            if (subExcludeCb.checked) {
+              excludedMarkets.delete(marketAddress);
+              const parentQuote = lastMarketToQuote.get(marketAddress);
+              if (parentQuote) excludedQuoteMints.delete(parentQuote);
+            } else {
+              excludedMarkets.add(marketAddress);
+            }
+            const meta = subTr.querySelector('.meta');
+            if (meta) meta.textContent = subExcludeCb.checked ? `(${filteredCount}/${totalCount})` : `(0/${totalCount})`;
+            onLocalFilterChange();
+          });
+        }
+        tbody.appendChild(subTr);
+      });
+    }
+    if (topQuotesForTable.length > TOP_VISIBLE) {
+      const buttonRow = document.createElement('tr');
+      buttonRow.className = 'per-quote-show-all-row';
+      const td = document.createElement('td');
+      td.colSpan = 7;
+      td.style.textAlign = 'center';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'per-quote-show-all-btn';
+      const total = topQuotesForTable.length;
+      btn.textContent = perQuoteExpanded ? 'Show less' : `Show all (${total} total)`;
+      btn.addEventListener('click', () => {
+        perQuoteExpanded = !perQuoteExpanded;
+        const collapsible = tbody.querySelectorAll('tr.per-quote-row-collapsible');
+        collapsible.forEach((row) => row.classList.toggle('per-quote-row-hidden', !perQuoteExpanded));
+        btn.textContent = perQuoteExpanded ? 'Show less' : `Show all (${total} total)`;
+      });
+      td.appendChild(btn);
+      buttonRow.appendChild(td);
+      tbody.appendChild(buttonRow);
+    }
+    perQuoteFiltersContainer.appendChild(table);
+  }
+}
+
+function renderTokenEmpty(): void {
+  renderTokenStatsEmpty();
+}
+
+function topCounts(items: Array<string | undefined>, n: number): Array<{ key: string; count: number }> {
+  const m = new Map<string, number>();
+  for (const it of items) {
+    const k = (it ?? '').trim();
+    if (!k) continue;
+    m.set(k, (m.get(k) ?? 0) + 1);
+  }
+  return Array.from(m.entries())
+    .map(([key, count]) => ({ key, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, n);
+}
+
+function computeProgramMarketAndQuoteStats(
+  trades: VybeTrade[],
+  baseMint: string
+): Map<string, { markets: number; quoteTokens: number }> {
+  const marketsByProgram = new Map<string, Set<string>>();
+  const quotesByProgram = new Map<string, Set<string>>();
+  for (const t of trades) {
+    const prog = (t.programAddress ?? '').trim();
+    if (!prog) continue;
+    const market = (t.marketAddress ?? '').trim();
+    if (market) {
+      let marketSet = marketsByProgram.get(prog);
+      if (!marketSet) {
+        marketSet = new Set();
+        marketsByProgram.set(prog, marketSet);
+      }
+      marketSet.add(market);
+    }
+    const quote = otherMint(t, baseMint).trim();
+    if (quote && quote !== baseMint) {
+      let quoteSet = quotesByProgram.get(prog);
+      if (!quoteSet) {
+        quoteSet = new Set();
+        quotesByProgram.set(prog, quoteSet);
+      }
+      quoteSet.add(quote);
+    }
+  }
+  const stats = new Map<string, { markets: number; quoteTokens: number }>();
+  const allPrograms = new Set([...marketsByProgram.keys(), ...quotesByProgram.keys()]);
+  for (const prog of allPrograms) {
+    stats.set(prog, {
+      markets: marketsByProgram.get(prog)?.size ?? 0,
+      quoteTokens: quotesByProgram.get(prog)?.size ?? 0,
+    });
+  }
+  return stats;
+}
+
+function computeQuoteMintMarketCounts(trades: VybeTrade[], baseMint: string): Map<string, number> {
+  const marketsByQuote = new Map<string, Set<string>>();
+  for (const t of trades) {
+    const quote = otherMint(t, baseMint).trim();
+    if (!quote || quote === baseMint) continue;
+    const market = (t.marketAddress ?? '').trim();
+    if (!market) continue;
+    let marketSet = marketsByQuote.get(quote);
+    if (!marketSet) {
+      marketSet = new Set();
+      marketsByQuote.set(quote, marketSet);
+    }
+    marketSet.add(market);
+  }
+  const counts = new Map<string, number>();
+  for (const [quote, marketSet] of marketsByQuote) {
+    counts.set(quote, marketSet.size);
+  }
+  return counts;
+}
+
+function computeQuoteMintProgramCounts(trades: VybeTrade[], baseMint: string): Map<string, number> {
+  const programsByQuote = new Map<string, Set<string>>();
+  for (const t of trades) {
+    const quote = otherMint(t, baseMint).trim();
+    if (!quote || quote === baseMint) continue;
+    const prog = (t.programAddress ?? '').trim();
+    if (!prog) continue;
+    let programSet = programsByQuote.get(quote);
+    if (!programSet) {
+      programSet = new Set();
+      programsByQuote.set(quote, programSet);
+    }
+    programSet.add(prog);
+  }
+  const counts = new Map<string, number>();
+  for (const [quote, programSet] of programsByQuote) {
+    counts.set(quote, programSet.size);
+  }
+  return counts;
+}
+
+function renderSummaryEmpty(): void {
+  summaryMeta.textContent = '—';
+  updateSummaryBoxTitles(0, 0, 0);
+  topProgramsBody.innerHTML = buildTopProgramsPlaceholderRowsHtml();
+  topMarketsBody.innerHTML = buildTopMarketsPlaceholderRowsHtml();
+  topQuotesBody.innerHTML = buildTopQuotesPlaceholderRowsHtml();
+}
+
+async function renderSummaryFromTrades(trades: VybeTrade[]): Promise<void> {
+  const baseMint = mintAddressInput.value.trim();
+  const marketCount: Record<string, number> = {};
+  const marketQuoteCount: Record<string, Record<string, number>> = {};
+  const marketProgramCount: Record<string, Record<string, number>> = {};
+  trades.forEach((t) => {
+    const m = (t.marketAddress ?? '').trim();
+    const q = otherMint(t, baseMint);
+    if (!m) return;
+    marketCount[m] = (marketCount[m] ?? 0) + 1;
+    if (q && q !== baseMint) {
+      if (!marketQuoteCount[m]) marketQuoteCount[m] = {};
+      marketQuoteCount[m][q] = (marketQuoteCount[m][q] ?? 0) + 1;
+    }
+    const prog = (t.programAddress ?? '').trim();
+    if (prog) {
+      if (!marketProgramCount[m]) marketProgramCount[m] = {};
+      marketProgramCount[m][prog] = (marketProgramCount[m][prog] ?? 0) + 1;
+    }
+  });
+
+  const topMarketsRaw = Object.entries(marketCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 20)
+    .map(([addr, count]) => {
+      const quoteCounts = marketQuoteCount[addr] ?? {};
+      const bestQuoteMint =
+        Object.entries(quoteCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+      const programCounts = marketProgramCount[addr] ?? {};
+      const bestProgram =
+        Object.entries(programCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+      return { marketAddress: addr, count, bestQuoteMint, bestProgram };
+    });
+
+  const programs = topCounts(trades.map((t) => t.programAddress), 5);
+  const quotesRaw = topCounts(
+    trades.map((t) => otherMint(t, baseMint)).filter((m) => m && m !== baseMint),
+    20
+  );
+
+  const programLabels: Record<string, string> = {};
+  programs.forEach((p) => {
+    programLabels[p.key] = WELL_KNOWN_PROGRAMS[p.key] ?? p.key;
+  });
+  const needLabelAddrs = new Set<string>();
+  for (const p of programs) {
+    if (!WELL_KNOWN_PROGRAMS[p.key]) needLabelAddrs.add(p.key);
+  }
+  for (const { bestProgram } of topMarketsRaw) {
+    if (bestProgram && !WELL_KNOWN_PROGRAMS[bestProgram]) needLabelAddrs.add(bestProgram);
+  }
+  if (needLabelAddrs.size > 0) {
+    try {
+      const r = await fetchWithRetry('/api/programs/labeled-program-accounts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ programAddresses: [...needLabelAddrs] }),
+      });
+      if (r.ok) {
+        const body = (await r.json().catch(() => ({}))) as { labels?: Record<string, string> };
+        const labels = body.labels ?? {};
+        Object.assign(programLabels, labels);
+      }
+    } catch {
+      // keep WELL_KNOWN or address fallback
+    }
+  }
+  Object.assign(programLabelCache, programLabels);
+
+  const baseSymbol = (lastBaseSymbol ?? '').toUpperCase() || '—';
+
+  const needSymbolMints = new Set<string>();
+  for (const { bestQuoteMint } of topMarketsRaw) {
+    if (bestQuoteMint && !quoteSymbolCache[bestQuoteMint] && !HARDCODED_QUOTE_MINTS[bestQuoteMint]) {
+      needSymbolMints.add(bestQuoteMint);
+    }
+  }
+  for (const q of quotesRaw.slice(0, 20)) {
+    if (!quoteSymbolCache[q.key] && !HARDCODED_QUOTE_MINTS[q.key]) needSymbolMints.add(q.key);
+  }
+  const pairQuoteSymbols: Record<string, string> = { ...HARDCODED_QUOTE_MINTS, ...quoteSymbolCache };
+  if (needSymbolMints.size > 0) {
+    try {
+      const r = await fetchWithRetry('/api/token-symbols', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mints: [...needSymbolMints] }),
+      });
+      if (r.ok) {
+        const body = (await r.json().catch(() => ({}))) as { symbols?: Record<string, string> };
+        const symbols = body.symbols ?? {};
+        Object.assign(pairQuoteSymbols, symbols);
+        Object.assign(quoteSymbolCache, symbols);
+      }
+    } catch {
+      // use cache only
+    }
+  }
+
+  const programColorMap = buildProgramGroupColorMap(trades);
+  const programCounts = computeEntityTradeCounts(trades, (t) => (t.programAddress ?? '').trim());
+  const programCountRange = minMaxFromEntityCounts(programCounts);
+  const programExtraStats = computeProgramMarketAndQuoteStats(trades, baseMint);
+  const marketCountsMap = new Map(Object.entries(marketCount));
+  const marketCountRange = minMaxFromEntityCounts(marketCountsMap);
+
+  topProgramsBody.innerHTML = programs.length
+    ? programs
+        .map((p) => {
+          const chip = renderProgramDexChip(p.key, programColorMap);
+          const extra = programExtraStats.get(p.key) ?? { markets: 0, quoteTokens: 0 };
+          return `<tr><td class="summary-cell-program">${chip}</td><td class="summary-cell-stat">${extra.markets.toLocaleString()}</td><td class="summary-cell-stat">${extra.quoteTokens.toLocaleString()}</td><td class="summary-cell-count">${renderSummaryCountCell(p.key, p.count, programCounts, programCountRange)}</td></tr>`;
+        })
+        .join('')
+    : buildTopProgramsPlaceholderRowsHtml();
+
+  const topMarketsWithPair = topMarketsRaw
+    .map(({ marketAddress, count, bestQuoteMint, bestProgram }) => {
+      const quoteSym = bestQuoteMint ? (pairQuoteSymbols[bestQuoteMint] ?? truncate(bestQuoteMint, 4, 4)) : '—';
+      const pairDisplay = bestQuoteMint ? `${baseSymbol} / ${quoteSym}` : '—';
+      return { marketAddress, count, pairDisplay, quoteSym, bestProgram };
+    })
+    .filter((m) => m.pairDisplay !== '—')
+    .slice(0, 5);
+
+  topMarketsBody.innerHTML = topMarketsWithPair.length
+    ? topMarketsWithPair
+        .map(({ marketAddress, count, quoteSym, bestProgram }) => {
+          const tone = quoteSymbolToneClass(quoteSym);
+          const marketMain = `<a href="${SOLSCAN_ACCOUNT}${encodeURIComponent(marketAddress)}" target="_blank" class="market-cell-link" title="${escapeHtml(marketAddress)}">${renderMarketAddressLabel(truncate(marketAddress, 4, 4), tone)}</a>`;
+          const pairHtml = renderQuoteSymbolChip(quoteSym);
+          const programChip = renderProgramDexChip(bestProgram ?? undefined, programColorMap);
+          return `<tr><td class="summary-cell-market">${marketMain}</td><td class="summary-cell-pair">${pairHtml}</td><td class="summary-cell-program">${programChip}</td><td class="summary-cell-count">${renderSummaryCountCell(marketAddress, count, marketCountsMap, marketCountRange)}</td></tr>`;
+        })
+        .join('')
+    : buildTopMarketsPlaceholderRowsHtml();
+
+  const quotes = quotesRaw
+    .filter((q) => {
+      const s = pairQuoteSymbols[q.key] ?? HARDCODED_QUOTE_MINTS[q.key];
+      return s && s.trim() !== '' && s !== q.key;
+    })
+    .slice(0, 5);
+
+  const quoteCountsMap = new Map(quotes.map((q) => [q.key, q.count]));
+  const quoteCountRange = minMaxFromEntityCounts(quoteCountsMap);
+  const quoteMarketCounts = computeQuoteMintMarketCounts(trades, baseMint);
+  const quoteProgramCounts = computeQuoteMintProgramCounts(trades, baseMint);
+
+  topQuotesBody.innerHTML = quotes.length
+    ? quotes
+        .map((q) => {
+          const sym = pairQuoteSymbols[q.key] ?? HARDCODED_QUOTE_MINTS[q.key] ?? '—';
+          const tone = quoteSymbolToneClass(sym);
+          const mintLink = `<a href="${SOLSCAN_ACCOUNT}${encodeURIComponent(q.key)}" target="_blank" class="market-cell-link" title="${escapeHtml(q.key)}">${renderMarketAddressLabel(truncate(q.key, 4, 4), tone)}</a>`;
+          const marketTotal = quoteMarketCounts.get(q.key) ?? 0;
+          const programTotal = quoteProgramCounts.get(q.key) ?? 0;
+          return `<tr>
+            <td class="summary-cell-symbol">${renderQuoteSymbolChip(sym)}</td>
+            <td class="summary-cell-mint">${mintLink}</td>
+            <td class="summary-cell-stat">${marketTotal.toLocaleString()}</td>
+            <td class="summary-cell-stat">${programTotal.toLocaleString()}</td>
+            <td class="summary-cell-count">${renderSummaryCountCell(q.key, q.count, quoteCountsMap, quoteCountRange)}</td>
+          </tr>`;
+        })
+        .join('')
+    : buildTopQuotesPlaceholderRowsHtml();
+
+  updateSummaryBoxTitles(programs.length, topMarketsWithPair.length, quotes.length);
+}
+
+async function refreshSummaryDisplay(gen: number): Promise<void> {
+  if (gen !== tradeFetchGeneration) return;
+  const trades = getTradesForTableDisplay();
+  const remoteForDisplay = getRemoteTradesForDisplay();
+  if (trades.length === 0) {
+    renderSummaryEmpty();
+    summaryTitle.textContent = 'Trades Summary';
+    return;
+  }
+  summaryTitle.textContent = `Last ${trades.length} Trades Summary`;
+  summaryMeta.textContent = `From ${trades.length.toLocaleString()} filtered trade(s) (of ${remoteForDisplay.length.toLocaleString()} loaded): top 5 programs / pools / quote mints.`;
+  clearInlineError(summaryError);
+  await renderSummaryFromTrades(trades);
+}
+
+function scheduleSummaryRefresh(gen: number): void {
+  void refreshSummaryDisplay(gen).catch(() => {});
+}
+
+async function fetchTokenMeta(mint: string): Promise<void> {
+  renderTokenEmpty();
+  clearInlineError(tokenError);
+  if (!mint) return;
+
+  tokenLoading.hidden = false;
+  tokenLoading.setAttribute('aria-hidden', 'false');
+  try {
+    const res = await fetchWithRetry(`/api/tokens/${encodeURIComponent(mint)}`);
+    const body = (await res.json().catch(() => ({}))) as VybeToken & { error?: string };
+    if (!res.ok) {
+      showInlineError(tokenError, body.error || `Failed (${res.status})`);
+      return;
+    }
+
+    const tokenData = vybeBodyToTokenData(body as Record<string, unknown>, mint);
+    renderTokenStats(tokenData);
+    const symbol = tokenData.symbol?.trim() || '—';
+    lastBaseSymbol = symbol !== '—' ? symbol : undefined;
+
+    const nameStr = body.name?.trim() || '—';
+    const lastCandle =
+      lastCandlesFromApi.length > 0
+        ? lastCandlesFromApi[lastCandlesFromApi.length - 1]
+        : lastCandlesFromTrades.length > 0
+          ? lastCandlesFromTrades[lastCandlesFromTrades.length - 1]
+          : null;
+    updateCandlesChartOverlay(symbol, nameStr, lastCandle);
+  } catch (err) {
+    showInlineError(tokenError, err instanceof Error ? err.message : String(err));
+  } finally {
+    tokenLoading.hidden = true;
+    tokenLoading.setAttribute('aria-hidden', 'true');
+  }
+}
+
+function resolutionToSeconds(resolution: string): number {
+  switch (resolution) {
+    case '1m': return 60;
+    case '3m': return 3 * 60;
+    case '5m': return 5 * 60;
+    case '15m': return 15 * 60;
+    case '30m': return 30 * 60;
+    case '1h': return 60 * 60;
+    case '2h': return 2 * 60 * 60;
+    case '3h': return 3 * 60 * 60;
+    case '4h': return 4 * 60 * 60;
+    case '1d': return 24 * 60 * 60;
+    case '1w': return 7 * 24 * 60 * 60;
+    case '1mo': return 30 * 24 * 60 * 60;
+    case '1y': return 365 * 24 * 60 * 60;
+    default: return 60 * 60;
+  }
+}
+
+async function fetchCandlesFromApi(mint: string, resolution: string, pageOverride?: number): Promise<Candle[]> {
+  const limit = Number(limitSelect?.value) || 1000;
+  const page = pageOverride !== undefined ? pageOverride : Math.max(0, Math.trunc(Number(pageFromInput?.value || '0')));
+  const nowSec = Math.floor(Date.now() / 1000);
+  const defaultEndSec = nowSec - DEFAULT_OHLC_END_BEFORE_NOW_SECONDS;
+  let timeStart = parseUnixSecondsFromDatetimeLocal(timeStartInput?.value ?? '');
+  let timeEnd = parseUnixSecondsFromDatetimeLocal(timeEndInput?.value ?? '');
+  if (timeEnd == null || timeEnd < 0) timeEnd = defaultEndSec;
+  if (timeStart == null || timeStart < 0) timeStart = timeEnd - DEFAULT_OHLC_LOOKBACK_SECONDS;
+  const params = new URLSearchParams();
+  params.set('resolution', resolution);
+  params.set('limit', String(limit));
+  params.set('page', String(page));
+  const eliminateGaps = eliminateCloseToOpenGapsCheckbox?.checked !== false;
+  params.set('eliminateCloseToOpenGaps', String(eliminateGaps));
+  params.set('timeStart', String(timeStart));
+  params.set('timeEnd', String(timeEnd));
+  const res = await fetchWithRetry(`/api/tokens/${encodeURIComponent(mint)}/candles?${params.toString()}`);
+  const body = (await res.json().catch(() => ({}))) as { data?: Array<{ time: number; open: string; high: string; low: string; close: string; volume?: string }> };
+  if (!res.ok) {
+    const msg = (body as { error?: string }).error || `Failed (${res.status})`;
+    throw new Error(msg);
+  }
+  const raw = Array.isArray(body.data) ? body.data : [];
+  const mapped: Candle[] = [];
+  for (const c of raw) {
+    const time = typeof c.time === 'number' ? c.time : Number(c.time);
+    const open = Number(c.open);
+    const high = Number(c.high);
+    const low = Number(c.low);
+    const close = Number(c.close);
+    const volume = c.volume != null ? Number(c.volume) : undefined;
+    if (!Number.isFinite(time) || !Number.isFinite(open) || !Number.isFinite(high) || !Number.isFinite(low) || !Number.isFinite(close)) {
+      continue;
+    }
+    mapped.push({ time, open, high, low, close, volume });
+  }
+  mapped.sort((a, b) => a.time - b.time);
+  return mapped;
+}
+
+async function fetchCandlesFromMarketApi(marketAddress: string, resolution: string, pageOverride?: number): Promise<Candle[]> {
+  const limit = Number(limitSelect?.value) || 1000;
+  const page = pageOverride !== undefined ? pageOverride : Math.max(0, Math.trunc(Number(pageFromInput?.value || '0')));
+  const nowSec = Math.floor(Date.now() / 1000);
+  const defaultEndSec = nowSec - DEFAULT_OHLC_END_BEFORE_NOW_SECONDS;
+  let timeStart = parseUnixSecondsFromDatetimeLocal(timeStartInput?.value ?? '');
+  let timeEnd = parseUnixSecondsFromDatetimeLocal(timeEndInput?.value ?? '');
+  if (timeEnd == null || timeEnd < 0) timeEnd = defaultEndSec;
+  if (timeStart == null || timeStart < 0) timeStart = timeEnd - DEFAULT_OHLC_LOOKBACK_SECONDS;
+  const params = new URLSearchParams();
+  params.set('resolution', resolution);
+  params.set('limit', String(limit));
+  params.set('page', String(page));
+  const eliminateGaps = eliminateCloseToOpenGapsCheckbox?.checked !== false;
+  params.set('eliminateCloseToOpenGaps', String(eliminateGaps));
+  params.set('timeStart', String(timeStart));
+  params.set('timeEnd', String(timeEnd));
+  const res = await fetchWithRetry(`/api/markets/${encodeURIComponent(marketAddress)}/candles?${params.toString()}`);
+  const body = (await res.json().catch(() => ({}))) as { data?: Array<{ time: number; open: string; high: string; low: string; close: string; volume?: string }> };
+  if (!res.ok) {
+    const msg = (body as { error?: string }).error || `Failed (${res.status})`;
+    throw new Error(msg);
+  }
+  const raw = Array.isArray(body.data) ? body.data : [];
+  const mapped: Candle[] = [];
+  for (const c of raw) {
+    const time = typeof c.time === 'number' ? c.time : Number(c.time);
+    const open = Number(c.open);
+    const high = Number(c.high);
+    const low = Number(c.low);
+    const close = Number(c.close);
+    const volume = c.volume != null ? Number(c.volume) : undefined;
+    if (!Number.isFinite(time) || !Number.isFinite(open) || !Number.isFinite(high) || !Number.isFinite(low) || !Number.isFinite(close)) {
+      continue;
+    }
+    mapped.push({ time, open, high, low, close, volume });
+  }
+  mapped.sort((a, b) => a.time - b.time);
+  return mapped;
+}
+
+/**
+ * Build OHLC candles from trade history. Uses all filtered trades where the
+ * analysed mint is base or quote. Price is normalized to "quote per 1 unit of
+ * analysed mint" (so USD-stable quotes show USD price; e.g. SOL quote shows SOL/token).
+ */
+function buildCandlesFromTrades(trades: VybeTrade[], resolution: string, analysedMint: string): Candle[] {
+  if (!trades.length || !analysedMint.trim()) return [];
+  const mint = analysedMint.trim();
+  const bucketSize = resolutionToSeconds(resolution);
+  const byBucket = new Map<number, { open: number; high: number; low: number; close: number; volume: number }>();
+
+  const sorted = [...trades]
+    .filter((t) => {
+      if (typeof t.blockTime !== 'number' || t.price == null) return false;
+      const base = (t.baseMintAddress ?? '').trim();
+      const quote = (t.quoteMintAddress ?? '').trim();
+      const analysedIsBase = base === mint;
+      const analysedIsQuote = quote === mint;
+      if (!(analysedIsBase || analysedIsQuote) || !base || !quote) return false;
+      const otherMint = analysedIsBase ? quote : base;
+      return otherMint === getSelectedChartQuoteMint();
+    })
+    .sort((a, b) => (a.blockTime ?? 0) - (b.blockTime ?? 0));
+
+  for (const t of sorted) {
+    const bt = t.blockTime!;
+    const base = (t.baseMintAddress ?? '').trim();
+    const rawPrice = Number(t.price);
+    if (!Number.isFinite(rawPrice) || rawPrice <= 0) continue;
+    // Normalize: "USD per 1 unit of analysed mint". API price = quote per base.
+    const price = base === mint ? rawPrice : 1 / rawPrice;
+    const bucket = Math.floor(bt / bucketSize) * bucketSize;
+    const quoteSize = Number(t.quoteSize);
+    const vol = Number.isFinite(quoteSize) ? quoteSize : 0;
+    const existing = byBucket.get(bucket);
+    if (!existing) {
+      byBucket.set(bucket, {
+        open: price,
+        high: price,
+        low: price,
+        close: price,
+        volume: vol,
+      });
+    } else {
+      existing.close = price;
+      existing.high = Math.max(existing.high, price);
+      existing.low = Math.min(existing.low, price);
+      existing.volume += vol;
+    }
+  }
+  const entries = [...byBucket.entries()]
+    .map(([time, v]) => ({ time, open: v.open, high: v.high, low: v.low, close: v.close, volume: v.volume }))
+    .sort((a, b) => a.time - b.time);
+  return entries;
+}
+
+/** Build OHLC candles for a single market (trades filtered by quote mint and market address). */
+function buildCandlesFromTradesForMarket(
+  trades: VybeTrade[],
+  resolution: string,
+  analysedMint: string,
+  quoteMint: string,
+  marketAddress: string
+): Candle[] {
+  if (!trades.length || !analysedMint.trim() || !marketAddress.trim()) return [];
+  const mint = analysedMint.trim();
+  const m = marketAddress.trim();
+  const bucketSize = resolutionToSeconds(resolution);
+  const byBucket = new Map<number, { open: number; high: number; low: number; close: number; volume: number }>();
+
+  const sorted = [...trades]
+    .filter((t) => {
+      if (typeof t.blockTime !== 'number' || t.price == null) return false;
+      const base = (t.baseMintAddress ?? '').trim();
+      const quote = (t.quoteMintAddress ?? '').trim();
+      const analysedIsBase = base === mint;
+      const analysedIsQuote = quote === mint;
+      if (!(analysedIsBase || analysedIsQuote) || !base || !quote) return false;
+      const otherMint = analysedIsBase ? quote : base;
+      const tMarket = (t.marketAddress ?? '').trim();
+      return otherMint === quoteMint && tMarket === m;
+    })
+    .sort((a, b) => (a.blockTime ?? 0) - (b.blockTime ?? 0));
+
+  for (const t of sorted) {
+    const bt = t.blockTime!;
+    const base = (t.baseMintAddress ?? '').trim();
+    const rawPrice = Number(t.price);
+    if (!Number.isFinite(rawPrice) || rawPrice <= 0) continue;
+    const price = base === mint ? rawPrice : 1 / rawPrice;
+    const bucket = Math.floor(bt / bucketSize) * bucketSize;
+    const quoteSize = Number(t.quoteSize);
+    const vol = Number.isFinite(quoteSize) ? quoteSize : 0;
+    const existing = byBucket.get(bucket);
+    if (!existing) {
+      byBucket.set(bucket, {
+        open: price,
+        high: price,
+        low: price,
+        close: price,
+        volume: vol,
+      });
+    } else {
+      existing.close = price;
+      existing.high = Math.max(existing.high, price);
+      existing.low = Math.min(existing.low, price);
+      existing.volume += vol;
+    }
+  }
+  return [...byBucket.entries()]
+    .map(([time, v]) => ({ time, open: v.open, high: v.high, low: v.low, close: v.close, volume: v.volume }))
+    .sort((a, b) => a.time - b.time);
+}
+
+/**
+ * When filter wicks is on: drop candles whose close is more than deviationFactor (e.g. 0.99 = 99%)
+ * away from the next candle's open. Removes the candle that "closed way above/below" the next open.
+ */
+function filterCandlesByCloseOpenGap(candles: Candle[], deviationFactor: number): Candle[] {
+  if (deviationFactor <= 0 || candles.length <= 1) return candles;
+  const exclude = new Set<number>();
+  for (let i = 0; i < candles.length - 1; i++) {
+    const close = candles[i]!.close;
+    const nextOpen = candles[i + 1]!.open;
+    const ref = (close + nextOpen) / 2;
+    if (ref <= 0 || !Number.isFinite(ref)) continue;
+    const gapPct = Math.abs(close - nextOpen) / ref;
+    if (gapPct > deviationFactor) exclude.add(i);
+  }
+  return candles.filter((_, i) => !exclude.has(i));
+}
+
+function median(sortedArr: number[]): number {
+  if (sortedArr.length === 0) return 0;
+  const mid = Math.floor(sortedArr.length / 2);
+  if (sortedArr.length % 2 === 1) return sortedArr[mid]!;
+  return ((sortedArr[mid - 1] ?? 0) + (sortedArr[mid] ?? 0)) / 2;
+}
+
+function ensureCandlesChart(): void {
+  if (!candlesChartEl) return;
+  if (!candlesChart) {
+    const width = candlesChartEl.clientWidth || 600;
+    const height = candlesChartEl.clientHeight || 650;
+    candlesChart = LightweightCharts.createChart(candlesChartEl, {
+      width,
+      height,
+      layout: {
+        background: { color: '#0b0b0f' },
+        textColor: '#e4e4e7',
+      },
+      grid: {
+        vertLines: { color: '#18181b' },
+        horzLines: { color: '#18181b' },
+      },
+      timeScale: {
+        borderColor: '#27272a',
+        timeVisible: true,
+        secondsVisible: true,
+      },
+      rightPriceScale: {
+        borderColor: '#27272a',
+      },
+    } as any);
+    candlesSeries = candlesChart.addCandlestickSeries({
+      upColor: '#22c55e',
+      downColor: '#ef4444',
+      wickUpColor: '#22c55e',
+      wickDownColor: '#ef4444',
+      borderVisible: false,
+      priceFormat: {
+        type: 'custom',
+        minMove: 0.000000001,
+        formatter: formatPriceForChart,
+      },
+    } as any);
+    const timeScale = candlesChart.timeScale();
+    timeScale.subscribeVisibleLogicalRangeChange((range) => {
+      if (range === null || candlesBarCount <= 0) return;
+      const GAP_BARS = 20;
+      const width = range.to - range.from;
+      const maxLogical = candlesBarCount - 1 + GAP_BARS;
+
+      // Clamp left: don't scroll past the first candle.
+      if (range.from < 0) {
+        timeScale.setVisibleLogicalRange({ from: 0, to: width });
+        return;
+      }
+
+      // Clamp right: allow only a small gap past the newest candle.
+      if (range.to > maxLogical) {
+        const to = maxLogical;
+        const from = Math.max(0, to - width);
+        timeScale.setVisibleLogicalRange({ from, to });
+      }
+    });
+
+    candlesChart.subscribeCrosshairMove((param) => {
+      if (!candlesChartOverlay) return;
+      const symbol = lastBaseSymbol ?? '—';
+      const name = (tokenName && tokenName.textContent) ? tokenName.textContent.trim() : '—';
+      let candle: Candle | null = null;
+      if (param && param.time != null && candlesSeries && param.seriesData) {
+        const data = param.seriesData.get(candlesSeries);
+        if (data && (data.open != null || data.close != null)) {
+          const found = lastCandlesForTooltip.find((c) => c.time === param.time);
+          if (found) {
+            candle = {
+              ...found,
+              open: data.open ?? found.open,
+              high: data.high ?? found.high,
+              low: data.low ?? found.low,
+              close: data.close ?? found.close,
+            };
+          } else {
+            candle = {
+              time: param.time as number,
+              open: data.open ?? data.close ?? 0,
+              high: data.high ?? data.close ?? 0,
+              low: data.low ?? data.close ?? 0,
+              close: data.close ?? 0,
+            };
+          }
+        }
+      }
+      updateCandlesChartOverlay(symbol, name, candle);
+    });
+
+    window.addEventListener('resize', () => {
+      if (!candlesChart || !candlesChartEl) return;
+      const w = candlesChartEl.clientWidth || 600;
+      const h = candlesChartEl.clientHeight || 650;
+      candlesChart.resize(w, h);
+    });
+  }
+}
+
+function renderCandles(candles: Candle[]): void {
+  if (!candlesChartEl) return;
+  ensureCandlesChart();
+  if (!candlesSeries) return;
+  const prevCandles = lastCandlesForTooltip;
+  const isAppendOnly =
+    prevCandles.length > 0 &&
+    candles.length > prevCandles.length &&
+    prevCandles.every(
+      (c, i) =>
+        candles[i] &&
+        candles[i].time === c.time &&
+        candles[i].open === c.open &&
+        candles[i].high === c.high &&
+        candles[i].low === c.low &&
+        candles[i].close === c.close
+    );
+  if (isAppendOnly) {
+    // Append only new bars so existing bars (and their wicks) are not re-rendered and stay visible.
+    for (let i = prevCandles.length; i < candles.length; i++) {
+      const c = candles[i]!;
+      candlesSeries.update({ time: c.time, open: c.open, high: c.high, low: c.low, close: c.close });
+    }
+  } else {
+    candlesSeries.setData(
+      candles.map((c) => ({
+        time: c.time,
+        open: c.open,
+        high: c.high,
+        low: c.low,
+        close: c.close,
+      }))
+    );
+  }
+  candlesBarCount = candles.length;
+  lastCandlesForTooltip = candles;
+  if (candlesChart && candlesBarCount > 0) {
+    const timeScale = candlesChart.timeScale();
+    if (candlesSourceSelect?.value === 'trades') {
+      if (!isAppendOnly) timeScale.fitContent();
+    } else {
+      const currentRange = timeScale.getVisibleLogicalRange();
+      const lastIndex = candlesBarCount - 1;
+      const GAP_BARS = 20;
+      const defaultWidth = currentRange ? currentRange.to - currentRange.from : Math.min(candlesBarCount, 100);
+      const to = lastIndex + GAP_BARS;
+      const from = Math.max(0, to - defaultWidth);
+      timeScale.setVisibleLogicalRange({ from, to });
+    }
+  }
+
+  updateCandlesChartOverlay(
+    lastBaseSymbol ?? '—',
+    (tokenName && tokenName.textContent) ? tokenName.textContent.trim() : '—',
+    candles.length > 0 ? candles[candles.length - 1] : null
+  );
+}
+
+function updateCandlesChartOverlay(symbol: string, name: string, lastCandle: Candle | null): void {
+  if (!candlesChartOverlay) return;
+  const titleText = symbol === name ? name : `${name} (${symbol})`;
+  let html = `<div class="overlay-symbol">${escapeHtml(titleText)}</div>`;
+  if (lastCandle) {
+    const o = formatPriceForChart(lastCandle.open);
+    const h = formatPriceForChart(lastCandle.high);
+    const l = formatPriceForChart(lastCandle.low);
+    const c = formatPriceForChart(lastCandle.close);
+    const padded = padOhlcToSameLength(o, h, l, c);
+    html += `<div class="overlay-ohlc">
+      <span>Open</span><span>${padded.open}</span>
+      <span>High</span><span>${padded.high}</span>
+      <span>Low</span><span>${padded.low}</span>
+      <span>Close</span><span>${padded.close}</span>
+      <span>Time</span><span>${escapeHtml(formatTimeOnly(lastCandle.time))}</span>
+      <span>Date</span><span>${escapeHtml(formatDateYY(lastCandle.time))}</span>
+    </div>`;
+    if (lastCandle.volume != null && Number.isFinite(lastCandle.volume)) {
+      const volStr = formatVolumeWithSymbol(lastCandle.volume, symbol !== '—' ? symbol : 'USD');
+      html += `<div class="overlay-volume"><span>Volume</span><span>${escapeHtml(volStr)}</span></div>`;
+    } else {
+      html += `<div class="overlay-volume"><span>Volume</span><span>—</span></div>`;
+    }
+  } else {
+    html += `<div class="overlay-ohlc">
+      <span>Open</span><span>—</span>
+      <span>High</span><span>—</span>
+      <span>Low</span><span>—</span>
+      <span>Close</span><span>—</span>
+      <span>Time</span><span>—</span>
+      <span>Date</span><span>—</span>
+    </div>`;
+    html += `<div class="overlay-volume"><span>Volume</span><span>—</span></div>`;
+  }
+  candlesChartOverlay.innerHTML = html;
+}
+
+/**
+ * Refresh the candlestick chart. When rebuilding from trades, pass the exact
+ * filtered trades snapshot to use so the chart reflects the current filters
+ * even if lastFilteredTrades changes before the async call runs.
+ */
+async function refreshCandles(tradesSnapshot?: VybeTrade[]): Promise<void> {
+  if (!userHasClickedFetchCandles) return;
+  if (!candlesResolutionSelect || !candlesChartEl) return;
+  const mint = mintAddressInput.value.trim();
+  if (!mint) return;
+  const resolution = candlesResolutionSelect.value || '1m';
+  const source = candlesSourceSelect?.value ?? 'full';
+  const useTrades = source === 'trades';
+  const useMarket = source === 'market';
+  if (candlesError) {
+    candlesError.textContent = '';
+    candlesError.hidden = true;
+    candlesError.setAttribute('aria-hidden', 'true');
+  }
+  if (candlesLoading) {
+    candlesLoading.hidden = false;
+    candlesLoading.setAttribute('aria-hidden', 'false');
+  }
+  try {
+    let candles: Candle[];
+    if (useTrades) {
+      let tradesToUse: VybeTrade[];
+      if (filterWicksCheckbox?.checked) {
+        const chartQuote = getSelectedChartQuoteMint();
+        const filtered = chartQuote ? wickFilteredTradesByQuote.get(chartQuote) : undefined;
+        // Only use wick-filtered data when filter wicks is on; never paint unfiltered (avoids flash of wicks).
+        if (filtered === undefined) return;
+        tradesToUse = filtered;
+      } else {
+        tradesToUse = tradesSnapshot ?? lastFilteredTrades;
+      }
+      const chartQuote = getSelectedChartQuoteMint();
+      if (chartQuote) tradesToUse = tradesToUse.filter((t) => otherMint(t, mint) === chartQuote);
+      candles = buildCandlesFromTrades(tradesToUse, resolution, mint);
+      // Candle-based rule: drop candles whose close is > deviation % away from next open (independent of filter wicks)
+      const rawPct = Number(wickDeviationPctInput?.value ?? 0);
+      const pct = Number.isFinite(rawPct) ? Math.max(0, Math.min(100, rawPct)) : 0;
+      const gapFactor = pct > 0 ? pct / 100 : 0;
+      if (gapFactor > 0) candles = filterCandlesByCloseOpenGap(candles, gapFactor);
+      if (eliminateCloseToOpenGapsCheckbox?.checked && candles.length > 0) {
+        for (let i = 1; i < candles.length; i++) candles[i].open = candles[i - 1].close;
+      }
+      lastCandlesFromTrades = candles;
+      if (candles.length === 0 && candlesError) {
+        candlesError.textContent = 'No data for current filters. Include at least one quote (and its markets) to see the chart.';
+        candlesError.hidden = false;
+        candlesError.removeAttribute('aria-hidden');
+      }
+    } else if (useMarket) {
+      const marketAddress = candlesMarketAddressInput?.value.trim() ?? '';
+      if (!marketAddress) {
+        if (candlesError) {
+          candlesError.textContent = 'Enter a market address for Vybe OHLC by Market API.';
+          candlesError.hidden = false;
+          candlesError.removeAttribute('aria-hidden');
+        }
+        candles = [];
+      } else {
+        candles = await fetchCandlesFromMarketApi(marketAddress, resolution);
+        lastCandlesFromApi = candles;
+      }
+    } else {
+      candles = await fetchCandlesFromApi(mint, resolution);
+      lastCandlesFromApi = candles;
+    }
+    renderCandles(candles);
+  } catch (err) {
+    if (candlesError) {
+      const msg = err instanceof Error ? err.message : String(err);
+      candlesError.textContent = msg;
+      candlesError.hidden = false;
+      candlesError.removeAttribute('aria-hidden');
+    }
+  } finally {
+    if (candlesLoading) {
+      candlesLoading.hidden = true;
+      candlesLoading.setAttribute('aria-hidden', 'true');
+    }
+    setExportButtonsState();
+  }
+}
+
+async function fetchSymbol(mint: string): Promise<string | undefined> {
+  const hardcoded = HARDCODED_QUOTE_MINTS[mint];
+  if (hardcoded) {
+    quoteSymbolCache[mint] = hardcoded;
+    return hardcoded;
+  }
+  if (quoteSymbolCache[mint]) return quoteSymbolCache[mint];
+  const res = await fetchWithRetry(`/api/token-symbol/${encodeURIComponent(mint)}`);
+  const body = (await res.json().catch(() => ({}))) as TokenSymbolResponse;
+  if (!res.ok) return undefined;
+  const s = (body.symbol ?? '').trim();
+  if (!s || s === mint) return undefined;
+  quoteSymbolCache[mint] = s;
+  return s;
+}
+
+/** Each row has baseMintAddress and quoteMintAddress. Use the one that isn't the mint being analysed. */
+function otherMint(t: VybeTrade, mintBeingAnalysed: string): string {
+  const base = (t.baseMintAddress ?? '').trim();
+  const quote = (t.quoteMintAddress ?? '').trim();
+  return base === mintBeingAnalysed ? quote : base;
+}
+
+async function ensureQuoteSymbols(trades: VybeTrade[], baseMint: string): Promise<void> {
+  const unique = new Set<string>();
+  for (const t of trades.slice(0, 250)) {
+    const m = otherMint(t, baseMint).trim();
+    if (!m || m === baseMint) continue;
+    if (quoteSymbolCache[m]) continue;
+    unique.add(m);
+    if (unique.size >= 12) break;
+  }
+  for (const m of unique) {
+    const s = await fetchSymbol(m);
+    if (s) quoteSymbolCache[m] = s;
+  }
+}
+
+/** Ensure symbol cache has base and quote mints for trades (for table input/output columns). */
+async function ensureSymbolsForTrades(trades: VybeTrade[]): Promise<void> {
+  const unique = new Set<string>();
+  for (const t of trades.slice(0, 500)) {
+    const b = (t.baseMintAddress ?? '').trim();
+    const q = (t.quoteMintAddress ?? '').trim();
+    if (b) unique.add(b);
+    if (q) unique.add(q);
+    if (unique.size >= 50) break;
+  }
+  for (const m of unique) {
+    if (quoteSymbolCache[m]) continue;
+    const s = await fetchSymbol(m);
+    if (s) quoteSymbolCache[m] = s;
+  }
+}
+
+/** Ensure program label cache has labels for programs in trades (for table program column). */
+async function ensureProgramLabels(trades: VybeTrade[]): Promise<void> {
+  const unique = new Set<string>();
+  for (const t of trades.slice(0, 500)) {
+    const p = (t.programAddress ?? '').trim();
+    if (p) unique.add(p);
+    if (unique.size >= 30) break;
+  }
+  for (const addr of unique) {
+    if (programLabelCache[addr]) continue;
+    programLabelCache[addr] = WELL_KNOWN_PROGRAMS[addr] ?? addr;
+  }
+  const needLabel = [...unique].filter((addr) => programLabelCache[addr] === addr);
+  if (needLabel.length === 0) return;
+  try {
+    const r = await fetchWithRetry('/api/programs/labeled-program-accounts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ programAddresses: needLabel }),
+    });
+    if (r.ok) {
+      const body = (await r.json().catch(() => ({}))) as { labels?: Record<string, string> };
+      const labels = body.labels ?? {};
+      Object.assign(programLabelCache, labels);
+    }
+  } catch {
+    // keep WELL_KNOWN or address fallback
+  }
+}
+
+/** Program column: first word only, or first + second word if second is all CAPS and 4–5 chars (e.g. CLMM, CPMM). */
+function programDisplayLabel(addr: string | undefined): string {
+  if (!addr) return '—';
+  const label = programLabelCache[addr] ?? WELL_KNOWN_PROGRAMS[addr] ?? addr;
+  if (!label || label === addr) return truncate(addr, 5, 4);
+  const words = label.trim().split(/\s+/);
+  const first = words[0] ?? '';
+  const second = words[1];
+  if (second && /^[A-Z]+$/.test(second) && second.length >= 4 && second.length <= 5) {
+    return `${first} ${second}`;
+  }
+  return first;
+}
+
+function setTradesLoadedCount(el: HTMLElement, filtered: number, remote: number): void {
+  el.innerHTML = `<span class="trades-summary-count-main">${escapeHtml(filtered.toLocaleString())}</span><span class="trades-summary-count-total"> / ${escapeHtml(remote.toLocaleString())}</span>`;
+}
+
+function chartQuoteLabel(): string {
+  const mint = getSelectedChartQuoteMint();
+  return CHART_QUOTE_OPTIONS.find((o) => o.mint === mint)?.label ?? quoteSymOrTrunc(mint);
+}
+
+function formatTradesMeta(meta: { remoteCount: number; filteredCount: number; query: string }): string {
+  const source = candlesSourceSelect?.value ?? 'full';
+  if (meta.remoteCount === 0) {
+    if (source === 'trades') {
+      return 'Fetch trades for candles to load the table; rows match the selected chart quote after local filters.';
+    }
+    if (source === 'market') {
+      return 'Fetch candles to load trades for the selected market address.';
+    }
+    return 'Fetch candles to load vetted-market trades (USDC, USDT, PYUSD, wSOL quotes).';
+  }
+  const queryPart = meta.query ? ` (${meta.query})` : '';
+  const remote = meta.remoteCount.toLocaleString();
+  const filtered = meta.filteredCount.toLocaleString();
+  const base = `Remote: ${remote} trade(s)${queryPart}.`;
+  if (source === 'trades') {
+    return `${base} Showing: ${filtered} for chart quote ${chartQuoteLabel()} after local filters.`;
+  }
+  if (source === 'market') {
+    return `${base} Showing: ${filtered} for this market after local filters.`;
+  }
+  return `${base} Showing: ${filtered} vetted-quote trades after local filters.`;
+}
+
+function updateTradesSummary(trades: VybeTrade[], meta: { remoteCount: number; filteredCount: number }): void {
+  if (!tradesSummaryEl) return;
+  if (tradesSummaryCountEl) {
+    const remote = meta.remoteCount ?? trades.length;
+    const filtered = meta.filteredCount ?? trades.length;
+    setTradesLoadedCount(tradesSummaryCountEl, filtered, remote);
+  }
+  if (trades.length === 0) {
+    if (tradesSummaryProgramsEl) tradesSummaryProgramsEl.textContent = '0';
+    if (tradesSummaryMarketsEl) tradesSummaryMarketsEl.textContent = '0';
+    if (tradesSummaryQuotesEl) tradesSummaryQuotesEl.textContent = '0';
+    if (tradesSummaryTimeEl) tradesSummaryTimeEl.textContent = '—';
+    return;
+  }
+
+  const programs = new Set<string>();
+  const markets = new Set<string>();
+  const analysedMint = mintAddressInput.value.trim();
+  const marketToQuoteMint = new Map<string, string>();
+  let minTime: number | undefined;
+  let maxTime: number | undefined;
+  for (const t of trades) {
+    const p = (t.programAddress ?? '').trim();
+    const m = (t.marketAddress ?? '').trim();
+    if (p) programs.add(p);
+    if (m) markets.add(m);
+    if (m) {
+      const quoteMint = (t.quoteMintAddress ?? '').trim();
+      if (quoteMint) marketToQuoteMint.set(m, quoteMint);
+    }
+    const bt = t.blockTime;
+    if (typeof bt === 'number' && Number.isFinite(bt)) {
+      minTime = minTime == null ? bt : Math.min(minTime, bt);
+      maxTime = maxTime == null ? bt : Math.max(maxTime, bt);
+    }
+  }
+
+  const quoteMintsFromMarkets = new Set(
+    [...marketToQuoteMint.values()].filter((mint) => mint !== analysedMint)
+  );
+  if (tradesSummaryProgramsEl) tradesSummaryProgramsEl.textContent = programs.size.toLocaleString();
+  if (tradesSummaryMarketsEl) tradesSummaryMarketsEl.textContent = markets.size.toLocaleString();
+  if (tradesSummaryQuotesEl) tradesSummaryQuotesEl.textContent = quoteMintsFromMarkets.size.toLocaleString();
+  if (tradesSummaryTimeEl) {
+    if (minTime != null && maxTime != null && minTime !== maxTime) {
+      tradesSummaryTimeEl.textContent = `${formatTime(minTime)} → ${formatTime(maxTime)}`;
+    } else if (minTime != null) {
+      tradesSummaryTimeEl.textContent = formatTime(minTime);
+    } else {
+      tradesSummaryTimeEl.textContent = '—';
+    }
+  }
+}
+
+function renderTrades(trades: VybeTrade[], meta: { remoteCount: number; filteredCount: number; query: string }): void {
+  tradesMeta.textContent = formatTradesMeta(meta);
+  updateTradesSummary(trades, meta);
+  tradesTable?.classList.toggle('trades-table--placeholder', trades.length === 0);
+  const programColorMap = buildProgramGroupColorMap(trades);
+  const analysedMint = mintAddressInput.value.trim();
+  const volumeRange = computeAnalysedTokenVolumeRange(trades, analysedMint);
+  const marketCounts = computeEntityTradeCounts(trades, (t) => (t.marketAddress ?? '').trim());
+  const marketCountRange = minMaxFromEntityCounts(marketCounts);
+  const authorityCounts = computeEntityTradeCounts(trades, (t) => (t.authorityAddress ?? '').trim());
+  const authorityCountRange = minMaxFromEntityCounts(authorityCounts);
+
+  tradesBody.innerHTML = trades.length
+    ? trades
+        .map((t) => {
+          const time = formatTimeCellHtml(t.blockTime);
+          const inputSym = quoteSymOrTrunc(t.baseMintAddress);
+          const outputSym = quoteSymOrTrunc(t.quoteMintAddress);
+          const baseMint = (t.baseMintAddress ?? '').trim();
+          const quoteMint = (t.quoteMintAddress ?? '').trim();
+
+          const priceN = Number(t.price);
+          let priceRaw: string;
+          let priceSym: string;
+          if (!Number.isFinite(priceN)) {
+            priceRaw = '—';
+            priceSym = '';
+          } else if (analysedMint && quoteMint === analysedMint) {
+            const inv = 1 / priceN;
+            priceSym = isStableQuoteSymbol(inputSym) ? inputSym : displaySymbol(inputSym);
+            const priceSymD = symbolMax5(priceSym);
+            priceRaw = isStableQuoteSymbol(inputSym)
+              ? `${fmtUsd(inv)} ${priceSymD}`
+              : `${fmtPriceAmount(inv)} ${priceSymD}`;
+          } else {
+            priceSym = isStableQuoteSymbol(outputSym) ? outputSym : displaySymbol(outputSym);
+            const priceSymD = symbolMax5(priceSym);
+            priceRaw = isStableQuoteSymbol(outputSym)
+              ? `${fmtUsd(priceN)} ${priceSymD}`
+              : `${fmtPriceAmount(priceN)} ${priceSymD}`;
+          }
+          const priceIsAnalysedMint = !analysedMint;
+          const price = priceSym ? wrapAmountClass(priceRaw, priceSym, priceIsAnalysedMint) : priceRaw;
+
+          const type = !analysedMint ? '—' : baseMint === analysedMint ? 'Sell' : quoteMint === analysedMint ? 'Buy' : '—';
+          const tokenAmt = getAnalysedTokenAmount(t, analysedMint);
+
+          let volumeCell = '—';
+          if (volumeRange && (type === 'Buy' || type === 'Sell') && tokenAmt != null) {
+            const pct = volumePercentileFromAmount(tokenAmt, volumeRange.min, volumeRange.max);
+            volumeCell = renderTradeVolumeBars(type, volumeBarsFromPercentile(pct)) || '—';
+          }
+
+          const inputSymD = symbolMax5(displaySymbol(inputSym));
+          const inputAmountRaw = t.baseSize != null ? `${fmtTokenAmount(t.baseSize)} ${inputSymD}` : '—';
+          const inputIsAnalysedMint = !analysedMint || baseMint === analysedMint;
+          const inputAmount = wrapAmountClass(inputAmountRaw, inputSym, inputIsAnalysedMint);
+          const outputSizeN = Number(t.quoteSize);
+          const outputSymD = symbolMax5(displaySymbol(outputSym));
+          const outputAmountRaw = t.quoteSize != null
+            ? isStableQuoteSymbol(outputSym) && Number.isFinite(outputSizeN)
+              ? `${fmtUsd(outputSizeN)} ${outputSymD}`
+              : `${fmtTokenAmount(t.quoteSize)} ${outputSymD}`
+            : '—';
+          const outputIsAnalysedMint = !analysedMint || quoteMint === analysedMint;
+          const outputAmount = wrapAmountClass(outputAmountRaw, outputSym, outputIsAnalysedMint);
+
+          const otherSymbol =
+            analysedMint && (baseMint === analysedMint || quoteMint === analysedMint)
+              ? baseMint === analysedMint
+                ? outputSymD
+                : inputSymD
+              : `${inputSymD}/${outputSymD}`;
+          const otherSymRaw =
+            analysedMint && (baseMint === analysedMint || quoteMint === analysedMint)
+              ? baseMint === analysedMint
+                ? outputSym
+                : inputSym
+              : '';
+          const marketOtherClass =
+            otherSymRaw
+              ? isStableQuoteSymbol(otherSymRaw)
+                ? 'amount-usdc'
+                : displaySymbol(otherSymRaw) === 'SOL'
+                  ? 'amount-sol'
+                  : 'market-other-yellow'
+              : '';
+          const marketTone = marketOtherClass || 'market-pool-chip--neutral';
+          const marketPoolChip = renderMarketPoolChip(otherSymbol, marketTone);
+          const marketKey = (t.marketAddress ?? '').trim();
+          const marketAddrLabel = marketKey ? renderMarketAddressLabel(truncate(marketKey, 4, 4), marketTone) : '';
+          const marketMain = marketKey
+            ? `<a href="${SOLSCAN_ACCOUNT}${encodeURIComponent(marketKey)}" target="_blank" class="market-cell-link" title="${escapeHtml(marketKey)}">${marketAddrLabel}${marketPoolChip}</a>`
+            : '';
+          const marketBars = renderScopedFrequencyBars(
+            marketKey,
+            marketCounts,
+            marketCountRange,
+            'Pool frequency',
+            marketToneClassToBarColor(marketTone)
+          );
+          const market = marketMain ? wrapCellWithVolumeBars(marketMain, marketBars) : '—';
+          const program = renderProgramDexChip(t.programAddress, programColorMap);
+          const authority = (t.authorityAddress ?? '').trim();
+          const feePayer = (t.feePayerAddress ?? '').trim();
+          const authTxN = authority ? (authorityCounts.get(authority) ?? 0) : 0;
+          const authTier = authTxN > 0 ? authorityTxTierClass(authTxN) : '';
+          const authLink = (addr: string) =>
+            wrapAuthorityTierText(vybeLinkAccount(addr, truncate(addr, 4, 4)), authTier);
+          const feePayerLink = feePayer
+            ? `<span class="fee-payer-cell">(${vybeLinkAccount(feePayer, truncate(feePayer, 4, 4))})</span>`
+            : '';
+          const hasTwoValues = !!(authority && feePayer && authority !== feePayer);
+          const authorityFeePayerCellClass = hasTwoValues ? 'authority-fee-payer-double' : 'authority-fee-payer-single';
+          const authorityFeePayer =
+            !authority && !feePayer
+              ? '—'
+              : authority === feePayer
+                ? authLink(authority)
+                : authority && feePayer
+                  ? `<span class="authority-main-value">${authLink(authority)}</span><br>${feePayerLink}`
+                  : authority
+                    ? authLink(authority)
+                    : feePayer
+                      ? feePayerLink
+                      : '—';
+          const authorityCount = renderAuthorityCountCell(authority, authorityCounts, authorityCountRange);
+          const txid = t.signature
+            ? `<a href="${SOLSCAN_TX}${encodeURIComponent(t.signature)}" target="_blank" title="${t.signature}" class="txid-icon" aria-label="View transaction">↗</a>`
+            : '—';
+
+          return `<tr>
+            <td>${time}</td>
+            <td>${renderTradeTypeChip(type)}</td>
+            <td>${volumeCell}</td>
+            <td>${price}</td>
+            <td>${inputAmount}</td>
+            <td>${outputAmount}</td>
+            <td>${market}</td>
+            <td>${program}</td>
+            <td class="${authorityFeePayerCellClass}">${authorityFeePayer}</td>
+            <td>${authorityCount}</td>
+            <td>${txid}</td>
+          </tr>`;
+        })
+        .join('')
+    : buildTradesPlaceholderRowsHtml();
+}
+
+function toCsv(trades: VybeTrade[]): string {
+  const header = [
+    'blockTime',
+    'price',
+    'baseSize',
+    'quoteSize',
+    'baseMintAddress',
+    'quoteMintAddress',
+    'marketAddress',
+    'programAddress',
+    'authorityAddress',
+    'feePayerAddress',
+    'signature',
+  ];
+  const rows = trades.map((t) =>
+    [
+      t.blockTime ?? '',
+      t.price ?? '',
+      t.baseSize ?? '',
+      t.quoteSize ?? '',
+      t.baseMintAddress ?? '',
+      t.quoteMintAddress ?? '',
+      t.marketAddress ?? '',
+      t.programAddress ?? '',
+      t.authorityAddress ?? '',
+      t.feePayerAddress ?? '',
+      t.signature ?? '',
+    ]
+      .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+      .join(',')
+  );
+  return [header.join(','), ...rows].join('\n');
+}
+
+function downloadCsv(filename: string, csv: string): void {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/** Candles currently used for the chart: from trades (filtered) or from API (full/market). */
+function getChartCandles(): Candle[] {
+  const source = candlesSourceSelect?.value ?? 'full';
+  if (source === 'trades') return lastCandlesFromTrades;
+  return lastCandlesFromApi;
+}
+
+function setExportButtonsState(): void {
+  const candles = getChartCandles();
+  const source = candlesSourceSelect?.value ?? 'full';
+  const mint = mintAddressInput?.value?.trim() ?? '';
+  const marketAddress = candlesMarketAddressInput?.value?.trim() ?? '';
+  exportBtn.disabled = candles.length === 0;
+  exportAllBtn.disabled =
+    candles.length === 0 && !(source === 'full' && mint) && !(source === 'market' && marketAddress);
+}
+
+function candlesToCsv(candles: Candle[]): string {
+  const header = ['time', 'time_iso', 'open', 'high', 'low', 'close', 'volume'];
+  const rows = candles.map((c) => {
+    const timeIso = Number.isFinite(c.time) ? new Date(c.time * 1000).toISOString() : '';
+    const vol = c.volume != null && Number.isFinite(c.volume) ? String(c.volume) : '';
+    return [c.time, timeIso, c.open, c.high, c.low, c.close, vol]
+      .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+      .join(',');
+  });
+  return [header.join(','), ...rows].join('\n');
+}
+
+async function onFetch(): Promise<void> {
+  clearError();
+  clearInlineError(tokenError);
+  clearInlineError(summaryError);
+  const fetchGen = ++tradeFetchGeneration;
+  // Clear tables immediately so the user sees we're refetching.
+  renderTrades([], { remoteCount: 0, filteredCount: 0, query: '' });
+  renderSummaryEmpty();
+  buildPerQuotePlaceholderTable();
+  // When rebuilding from trades with filter wicks on, clear chart so we never show stale or partial unfiltered wicks during fetch.
+  if (candlesSourceSelect?.value === 'trades' && filterWicksCheckbox?.checked && candlesChartEl) {
+    renderCandles([]);
+  }
+  // Reset per-quote state for new fetch.
+  lastRemoteTrades = [];
+  lastFilteredTrades = [];
+  lastFilteredTradesForPerQuote = [];
+  wickFilteredTradesByQuote.clear();
+  excludedQuoteMints.clear();
+  excludedMarkets.clear();
+  Object.keys(perQuoteRules).forEach((k) => {
+    delete perQuoteRules[k];
+  });
+  userHasClickedFetchCandles = true;
+  fetchBtn.disabled = true;
+  exportBtn.disabled = true;
+  exportAllBtn.disabled = true;
+  loadingIndicator.hidden = false;
+  loadingIndicator.setAttribute('aria-hidden', 'false');
+  tradesLoading.hidden = false;
+  tradesLoading.setAttribute('aria-hidden', 'false');
+  if (candlesSourceSelect?.value === 'trades') {
+    if (candlesLoading) {
+      candlesLoading.hidden = false;
+      candlesLoading.setAttribute('aria-hidden', 'false');
+    }
+    if (rebuildLoading) {
+      rebuildLoading.hidden = false;
+      rebuildLoading.setAttribute('aria-hidden', 'false');
+    }
+  }
+
+  try {
+    // Reset UI back to empty placeholders before fetching.
+    renderTokenEmpty();
+    renderSummaryEmpty();
+    summaryLoading.hidden = false;
+    summaryLoading.setAttribute('aria-hidden', 'false');
+
+    const mint = mintAddressInput.value.trim();
+
+    // Fetch symbol for the mint first so the trades table can show it in Input/Output mint columns.
+    if (mint) await fetchSymbol(mint);
+
+    // Fire-and-forget token metadata (name, price, etc.); should not block trades table.
+    void fetchTokenMeta(mint);
+
+    const candlesSource = candlesSourceSelect?.value ?? 'full';
+    const useRebuildCandles = candlesSource === 'trades';
+
+    // When using Vybe OHLC (full or market), fetch and show candles first so the chart appears immediately.
+    const fetchedCandlesAtStart =
+      candlesResolutionSelect &&
+      candlesChartEl &&
+      ((candlesSource === 'full' && !!mint) || (candlesSource === 'market' && !!candlesMarketAddressInput?.value.trim()));
+    if (fetchedCandlesAtStart) {
+      await refreshCandles();
+    }
+
+    const pageFrom = parseIntOrUndefined(pageFromInput.value) ?? 0;
+    const N =
+      candlesSource === 'full' || candlesSource === 'market'
+        ? 1
+        : Math.min(20, Math.max(1, parseInt(String(candlesPagesInput?.value), 10) || 10));
+    const pages = Array.from({ length: N }, (_, i) => pageFrom + i);
+
+    let allTrades: VybeTrade[] = [];
+    for (let i = 0; i < pages.length; i++) {
+        const p = pages[i];
+        const progressStr =
+          allTrades.length > 0
+            ? `Page ${i + 1}/${pages.length} · ${allTrades.length.toLocaleString()} records`
+            : `Page ${i + 1}/${pages.length} · fetching…`;
+        if (candlesPagesProgress) candlesPagesProgress.textContent = progressStr;
+        if (tradesLoadingText) tradesLoadingText.textContent = progressStr;
+        if (candlesLoadingText) candlesLoadingText.textContent = progressStr;
+        if (rebuildLoadingText) rebuildLoadingText.textContent = progressStr;
+        const query = buildTradesQueryForTable(p);
+        const url = `/api/trades?${query}`;
+        const res = await fetchWithRetry(url);
+        const body = (await res.json().catch(() => ({}))) as TradesResponse & { error?: string };
+        if (!res.ok) {
+          showError(body.error || `Failed (${res.status})`);
+          showInlineError(summaryError, body.error || `Failed (${res.status})`);
+          summaryTitle.textContent = 'Summary unavailable';
+          lastRemoteTrades = [];
+          lastFilteredTrades = [];
+          renderTrades([], { remoteCount: 0, filteredCount: 0, query: '' });
+          renderSummaryEmpty();
+          return;
+        }
+        const chunk = Array.isArray(body.data) ? body.data : [];
+        allTrades.push(...chunk);
+        if (chunk.length < 950) break;
+
+        // Update table and UI after each page so trades appear as they arrive (all modes).
+        if (allTrades.length > 0) {
+          lastRemoteTrades = [...allTrades];
+          const remoteForDisplay = getRemoteTradesForDisplay();
+          lastFilteredTrades = applyLocalFilters(remoteForDisplay);
+          lastFilteredTradesForPerQuote = applyLocalFiltersWithoutPerQuoteRules(remoteForDisplay);
+          await ensureQuoteSymbols(lastFilteredTrades, mintAddressInput.value.trim());
+          await ensureSymbolsForTrades(lastFilteredTrades);
+          await ensureProgramLabels(lastFilteredTrades);
+          const pageIndex = i + 1;
+          const pageProgressStr = `Page ${pageIndex}/${pages.length} · ${allTrades.length.toLocaleString()} records`;
+          if (candlesPagesProgress) candlesPagesProgress.textContent = pageProgressStr;
+          if (tradesLoadingText) tradesLoadingText.textContent = pageProgressStr;
+          if (candlesLoadingText) candlesLoadingText.textContent = pageProgressStr;
+          if (rebuildLoadingText) rebuildLoadingText.textContent = pageProgressStr;
+          const tableTrades = getTradesForTableDisplay();
+          renderTrades(tableTrades, {
+            remoteCount: remoteForDisplay.length,
+            filteredCount: tableTrades.length,
+            query: pages.length > 1 ? `pages ${pageFrom}..${p}` : `page ${p}`,
+          });
+          scheduleSummaryRefresh(fetchGen);
+          setExportButtonsState();
+          if (useRebuildCandles) {
+            // Build per-quote rows (and wick-filtered data) before radios so any 'change' from buildChartQuotesRadios sees filtered data.
+            buildLocalFilterRows();
+            if (chartQuotesWrap && !chartQuotesWrap.hidden && chartQuoteSelect) {
+              buildChartQuotesRadios();
+            }
+            // When filter wicks is on, do NOT update the chart per page — only update once at end of fetch to avoid any flash of unfiltered wicks.
+            if (candlesResolutionSelect && candlesChartEl && !filterWicksCheckbox?.checked) {
+              void refreshCandles(lastFilteredTrades);
+            }
+          }
+        }
+    }
+
+    lastRemoteTrades = allTrades;
+    const fullRemoteForDisplay = getRemoteTradesForDisplay();
+    lastFilteredTrades = applyLocalFilters(fullRemoteForDisplay);
+    lastFilteredTradesForPerQuote = applyLocalFiltersWithoutPerQuoteRules(fullRemoteForDisplay);
+    // Build wick-filtered data and paint chart first so the chart appears quickly (does not wait for symbol/program API calls).
+    buildLocalFilterRows(fullRemoteForDisplay);
+    if (chartQuotesWrap && !chartQuotesWrap.hidden && chartQuoteSelect) {
+      buildChartQuotesRadios();
+    }
+    if (candlesSourceSelect?.value === 'trades' && candlesResolutionSelect && candlesChartEl) {
+      if (filterWicksCheckbox?.checked) {
+        requestAnimationFrame(() => requestAnimationFrame(() => refreshCandles()));
+      } else {
+        void refreshCandles();
+      }
+    } else if (!fetchedCandlesAtStart && candlesResolutionSelect && candlesChartEl) {
+      void refreshCandles();
+    }
+    // Then fetch symbols and program labels for the table (chart is already visible).
+    await ensureQuoteSymbols(lastFilteredTrades, mintAddressInput.value.trim());
+    await ensureSymbolsForTrades(lastFilteredTrades);
+    await ensureProgramLabels(lastFilteredTrades);
+    const tableTrades = getTradesForTableDisplay();
+    renderTrades(tableTrades, {
+      remoteCount: fullRemoteForDisplay.length,
+      filteredCount: tableTrades.length,
+      query: pages.length > 1 ? `pages=${pages[0]}..${pages[pages.length - 1]}` : `page=${pages[0]}`,
+    });
+    scheduleSummaryRefresh(fetchGen);
+    setExportButtonsState();
+  } catch (err) {
+    showError(err instanceof Error ? err.message : String(err));
+  } finally {
+    summaryLoading.hidden = true;
+    summaryLoading.setAttribute('aria-hidden', 'true');
+    if (candlesPagesProgress) candlesPagesProgress.textContent = '';
+    if (tradesLoadingText) tradesLoadingText.textContent = 'Loading…';
+    if (candlesLoadingText) candlesLoadingText.textContent = 'Loading…';
+    if (rebuildLoadingText) rebuildLoadingText.textContent = 'Loading…';
+    fetchBtn.disabled = false;
+    loadingIndicator.hidden = true;
+    loadingIndicator.setAttribute('aria-hidden', 'true');
+    tradesLoading.hidden = true;
+    tradesLoading.setAttribute('aria-hidden', 'true');
+    if (candlesLoading) {
+      candlesLoading.hidden = true;
+      candlesLoading.setAttribute('aria-hidden', 'true');
+    }
+    if (rebuildLoading) {
+      rebuildLoading.hidden = true;
+      rebuildLoading.setAttribute('aria-hidden', 'true');
+    }
+  }
+}
+
+function onLocalFilterChange(): void {
+  const remoteForDisplay = getRemoteTradesForDisplay();
+  lastFilteredTrades = applyLocalFilters(remoteForDisplay);
+  lastFilteredTradesForPerQuote = applyLocalFiltersWithoutPerQuoteRules(remoteForDisplay);
+  const tableTrades = getTradesForTableDisplay();
+  renderTrades(tableTrades, {
+    remoteCount: remoteForDisplay.length,
+    filteredCount: tableTrades.length,
+    query: '',
+  });
+  scheduleSummaryRefresh(tradeFetchGeneration);
+  setExportButtonsState();
+  // Build wick-filtered data before refreshing chart so we never paint unfiltered wicks.
+  buildLocalFilterRows();
+  if (candlesSourceSelect?.value === 'trades' && candlesChartEl && candlesResolutionSelect) {
+    if (candlesLoading) {
+      candlesLoading.hidden = false;
+      candlesLoading.setAttribute('aria-hidden', 'false');
+    }
+    void refreshCandles(lastFilteredTrades);
+  }
+  setExportButtonsState();
+  if (chartQuotesWrap && !chartQuotesWrap.hidden && chartQuoteSelect) {
+    buildChartQuotesRadios();
+  }
+}
+
+fetchBtn.addEventListener('click', () => {
+  if (!fetchClickedOnce) {
+    fetchClickedOnce = true;
+    fetchBtn.classList.remove('fetch-btn-attention');
+  }
+  void onFetch();
+});
+
+exportBtn.addEventListener('click', () => {
+  const candles = getChartCandles();
+  if (candles.length === 0) {
+    showError('No OHLC data to export. Fetch candles or trades first.');
+    return;
+  }
+  const page = Math.max(0, Math.trunc(Number(pageFromInput?.value || '0')));
+  const csv = candlesToCsv(candles);
+  downloadCsv(`ohlc-page-${page}.csv`, csv);
+});
+
+exportAllBtn.addEventListener('click', async () => {
+  clearError();
+  const source = candlesSourceSelect?.value ?? 'full';
+  const resolution = candlesResolutionSelect?.value || '1m';
+  const mint = mintAddressInput?.value?.trim() ?? '';
+  const marketAddress = candlesMarketAddressInput?.value?.trim() ?? '';
+
+  if (source === 'trades') {
+    const candles = getChartCandles();
+    if (candles.length === 0) {
+      showError('No OHLC data to export. Fetch trades and ensure the chart has data.');
+      return;
+    }
+    const csv = candlesToCsv(candles);
+    downloadCsv('ohlc-from-trades.csv', csv);
+    return;
+  }
+
+  if (source === 'full' && !mint) {
+    showError('Enter a token mint for Vybe API: OHLC Vetted Markets.');
+    return;
+  }
+  if (source === 'market' && !marketAddress) {
+    showError('Enter a market address for Vybe API: OHLC from Market.');
+    return;
+  }
+
+  exportAllBtn.disabled = true;
+  loadingIndicator.hidden = false;
+  loadingIndicator.setAttribute('aria-hidden', 'false');
+
+  try {
+    const limit = Number(limitSelect?.value) || 1000;
+    const maxPages = Math.max(1, Math.trunc(Number(maxPagesInput?.value || '50')));
+    const allCandles: Candle[] = [];
+
+    for (let page = 0; page < maxPages; page++) {
+      const chunk =
+        source === 'market'
+          ? await fetchCandlesFromMarketApi(marketAddress, resolution, page)
+          : await fetchCandlesFromApi(mint, resolution, page);
+      allCandles.push(...chunk);
+      if (chunk.length < limit) break;
+    }
+
+    if (allCandles.length === 0) {
+      showError('No OHLC data returned from API.');
+      return;
+    }
+    const csv = candlesToCsv(allCandles);
+    downloadCsv(`ohlc-export-${source}-${allCandles.length}.csv`, csv);
+  } catch (err) {
+    showError(err instanceof Error ? err.message : String(err));
+  } finally {
+    loadingIndicator.hidden = true;
+    loadingIndicator.setAttribute('aria-hidden', 'true');
+    setExportButtonsState();
+  }
+});
+
+if (localProgramInput) localProgramInput.addEventListener('input', onLocalFilterChange);
+if (localSignatureInput) localSignatureInput.addEventListener('input', onLocalFilterChange);
+if (localFeePayerInput) localFeePayerInput.addEventListener('input', onLocalFilterChange);
+if (localAuthorityInput) localAuthorityInput.addEventListener('input', onLocalFilterChange);
+if (authorityEqualsFeePayerCheckbox) authorityEqualsFeePayerCheckbox.addEventListener('change', onLocalFilterChange);
+if (filterWicksCheckbox) filterWicksCheckbox.addEventListener('change', onLocalFilterChange);
+if (wickLookbackInput) {
+  wickLookbackInput.addEventListener('change', onLocalFilterChange);
+  wickLookbackInput.addEventListener('input', onLocalFilterChange);
+}
+if (wickDeviationPctInput) {
+  wickDeviationPctInput.addEventListener('change', onLocalFilterChange);
+  wickDeviationPctInput.addEventListener('input', onLocalFilterChange);
+}
+if (eliminateCloseToOpenGapsCheckbox) {
+  eliminateCloseToOpenGapsCheckbox.addEventListener('change', () => {
+    if (candlesChartEl && candlesResolutionSelect) void refreshCandles();
+  });
+}
+
+/** Sync switch track aria-pressed from checkbox state */
+function syncSwitchTrack(switchLabel: HTMLElement): void {
+  const input = switchLabel.querySelector('.trades-fetch-switch-input') as HTMLInputElement | null;
+  const options = switchLabel.querySelectorAll('.trades-fetch-switch-option');
+  if (!input || !options.length) return;
+  const isOn = input.checked;
+  options.forEach((opt) => {
+    const val = opt.getAttribute('data-value');
+    opt.setAttribute('aria-pressed', String(val === 'on' ? isOn : !isOn));
+  });
+}
+
+/** Wire up trades-fetch-switch: option clicks update checkbox and sync track */
+function initLocalFilterSwitches(): void {
+  document.querySelectorAll('.trades-fetch-switch').forEach((label) => {
+    const switchLabel = label as HTMLElement;
+    const input = switchLabel.querySelector('.trades-fetch-switch-input') as HTMLInputElement | null;
+    const options = switchLabel.querySelectorAll('.trades-fetch-switch-option');
+    if (!input || !options.length) return;
+    syncSwitchTrack(switchLabel);
+    options.forEach((opt) => {
+      opt.addEventListener('click', (e) => {
+        e.preventDefault();
+        const val = (opt as HTMLElement).getAttribute('data-value');
+        input.checked = val === 'on';
+        syncSwitchTrack(switchLabel);
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    });
+  });
+}
+initLocalFilterSwitches();
+applyDefaultRemoteTimeRange();
+
+if (candlesResolutionSelect) {
+  candlesResolutionSelect.addEventListener('change', () => {
+    void refreshCandles();
+  });
+}
+
+function updateCandlesPagesVisibility(): void {
+  const source = candlesSourceSelect?.value ?? 'full';
+  const showTradesParams = source === 'trades';
+  const showMarketAddress = source === 'market';
+  if (candlesPagesWrap) candlesPagesWrap.hidden = !showTradesParams;
+  if (chartQuotesWrap) chartQuotesWrap.hidden = !showTradesParams;
+  if (perQuoteSectionEl) {
+    perQuoteSectionEl.hidden = !showTradesParams;
+    perQuoteSectionEl.setAttribute('aria-hidden', String(showTradesParams ? 'false' : 'true'));
+  }
+  if (tokenMintWrap) tokenMintWrap.hidden = showMarketAddress;
+  if (candlesMarketAddressWrap) candlesMarketAddressWrap.hidden = !showMarketAddress;
+}
+
+/** All quote mints in filtered trades with counts, sorted by count desc. Used for chart quote dropdowns. */
+function getChartQuoteOptionsWithCounts(): { mint: string; label: string; count: number }[] {
+  const baseMint = mintAddressInput.value.trim();
+  const counts = new Map<string, number>();
+  for (const t of lastFilteredTrades) {
+    const q = otherMint(t, baseMint).trim();
+    if (q && q !== baseMint) counts.set(q, (counts.get(q) ?? 0) + 1);
+  }
+  const list = [...counts.entries()]
+    .map(([mint, count]) => {
+      let label =
+        CHART_QUOTE_OPTIONS.find((o) => o.mint === mint)?.label ?? quoteSymOrTrunc(mint);
+      if (!label || label === '—') label = truncate(mint, 4, 4);
+      return { mint, label, count };
+    })
+    .sort((a, b) => b.count - a.count);
+  return list;
+}
+
+function buildChartQuotesRadios(): void {
+  if (!chartQuoteSelect) return;
+  let quoteOptions = getChartQuoteOptionsWithCounts();
+  if (quoteOptions.length === 0) {
+    quoteOptions = CHART_QUOTE_OPTIONS.map((o) => ({ mint: o.mint, label: o.label, count: 0 }));
+  }
+  const currentValue = chartQuoteSelect.value || getSelectedChartQuoteMint();
+  chartQuoteSelect.innerHTML = '';
+  for (const o of quoteOptions) {
+    const opt = document.createElement('option');
+    opt.value = o.mint;
+    opt.textContent = `${o.label} (${o.count})`;
+    if (o.mint === currentValue) opt.selected = true;
+    chartQuoteSelect.appendChild(opt);
+  }
+  if (chartQuoteSelect.value !== currentValue && quoteOptions.length > 0) {
+    chartQuoteSelect.value = quoteOptions[0]!.mint;
+  }
+}
+
+// Apply candles source from URL so refresh loads with the selected option
+const urlCandlesSource = new URLSearchParams(window.location.search).get('candlesSource');
+if (candlesSourceSelect && (urlCandlesSource === 'full' || urlCandlesSource === 'trades' || urlCandlesSource === 'market')) {
+  candlesSourceSelect.value = urlCandlesSource;
+}
+
+if (candlesSourceSelect && candlesResolutionSelect) {
+  candlesSourceSelect.addEventListener('change', () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('candlesSource', candlesSourceSelect.value);
+    window.location.href = url.toString();
+  });
+}
+
+function updateFetchButtonLabel(): void {
+  const label = candlesSourceSelect?.value === 'trades' ? 'Fetch Trades for Candles' : 'Fetch Candles';
+  if (fetchBtnText) fetchBtnText.textContent = label;
+  else if (fetchBtn) fetchBtn.textContent = label;
+}
+if (candlesPagesWrap) {
+  candlesPagesWrap.hidden = candlesSourceSelect?.value !== 'trades';
+}
+if (chartQuotesWrap) {
+  chartQuotesWrap.hidden = candlesSourceSelect?.value !== 'trades';
+}
+if (perQuoteSectionEl) {
+  const showParams = candlesSourceSelect?.value === 'trades';
+  perQuoteSectionEl.hidden = !showParams;
+  perQuoteSectionEl.setAttribute('aria-hidden', showParams ? 'false' : 'true');
+  if (showParams) buildLocalFilterRows();
+}
+function moveNoGapsSwitchToRebuildSection(): void {
+  if (!noGapsSwitchWrap || !localNoGapsTarget || !remoteNoGapsTarget) return;
+  const isTrades = candlesSourceSelect?.value === 'trades';
+  const target = isTrades ? localNoGapsTarget : remoteNoGapsTarget;
+  if (noGapsSwitchWrap.parentElement !== target) target.appendChild(noGapsSwitchWrap);
+}
+moveNoGapsSwitchToRebuildSection();
+const isMarket = candlesSourceSelect?.value === 'market';
+if (tokenMintWrap) tokenMintWrap.hidden = !!isMarket;
+if (candlesMarketAddressWrap) candlesMarketAddressWrap.hidden = !isMarket;
+buildChartQuotesRadios();
+if (chartQuoteSelect) {
+  chartQuoteSelect.addEventListener('change', () => {
+    onLocalFilterChange();
+    // Always refresh chart when quote currency changes so it shows the selected pair.
+    if (candlesChartEl && candlesResolutionSelect) {
+      void refreshCandles();
+    }
+  });
+}
+
+// Initial empty state
+renderTrades([], { remoteCount: 0, filteredCount: 0, query: '' });
+renderSummaryEmpty();
+renderTokenEmpty();
+buildPerQuotePlaceholderTable();
+clearError();
+updateFetchButtonLabel();
+

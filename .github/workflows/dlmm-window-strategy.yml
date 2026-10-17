@@ -1,0 +1,34 @@
+name: DLMM static SOL option strategy windows
+on:
+  workflow_dispatch:
+  push:
+    branches: ['research/dlmm-window-strategy-20261009']
+    paths: ['research/dlmm_option_window_strategy.py', '.github/workflows/dlmm-window-strategy.yml']
+permissions:
+  contents: read
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - name: Get existing 6 MB LFS research database
+        run: |
+          git lfs install --local
+          git lfs pull --include="data/sol_dlmm_deribit.db" --exclude=""
+      - name: Install integer linear optimizer
+        run: python3 -m pip install 'numpy>=1.26,<3' 'scipy>=1.13,<2'
+      - name: Verify exact error and integer optimization
+        run: python3 research/dlmm_option_window_strategy.py --self-test
+      - name: Analyze saved DLMM Bins and Deribit ask depth for price windows
+        run: python3 research/dlmm_option_window_strategy.py --wealth 10000 --out research-artifacts/dlmm_option_window_strategy.json
+      - name: Preserve read-only risk report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dlmm-saved-snapshot-strategy-${{ github.run_id }}
+          path: research-artifacts/*.json
+          retention-days: 14
+          if-no-files-found: warn

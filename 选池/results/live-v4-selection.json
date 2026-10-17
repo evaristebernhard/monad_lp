@@ -1,0 +1,675 @@
+{
+  "algorithm": "K=1 maximum gross exact-input quote, deterministic pool-ID tie break",
+  "source": "Monad mainnet Quoter read-only eth_call",
+  "sourceChainId": 143,
+  "sourceBlock": "114078450",
+  "sourceBlockHash": "0xc6d40de403bf824514f6625a2a8ede9c294d8a22a96cc3fa81ec6b4568bb851b",
+  "sourceTimestamp": "1792208316",
+  "capturedAt": "2026-10-17T03:38:39.936Z",
+  "quoter": "0xa222dd357a9076d1091ed6aa2e16c9742dd26891",
+  "catalogCandidates": 7,
+  "verifiedPoolKeys": 6,
+  "rejected": [
+    {
+      "pool": "0xec865b668bb7026fb853c26b8a478d333261d7fd41d1ef713795c87ccbb48175",
+      "reason": "zero-hook PoolKey hash mismatch; key/hook needs independent discovery"
+    }
+  ],
+  "scenarios": [
+    {
+      "direction": "MON_TO_USDC",
+      "inputToken": "0x0000000000000000000000000000000000000000",
+      "outputToken": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "amountIn": "1",
+      "amountInRaw": "1000000000000000000",
+      "outputDecimals": 6,
+      "quotes": [
+        {
+          "pool": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 500,
+            "tickSpacing": 10,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "22807",
+          "amountOut": "0.022807",
+          "quoterGasEstimate": "49747"
+        },
+        {
+          "pool": "0x8b926a72640b5766c5daa65365c24009618a91cab560946b550e4aa5ce2ae5f2",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 10000,
+            "tickSpacing": 200,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "22486",
+          "amountOut": "0.022486",
+          "quoterGasEstimate": "49843"
+        },
+        {
+          "pool": "0x7d892749d0562b0f78a26cdec26e97ec9dc7f8d1997cb590643ab69f10a1da0e",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 3000,
+            "tickSpacing": 60,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "22670",
+          "amountOut": "0.02267",
+          "quoterGasEstimate": "49711"
+        },
+        {
+          "pool": "0xadcb23117ee93b4e77ac9321a5c7e42c5c7ca2c12dde86ef2df97a53e0058be6",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 9000,
+            "tickSpacing": 90,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "22556",
+          "amountOut": "0.022556",
+          "quoterGasEstimate": "49807"
+        },
+        {
+          "pool": "0x531dffc6f4bff190d95f794e35e3dd00dd78010643be9ceaf0115e113183ab77",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 100,
+            "tickSpacing": 1,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "15",
+          "amountOut": "0.000015",
+          "quoterGasEstimate": "4984462"
+        },
+        {
+          "pool": "0x58249cb3e44c955d48c6176b1dd5888b7300f0d0b2d1ae934ca8063d16968f9b",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 30000,
+            "tickSpacing": 600,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "22203",
+          "amountOut": "0.022203",
+          "quoterGasEstimate": "49683"
+        }
+      ],
+      "selected": {
+        "pool": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+        "poolKey": {
+          "currency0": "0x0000000000000000000000000000000000000000",
+          "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+          "fee": 500,
+          "tickSpacing": 10,
+          "hooks": "0x0000000000000000000000000000000000000000"
+        },
+        "status": "quoted",
+        "amountOutRaw": "22807",
+        "amountOut": "0.022807",
+        "quoterGasEstimate": "49747"
+      }
+    },
+    {
+      "direction": "MON_TO_USDC",
+      "inputToken": "0x0000000000000000000000000000000000000000",
+      "outputToken": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "amountIn": "100",
+      "amountInRaw": "100000000000000000000",
+      "outputDecimals": 6,
+      "quotes": [
+        {
+          "pool": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 500,
+            "tickSpacing": 10,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "2280765",
+          "amountOut": "2.280765",
+          "quoterGasEstimate": "49747"
+        },
+        {
+          "pool": "0x8b926a72640b5766c5daa65365c24009618a91cab560946b550e4aa5ce2ae5f2",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 10000,
+            "tickSpacing": 200,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "2244073",
+          "amountOut": "2.244073",
+          "quoterGasEstimate": "49811"
+        },
+        {
+          "pool": "0x7d892749d0562b0f78a26cdec26e97ec9dc7f8d1997cb590643ab69f10a1da0e",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 3000,
+            "tickSpacing": 60,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "2265484",
+          "amountOut": "2.265484",
+          "quoterGasEstimate": "49647"
+        },
+        {
+          "pool": "0xadcb23117ee93b4e77ac9321a5c7e42c5c7ca2c12dde86ef2df97a53e0058be6",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 9000,
+            "tickSpacing": 90,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "2254966",
+          "amountOut": "2.254966",
+          "quoterGasEstimate": "48943"
+        },
+        {
+          "pool": "0x531dffc6f4bff190d95f794e35e3dd00dd78010643be9ceaf0115e113183ab77",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 100,
+            "tickSpacing": 1,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "15",
+          "amountOut": "0.000015",
+          "quoterGasEstimate": "9114305"
+        },
+        {
+          "pool": "0x58249cb3e44c955d48c6176b1dd5888b7300f0d0b2d1ae934ca8063d16968f9b",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 30000,
+            "tickSpacing": 600,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "2220060",
+          "amountOut": "2.22006",
+          "quoterGasEstimate": "49715"
+        }
+      ],
+      "selected": {
+        "pool": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+        "poolKey": {
+          "currency0": "0x0000000000000000000000000000000000000000",
+          "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+          "fee": 500,
+          "tickSpacing": 10,
+          "hooks": "0x0000000000000000000000000000000000000000"
+        },
+        "status": "quoted",
+        "amountOutRaw": "2280765",
+        "amountOut": "2.280765",
+        "quoterGasEstimate": "49747"
+      }
+    },
+    {
+      "direction": "MON_TO_USDC",
+      "inputToken": "0x0000000000000000000000000000000000000000",
+      "outputToken": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "amountIn": "1000",
+      "amountInRaw": "1000000000000000000000",
+      "outputDecimals": 6,
+      "quotes": [
+        {
+          "pool": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 500,
+            "tickSpacing": 10,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "22807413",
+          "amountOut": "22.807413",
+          "quoterGasEstimate": "49679"
+        },
+        {
+          "pool": "0x8b926a72640b5766c5daa65365c24009618a91cab560946b550e4aa5ce2ae5f2",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 10000,
+            "tickSpacing": 200,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "22035318",
+          "amountOut": "22.035318",
+          "quoterGasEstimate": "49779"
+        },
+        {
+          "pool": "0x7d892749d0562b0f78a26cdec26e97ec9dc7f8d1997cb590643ab69f10a1da0e",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 3000,
+            "tickSpacing": 60,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "22511186",
+          "amountOut": "22.511186",
+          "quoterGasEstimate": "49683"
+        },
+        {
+          "pool": "0xadcb23117ee93b4e77ac9321a5c7e42c5c7ca2c12dde86ef2df97a53e0058be6",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 9000,
+            "tickSpacing": 90,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "22490261",
+          "amountOut": "22.490261",
+          "quoterGasEstimate": "49839"
+        },
+        {
+          "pool": "0x531dffc6f4bff190d95f794e35e3dd00dd78010643be9ceaf0115e113183ab77",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 100,
+            "tickSpacing": 1,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "15",
+          "amountOut": "0.000015",
+          "quoterGasEstimate": "11175797"
+        },
+        {
+          "pool": "0x58249cb3e44c955d48c6176b1dd5888b7300f0d0b2d1ae934ca8063d16968f9b",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 30000,
+            "tickSpacing": 600,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "22170492",
+          "amountOut": "22.170492",
+          "quoterGasEstimate": "49683"
+        }
+      ],
+      "selected": {
+        "pool": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+        "poolKey": {
+          "currency0": "0x0000000000000000000000000000000000000000",
+          "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+          "fee": 500,
+          "tickSpacing": 10,
+          "hooks": "0x0000000000000000000000000000000000000000"
+        },
+        "status": "quoted",
+        "amountOutRaw": "22807413",
+        "amountOut": "22.807413",
+        "quoterGasEstimate": "49679"
+      }
+    },
+    {
+      "direction": "USDC_TO_MON",
+      "inputToken": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "outputToken": "0x0000000000000000000000000000000000000000",
+      "amountIn": "1",
+      "amountInRaw": "1000000",
+      "outputDecimals": 18,
+      "quotes": [
+        {
+          "pool": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 500,
+            "tickSpacing": 10,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "43801020124320585553",
+          "amountOut": "43.801020124320585553",
+          "quoterGasEstimate": "49655"
+        },
+        {
+          "pool": "0x8b926a72640b5766c5daa65365c24009618a91cab560946b550e4aa5ce2ae5f2",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 10000,
+            "tickSpacing": 200,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "43546485312221552778",
+          "amountOut": "43.546485312221552778",
+          "quoterGasEstimate": "49523"
+        },
+        {
+          "pool": "0x7d892749d0562b0f78a26cdec26e97ec9dc7f8d1997cb590643ab69f10a1da0e",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 3000,
+            "tickSpacing": 60,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "43831421289321037707",
+          "amountOut": "43.831421289321037707",
+          "quoterGasEstimate": "49559"
+        },
+        {
+          "pool": "0xadcb23117ee93b4e77ac9321a5c7e42c5c7ca2c12dde86ef2df97a53e0058be6",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 9000,
+            "tickSpacing": 90,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "43533515952474586610",
+          "amountOut": "43.53351595247458661",
+          "quoterGasEstimate": "49591"
+        },
+        {
+          "pool": "0x531dffc6f4bff190d95f794e35e3dd00dd78010643be9ceaf0115e113183ab77",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 100,
+            "tickSpacing": 1,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "4074511598996961",
+          "amountOut": "0.004074511598996961",
+          "quoterGasEstimate": "8384299"
+        },
+        {
+          "pool": "0x58249cb3e44c955d48c6176b1dd5888b7300f0d0b2d1ae934ca8063d16968f9b",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 30000,
+            "tickSpacing": 600,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "42372537826383660254",
+          "amountOut": "42.372537826383660254",
+          "quoterGasEstimate": "49619"
+        }
+      ],
+      "selected": {
+        "pool": "0x7d892749d0562b0f78a26cdec26e97ec9dc7f8d1997cb590643ab69f10a1da0e",
+        "poolKey": {
+          "currency0": "0x0000000000000000000000000000000000000000",
+          "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+          "fee": 3000,
+          "tickSpacing": 60,
+          "hooks": "0x0000000000000000000000000000000000000000"
+        },
+        "status": "quoted",
+        "amountOutRaw": "43831421289321037707",
+        "amountOut": "43.831421289321037707",
+        "quoterGasEstimate": "49559"
+      }
+    },
+    {
+      "direction": "USDC_TO_MON",
+      "inputToken": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "outputToken": "0x0000000000000000000000000000000000000000",
+      "amountIn": "10",
+      "amountInRaw": "10000000",
+      "outputDecimals": 18,
+      "quotes": [
+        {
+          "pool": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 500,
+            "tickSpacing": 10,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "438008166936890182065",
+          "amountOut": "438.008166936890182065",
+          "quoterGasEstimate": "49655"
+        },
+        {
+          "pool": "0x8b926a72640b5766c5daa65365c24009618a91cab560946b550e4aa5ce2ae5f2",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 10000,
+            "tickSpacing": 200,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "431961911523189634420",
+          "amountOut": "431.96191152318963442",
+          "quoterGasEstimate": "49495"
+        },
+        {
+          "pool": "0x7d892749d0562b0f78a26cdec26e97ec9dc7f8d1997cb590643ab69f10a1da0e",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 3000,
+            "tickSpacing": 60,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "437087012612918976880",
+          "amountOut": "437.08701261291897688",
+          "quoterGasEstimate": "49591"
+        },
+        {
+          "pool": "0xadcb23117ee93b4e77ac9321a5c7e42c5c7ca2c12dde86ef2df97a53e0058be6",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 9000,
+            "tickSpacing": 90,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "434830483804049956550",
+          "amountOut": "434.83048380404995655",
+          "quoterGasEstimate": "49591"
+        },
+        {
+          "pool": "0x531dffc6f4bff190d95f794e35e3dd00dd78010643be9ceaf0115e113183ab77",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 100,
+            "tickSpacing": 1,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "4074860791000671",
+          "amountOut": "0.004074860791000671",
+          "quoterGasEstimate": "10455839"
+        },
+        {
+          "pool": "0x58249cb3e44c955d48c6176b1dd5888b7300f0d0b2d1ae934ca8063d16968f9b",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 30000,
+            "tickSpacing": 600,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "423474086921237871753",
+          "amountOut": "423.474086921237871753",
+          "quoterGasEstimate": "49555"
+        }
+      ],
+      "selected": {
+        "pool": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+        "poolKey": {
+          "currency0": "0x0000000000000000000000000000000000000000",
+          "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+          "fee": 500,
+          "tickSpacing": 10,
+          "hooks": "0x0000000000000000000000000000000000000000"
+        },
+        "status": "quoted",
+        "amountOutRaw": "438008166936890182065",
+        "amountOut": "438.008166936890182065",
+        "quoterGasEstimate": "49655"
+      }
+    },
+    {
+      "direction": "USDC_TO_MON",
+      "inputToken": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "outputToken": "0x0000000000000000000000000000000000000000",
+      "amountIn": "100",
+      "amountInRaw": "100000000",
+      "outputDecimals": 18,
+      "quotes": [
+        {
+          "pool": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 500,
+            "tickSpacing": 10,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "4379878249129850901877",
+          "amountOut": "4379.878249129850901877",
+          "quoterGasEstimate": "49655"
+        },
+        {
+          "pool": "0x8b926a72640b5766c5daa65365c24009618a91cab560946b550e4aa5ce2ae5f2",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 10000,
+            "tickSpacing": 200,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "3998499104719959264656",
+          "amountOut": "3998.499104719959264656",
+          "quoterGasEstimate": "80451"
+        },
+        {
+          "pool": "0x7d892749d0562b0f78a26cdec26e97ec9dc7f8d1997cb590643ab69f10a1da0e",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 3000,
+            "tickSpacing": 60,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "4251826692108108011378",
+          "amountOut": "4251.826692108108011378",
+          "quoterGasEstimate": "49523"
+        },
+        {
+          "pool": "0xadcb23117ee93b4e77ac9321a5c7e42c5c7ca2c12dde86ef2df97a53e0058be6",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 9000,
+            "tickSpacing": 90,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "4298473457718846821087",
+          "amountOut": "4298.473457718846821087",
+          "quoterGasEstimate": "49527"
+        },
+        {
+          "pool": "0x531dffc6f4bff190d95f794e35e3dd00dd78010643be9ceaf0115e113183ab77",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 100,
+            "tickSpacing": 1,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "4074895679359041",
+          "amountOut": "0.004074895679359041",
+          "quoterGasEstimate": "12522971"
+        },
+        {
+          "pool": "0x58249cb3e44c955d48c6176b1dd5888b7300f0d0b2d1ae934ca8063d16968f9b",
+          "poolKey": {
+            "currency0": "0x0000000000000000000000000000000000000000",
+            "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 30000,
+            "tickSpacing": 600,
+            "hooks": "0x0000000000000000000000000000000000000000"
+          },
+          "status": "quoted",
+          "amountOutRaw": "4209774700303357120726",
+          "amountOut": "4209.774700303357120726",
+          "quoterGasEstimate": "49555"
+        }
+      ],
+      "selected": {
+        "pool": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+        "poolKey": {
+          "currency0": "0x0000000000000000000000000000000000000000",
+          "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+          "fee": 500,
+          "tickSpacing": 10,
+          "hooks": "0x0000000000000000000000000000000000000000"
+        },
+        "status": "quoted",
+        "amountOutRaw": "4379878249129850901877",
+        "amountOut": "4379.878249129850901877",
+        "quoterGasEstimate": "49655"
+      }
+    }
+  ],
+  "limitations": [
+    "No split routing or DCAR V2 optimality certificate",
+    "Gas estimates belong to Quoter execution, not complete user transaction costs",
+    "Best gross output only among verified hook-free supplied candidates",
+    "No swaps, approvals, signing or asset movement",
+    "Mainnet snapshots replayed on testnet do not represent testnet liquidity"
+  ]
+}

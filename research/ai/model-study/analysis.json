@@ -1,0 +1,215 @@
+{
+  "checkpoint_sha256": "d714969844c671a04cecbe64c428a23919dbcae35bfcc3078e32d0f0b8fdf366",
+  "checkpoint_training_steps": 501760,
+  "tensors": [
+    {
+      "name": "log_std",
+      "shape": [
+        2
+      ],
+      "parameters": 2
+    },
+    {
+      "name": "mlp_extractor.policy_net.0.weight",
+      "shape": [
+        64,
+        3008
+      ],
+      "parameters": 192512
+    },
+    {
+      "name": "mlp_extractor.policy_net.0.bias",
+      "shape": [
+        64
+      ],
+      "parameters": 64
+    },
+    {
+      "name": "mlp_extractor.policy_net.2.weight",
+      "shape": [
+        64,
+        64
+      ],
+      "parameters": 4096
+    },
+    {
+      "name": "mlp_extractor.policy_net.2.bias",
+      "shape": [
+        64
+      ],
+      "parameters": 64
+    },
+    {
+      "name": "mlp_extractor.value_net.0.weight",
+      "shape": [
+        64,
+        3008
+      ],
+      "parameters": 192512
+    },
+    {
+      "name": "mlp_extractor.value_net.0.bias",
+      "shape": [
+        64
+      ],
+      "parameters": 64
+    },
+    {
+      "name": "mlp_extractor.value_net.2.weight",
+      "shape": [
+        64,
+        64
+      ],
+      "parameters": 4096
+    },
+    {
+      "name": "mlp_extractor.value_net.2.bias",
+      "shape": [
+        64
+      ],
+      "parameters": 64
+    },
+    {
+      "name": "action_net.weight",
+      "shape": [
+        2,
+        64
+      ],
+      "parameters": 128
+    },
+    {
+      "name": "action_net.bias",
+      "shape": [
+        2
+      ],
+      "parameters": 2
+    },
+    {
+      "name": "value_net.weight",
+      "shape": [
+        1,
+        64
+      ],
+      "parameters": 64
+    },
+    {
+      "name": "value_net.bias",
+      "shape": [
+        1
+      ],
+      "parameters": 1
+    }
+  ],
+  "actor_architecture": [
+    3008,
+    64,
+    64,
+    2
+  ],
+  "hidden_activation": "Tanh (SB3 2.1.0 default ActorCriticPolicy; checkpoint policy_kwargs is empty)",
+  "policy_kwargs": {},
+  "actor_parameters": 196866,
+  "actor_multiply_accumulates": 196736,
+  "total_checkpoint_parameters": 393669,
+  "actor_float32_bytes": 787464,
+  "actor_int16_weight_int32_bias_bytes": 393992,
+  "deterministic_inference_excludes": [
+    "critic",
+    "optimizer",
+    "log_std"
+  ],
+  "source_action_rule": "int(clip(raw[0],0,2)); clip(raw[1],0,1)",
+  "normalized_input_test": {
+    "seed": 143,
+    "count": 64,
+    "kind": "synthetic normalized stress inputs, not MON observations"
+  },
+  "floating_reference": "float64 accumulation over float32 checkpoint weights, not yet PyTorch parity",
+  "reference_action_counts": {
+    "0": 57,
+    "2": 1,
+    "1": 6
+  },
+  "quantization": {
+    "8": {
+      "per_layer_weight_shift": [
+        8,
+        7,
+        9
+      ],
+      "max_raw_output_error": 0.10265302751586902,
+      "mean_raw_output_error": 0.018710714480651713,
+      "action_disagreements": 1,
+      "disagreement_samples": [
+        25
+      ],
+      "max_position_size_error": 0.04431113095673267,
+      "experimental": true
+    },
+    "16": {
+      "per_layer_weight_shift": [
+        16,
+        15,
+        17
+      ],
+      "max_raw_output_error": 0.0011060541152909664,
+      "mean_raw_output_error": 9.974341584912733e-05,
+      "action_disagreements": 0,
+      "disagreement_samples": [],
+      "max_position_size_error": 0.00015448801889383912,
+      "experimental": true
+    }
+  },
+  "first_samples": [
+    {
+      "index": 0,
+      "raw_output": [
+        0.1181170300943248,
+        -0.21162106171906678
+      ],
+      "decoded_action": [
+        0,
+        0
+      ]
+    },
+    {
+      "index": 1,
+      "raw_output": [
+        0.5252379531845761,
+        -0.0294284020268739
+      ],
+      "decoded_action": [
+        0,
+        0
+      ]
+    },
+    {
+      "index": 2,
+      "raw_output": [
+        0.28143226230037904,
+        -0.1852378819025396
+      ],
+      "decoded_action": [
+        0,
+        0
+      ]
+    },
+    {
+      "index": 3,
+      "raw_output": [
+        -0.14572875220430498,
+        0.05722429200888671
+      ],
+      "decoded_action": [
+        0,
+        0.05722429200888671
+      ]
+    }
+  ],
+  "limitations": [
+    "No live MON/USDC inference or Solidity deployment.",
+    "Synthetic action agreement does not certify all valid observations.",
+    "Hourly MON data does not equal the daily stock training distribution.",
+    "Input bound [-8,8] is an experimental contract precondition, not a property of the original Box."
+  ]
+}

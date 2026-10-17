@@ -1,0 +1,44 @@
+[
+  {
+    "sample": 0,
+    "raw0": 7742,
+    "raw1": -13867,
+    "action": 0,
+    "size_q16": 0
+  },
+  {
+    "sample": 1,
+    "raw0": 34421,
+    "raw1": -1929,
+    "action": 0,
+    "size_q16": 0
+  },
+  {
+    "sample": 2,
+    "raw0": 18444,
+    "raw1": -12140,
+    "action": 0,
+    "size_q16": 0
+  },
+  {
+    "sample": 3,
+    "raw0": -9550,
+    "raw1": 3750,
+    "action": 0,
+    "size_q16": 3750
+  },
+  {
+    "sample": 14,
+    "raw0": 85114,
+    "raw1": 25757,
+    "action": 1,
+    "size_q16": 25757
+  },
+  {
+    "sample": 6,
+    "raw0": 190042,
+    "raw1": 16449,
+    "action": 2,
+    "size_q16": 16449
+  }
+]

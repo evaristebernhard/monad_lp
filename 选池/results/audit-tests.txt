@@ -1,0 +1,14 @@
+test_bound_violation_is_not_silently_clamped (test_dcar_audit.AuditRegressions.test_bound_violation_is_not_silently_clamped) ... ok
+test_capacity_shortlist_expands_to_feasible_k (test_dcar_audit.AuditRegressions.test_capacity_shortlist_expands_to_feasible_k) ... ok
+test_duplicate_route_cannot_receive_reuse_certificate (test_dcar_audit.AuditRegressions.test_duplicate_route_cannot_receive_reuse_certificate) ... ok
+test_incremental_matches_full_bound_and_exhaustive (test_dcar_audit.AuditRegressions.test_incremental_matches_full_bound_and_exhaustive) ... ok
+test_invalid_updates_do_not_mutate_index (test_dcar_audit.AuditRegressions.test_invalid_updates_do_not_mutate_index) ... ok
+test_rejects_nonfinite_problem_fields (test_dcar_audit.AuditRegressions.test_rejects_nonfinite_problem_fields) ... ok
+test_route_conserves_input_and_limits_number_of_pools (test_dcar_audit.AuditRegressions.test_route_conserves_input_and_limits_number_of_pools) ... ok
+test_tiny_input_is_not_dropped (test_dcar_audit.AuditRegressions.test_tiny_input_is_not_dropped) ... ok
+test_zero_cap_is_not_unlimited_in_cli (test_dcar_audit.AuditRegressions.test_zero_cap_is_not_unlimited_in_cli) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.126s
+
+OK

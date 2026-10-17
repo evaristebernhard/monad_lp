@@ -1,0 +1,30 @@
+name: Uploaded Solana history DB coverage for fee reconstruction
+on:
+  workflow_dispatch:
+  push:
+    branches: ['research/dlmm-real-fee-growth-rpc-20261009']
+    paths:
+      - 'research/dlmm_other_datasets_coverage.py'
+      - '.github/workflows/dlmm-db-coverage.yml'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - name: Pull read-only event, realtime and pool-market LFS databases
+        run: |
+          git lfs install --local
+          git lfs pull --include="rpc/data/solana_events.db,rpc/data/solana_realtime.db,rpc/data/solana_market.db" --exclude=""
+      - name: Count fee-relevant events in chosen pools, no wallet exports
+        run: python3 research/dlmm_other_datasets_coverage.py
+      - name: Upload coverage metadata only
+        uses: actions/upload-artifact@v4
+        with:
+          name: dlmm-historical-database-coverage-${{ github.run_id }}
+          path: research-artifacts/solana_database_coverage.json
+          retention-days: 30

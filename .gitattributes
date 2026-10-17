@@ -1,0 +1,4 @@
+rpc/data/*.db filter=lfs diff=lfs merge=lfs -text
+frontend/rpc/data/*.db filter=lfs diff=lfs merge=lfs -text
+data/*.db filter=lfs diff=lfs merge=lfs -text
+rpc/data/solana_logs.jsonl filter=lfs diff=lfs merge=lfs -text

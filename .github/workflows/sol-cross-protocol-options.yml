@@ -1,0 +1,47 @@
+name: Cross-protocol SOL LP market and Deribit hedge research
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '25 3 * * *'
+  push:
+    branches: ['main', 'research/sol-other-amm-option-screen-20261009']
+    paths: ['research/sol_cross_protocol_option_screen.py', '.github/workflows/sol-cross-protocol-options.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  cross-protocol:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - name: Fetch only the public LP pool catalog
+        run: |
+          git lfs install --local
+          git lfs pull --include='data/lp_screener.db' --exclude=''
+      - name: Install exact LP MILP dependencies
+        run: python3 -m pip install 'numpy>=1.26,<3' 'scipy>=1.13,<2'
+      - name: Test LP curvature residual and integer option selection offline
+        run: python3 -m unittest discover -s research -p 'test_sol_cross_protocol_option_screen.py' -v
+      - name: Collect current same-expiry Deribit SOL options
+        run: |
+          mkdir -p research-artifacts
+          python3 rpc/option/research/fetch_deribit_sol.py --days 12 --per-side 120 --output research-artifacts/deribit_sol_chain.json
+      - name: Collect executable indicative asks by depth
+        run: |
+          python3 rpc/option/research/fetch_sol_depth.py --input research-artifacts/deribit_sol_chain.json --output research-artifacts/deribit_sol_depth.json --depth 20
+      - name: Analyze Raydium AMM v4 / CLMM / Orca and Ethereum pool context
+        run: |
+          python3 research/sol_cross_protocol_option_screen.py --catalog data/lp_screener.db --option-depth research-artifacts/deribit_sol_depth.json --wealth 10000 --output research-artifacts/sol_cross_protocol_comparison.json
+      - name: Keep public quotes and sanitized analytics, no user RPC credentials
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sol-cross-protocol-research-${{ github.run_id }}
+          path: research-artifacts/*.json
+          retention-days: 14
+          if-no-files-found: warn

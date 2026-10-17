@@ -1,0 +1,11 @@
+[profile.default]
+src = "src"
+test = "test"
+solc_version = "0.8.28"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 1000
+via_ir = true
+code_size_limit = 131072
+gas_limit = 500000000
+fs_permissions = [{ access = "read", path = "../model-study" }]

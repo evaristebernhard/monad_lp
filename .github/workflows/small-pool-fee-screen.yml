@@ -1,0 +1,37 @@
+name: Smaller LP pools fee premium and inventory risk screen
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '10 5 * * *'
+  push:
+    branches: ['main','research/small-pool-fee-reality-20261009']
+    paths: ['research/small_pool_fee_screen.py','research/verify_raydium_small_pool.py','.github/workflows/small-pool-fee-screen.yml']
+permissions:
+  contents: read
+jobs:
+  screen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - name: Download only public pool catalogue from Git LFS
+        run: |
+          git lfs install --local
+          git lfs pull --include='data/lp_screener.db' --exclude=''
+      - name: Test exact protocol fee unit normalization
+        run: python3 -m unittest discover -s research -p 'test_small_pool_fee_screen.py' -v
+      - name: Screen current small pools; do not fetch private RPC endpoints
+        run: |
+          python3 research/small_pool_fee_screen.py --catalog data/lp_screener.db --output research-artifacts/small_pool_fee_screen.json --max-requests 68
+      - name: Verify selected Raydium pool subtype against official public metadata
+        run: python3 research/verify_raydium_small_pool.py
+      - name: Save sanitized pool-level aggregates and clear caveats
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: small-pool-fee-screen-${{ github.run_id }}
+          path: research-artifacts/*.json
+          retention-days: 14
+          if-no-files-found: warn

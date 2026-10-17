@@ -1,0 +1,18 @@
+{
+  "torch_version": "2.9.1+cpu",
+  "method": "weights_only load; ActorCriticPolicy deterministic actor Linear/Tanh/Linear/Tanh/Linear",
+  "input_kind": "64 synthetic normalized stress vectors; not MON observations",
+  "samples": 64,
+  "reference_vs_pytorch_max_raw_output_error": 2.0769770556761102e-06,
+  "reference_vs_pytorch_action_disagreements": 0,
+  "quantization": {
+    "8": {
+      "max_raw_output_error_vs_pytorch": 0.10265231132507324,
+      "action_disagreements_vs_pytorch": 1
+    },
+    "16": {
+      "max_raw_output_error_vs_pytorch": 0.0011069774627685547,
+      "action_disagreements_vs_pytorch": 0
+    }
+  }
+}

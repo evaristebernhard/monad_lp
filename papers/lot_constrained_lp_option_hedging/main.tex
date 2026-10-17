@@ -1,0 +1,43 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=0.92in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern,microtype}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,tabularx,array}
+\usepackage{graphicx,xcolor}
+\usepackage{tikz,pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black]{hyperref}
+\usepackage{cleveref,enumitem}
+\definecolor{navy}{HTML}{17324D}
+\definecolor{teal}{HTML}{167D89}
+\definecolor{rose}{HTML}{B34A54}
+\definecolor{slate}{HTML}{586576}
+\newtheorem{proposition}{Proposition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{remark}{Remark}
+\newcommand{\pos}[1]{(#1)^+}
+\newcommand{\CP}{\mathrm{CP}}
+\newcommand{\CL}{\mathrm{CL}}
+\newcommand{\DL}{\mathrm{DL}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\lvr}{\mathrm{LVR}}
+\title{\bfseries\color{navy}Option-Lot-Constrained Hedging of Automated Market Maker Liquidity:\\Certified Static Error Bounds and Empirical Order-Book Costs}
+\author{Research manuscript --- authors to be determined\\
+\small Reproducible study from the \texttt{arbitage} repository}
+\date{Historical market data: October 9, 2026 \quad|\quad Draft version 1}
+\begin{document}
+\maketitle
+\vspace{-1em}
+\begin{abstract}
+Concentrated automated market maker (AMM) positions expose liquidity providers to short convexity that admits static representation by European option payoffs. Existing work established the replication perspective, yet unrestricted continuous-strike portfolios may violate exchange strike grids, contract increments, available order-book depth and execution budgets. We combine constant-product (CPMM), concentrated (CLMM) and discretized liquidity (DLMM) models with Solana and Ethereum pool observations and contemporaneous Deribit option quotes. We give an interpolation error bound for smooth convexity, an obstruction to hedging isolated discrete Bin kinks with coarse option lots, and a mixed-integer minimax hedge evaluated by an exact continuous-price residual oracle. A saved \$10,000 hypothetical Solana DLMM position requires three 10-SOL option lots costing about \$123 to reduce its certified maximum absolute nonlinear residual over a $\pm10\%$ terminal price window from \$202.45 to \$29.46. Further SOL and ETH cases show substantial heterogeneity across AMM concentration and exchange lot sizes. Public on-chain Bin-fee observations are studied separately and do not establish profitable LP returns. The empirical contribution is therefore a reproducible \emph{hedging feasibility} analysis, not an executed arbitrage or investment-performance claim.
+\end{abstract}
+\noindent\textbf{Keywords:} automated market maker; option replication; integer optimization; impermanent loss; robust hedging; order-book depth; decentralized finance.
+\input{intro_model}
+\input{theory}
+\input{method}
+\input{experiments}
+\input{discussion}
+\end{document}

@@ -1,0 +1,72 @@
+{% extends "layout.njk" %}
+{% import "macros.njk" as macros %}
+
+{% block main %}
+
+{{ imports }}
+pub use super::super::events;
+
+{{ macros.cpiEventDerives() }}
+pub enum CpiEvent {
+{% for event in events %}
+    {{ event.name | pascalCase }}(events::{{ event.name | snakeCase }}::{{event.name | pascalCase }}Event),
+{% endfor %}
+}
+
+{{ macros.simpleStructDerives() }}
+pub struct CpiEventInstructionAccounts {
+{% if withBase58 %}
+    #[cfg_attr(feature = "base58", serde(serialize_with = "crate::base58::serialize"))]
+{% endif %}
+    pub program: solana_pubkey::Pubkey,
+{% if withBase58 %}
+    #[cfg_attr(feature = "base58", serde(serialize_with = "crate::base58::serialize"))]
+{% endif %}
+    pub event_authority: solana_pubkey::Pubkey,
+    pub remaining: Vec<solana_instruction::AccountMeta>,
+}
+
+impl CpiEvent {
+    pub fn decode(data: &[u8]) -> Option<Self> {
+        if data.len() < {{ eventCpiDiscriminator | length }} {
+            return None;
+        }
+        let discriminator = &data[0..{{ eventCpiDiscriminator | length }}];
+        if discriminator != [{{ eventCpiDiscriminator | join(', ') }}] {
+            return None;
+        }
+
+        let event_data = {% if eventDataOffset > 0 %}&data[{{ eventDataOffset }}..]{% else %}data{% endif %};
+
+        {% for event in events %}
+        if let Some(decoded) = events::{{ event.name | snakeCase }}::{{ event.name | pascalCase }}Event::decode(event_data) {
+            return Some(CpiEvent::{{ event.name | pascalCase }}(decoded));
+        }
+        {% endfor %}
+        None
+    }
+}
+
+impl ArrangeAccounts for CpiEvent {
+    type ArrangedAccounts = CpiEventInstructionAccounts;
+
+    fn arrange_accounts(
+        accounts: &[solana_instruction::AccountMeta],
+    ) -> Option<Self::ArrangedAccounts> {
+        match accounts {
+            [program, event_authority, remaining @ ..] => Some(CpiEventInstructionAccounts {
+                program: program.pubkey,
+                event_authority: event_authority.pubkey,
+                remaining: remaining.to_vec(),
+            }),
+            [event_authority] => Some(CpiEventInstructionAccounts {
+                program: crate::PROGRAM_ID,
+                event_authority: event_authority.pubkey,
+                remaining: Vec::new(),
+            }),
+            _ => None,
+        }
+    }
+}
+
+{% endblock %}

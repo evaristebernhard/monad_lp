@@ -1,0 +1,4 @@
+{"pool_count": 8, "shortlist": 8, "score": 9570.6081, "dual_upper_bound": 9570.6081, "gap_upper_bound_pct": 0.0, "runtime_ms": 6.76, "searched_subsets": 92, "exact_score": 9570.6081, "heuristic_minus_exact": 0.0}
+{"pool_count": 12, "shortlist": 12, "score": 9867.2492, "dual_upper_bound": 9867.2492, "gap_upper_bound_pct": 0.0, "runtime_ms": 23.59, "searched_subsets": 298, "exact_score": 9867.2492, "heuristic_minus_exact": 0.0}
+{"pool_count": 1000, "shortlist": 20, "score": 9991.4059, "dual_upper_bound": 9991.4059, "gap_upper_bound_pct": 0.0, "runtime_ms": 144.2, "searched_subsets": 1350, "update_reuse_gap_pct": 0.0, "update_check_ms": 0.0385, "update_certified_0p1pct": true}
+{"pool_count": 2000, "shortlist": 20, "score": 10012.3482, "dual_upper_bound": 10012.3482, "gap_upper_bound_pct": 0.0, "runtime_ms": 189.09, "searched_subsets": 1350, "update_reuse_gap_pct": 0.0, "update_check_ms": 0.0265, "update_certified_0p1pct": true}

@@ -1,0 +1,24 @@
+[package]
+name = "carbon-rpc-program-subscribe-datasource"
+description = "RPC Program Subscribe Datasource"
+license = { workspace = true }
+version = "2.0.0"
+rust-version = { workspace = true }
+edition = { workspace = true }
+readme = "README.md"
+repository = { workspace = true }
+keywords = ["solana", "indexer", "program", "datasource"]
+categories = ["encoding"]
+
+[dependencies]
+solana-account = { workspace = true }
+solana-client = { workspace = true }
+solana-pubkey = { workspace = true }
+
+carbon-core = { workspace = true }
+
+async-trait = { workspace = true }
+futures = { workspace = true }
+log = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+tokio-util = { workspace = true }

@@ -1,0 +1,30 @@
+[package]
+name = "local-rpc"
+version = "0.1.0"
+edition = "2021"
+description = "Local multi-chain JSON-RPC forwarding layer"
+license = "MIT"
+
+[workspace]
+resolver = "2"
+members = ["option", "workers/lp-refresh"]
+
+[dependencies]
+anyhow = "1"
+async-recursion = "1"
+axum = "0.8"
+base64 = "0.22"
+bs58 = "0.5"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+futures-util = "0.3"
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Keep the Yellowstone build dependency on the cached 3.2 toolchain; 3.3
+# currently pulls platform binaries unavailable in the local build cache.
+protoc-bin-vendored = "=3.2.0"
+sol-parser-sdk = { path = "../sol-parser-sdk", default-features = false, features = ["parse-borsh"] }
+solana-transaction-status = { version = "=4.2.2", features = ["agave-unstable-api"] }
+tiny-keccak = { version = "2", features = ["keccak"] }
+tokio = { version = "1", features = ["fs", "macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
+tokio-tungstenite = { version = "0.28", features = ["rustls-tls-webpki-roots"] }

@@ -1,0 +1,94 @@
+name: Value actual Meteora Bin fee-growth in USDC (Q64 audit)
+on:
+  workflow_dispatch:
+  push:
+    branches: ['research/dlmm-q64-fee-capture-study-20261009']
+    paths: ['research/dlmm_q64_fee_capture_study.py','research/dlmm_fee_walkforward.py','research/dlmm_fixed_bin_cohort.py','.github/workflows/dlmm-q64-fee-capture.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  observed-fee-value:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test Q64 protocol rounding and static inventory payoff
+        run: python3 research/dlmm_q64_fee_capture_study.py --self-test
+      - name: Load genuine 11:46 baseline saved by earlier on-chain RPC workflow
+        uses: actions/download-artifact@v4
+        with:
+          name: dlmm-fee-growth-37925823991
+          run-id: 37925823991
+          github-token: ${{ github.token }}
+          path: research-artifacts/s0
+      - name: Load genuine 11:50 on-chain snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: dlmm-fee-growth-37926179416
+          run-id: 37926179416
+          github-token: ${{ github.token }}
+          path: research-artifacts/s1
+      - name: Load genuine 11:54 on-chain snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: dlmm-fee-growth-37926563418
+          run-id: 37926563418
+          github-token: ${{ github.token }}
+          path: research-artifacts/s2
+      - name: Load genuine 11:55 on-chain snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: dlmm-fee-growth-37926659902
+          run-id: 37926659902
+          github-token: ${{ github.token }}
+          path: research-artifacts/s3
+      - name: Load genuine 11:58 on-chain snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: dlmm-fee-growth-37927033686
+          run-id: 37927033686
+          github-token: ${{ github.token }}
+          path: research-artifacts/s4
+      - name: Compute four actual measured interval conditional position fee samples
+        run: |
+          for i in 0 1 2 3; do
+            j=$((i+1))
+            python3 research/dlmm_q64_fee_capture_study.py \
+              --before research-artifacts/s${i}/dlmm_bin_fee_growth.json \
+              --after research-artifacts/s${j}/dlmm_bin_fee_growth.json \
+              --out research-artifacts/window-${i}-to-${j}.json
+          done
+          # One FIXED 70-bin hypothetical position from first to final sample,
+          # unlike rolling reentry into a fresh 70-bin position each interval.
+          python3 research/dlmm_q64_fee_capture_study.py \
+            --before research-artifacts/s0/dlmm_bin_fee_growth.json \
+            --after research-artifacts/s4/dlmm_bin_fee_growth.json \
+            --out research-artifacts/window-0-to-4-long.json
+      - name: Evaluate actual chronological shadow strategy without future-data selection
+        run: |
+          python3 research/dlmm_fee_walkforward.py \
+            --snap research-artifacts/s0/dlmm_bin_fee_growth.json \
+            --snap research-artifacts/s1/dlmm_bin_fee_growth.json \
+            --snap research-artifacts/s2/dlmm_bin_fee_growth.json \
+            --snap research-artifacts/s3/dlmm_bin_fee_growth.json \
+            --snap research-artifacts/s4/dlmm_bin_fee_growth.json \
+            --out research-artifacts/dlmm_fee_walkforward.json
+      - name: Hold one fixed hypothetical 70-Bin position for the full 704 seconds
+        run: |
+          python3 research/dlmm_fixed_bin_cohort.py \
+            --snap research-artifacts/s0/dlmm_bin_fee_growth.json \
+            --snap research-artifacts/s1/dlmm_bin_fee_growth.json \
+            --snap research-artifacts/s2/dlmm_bin_fee_growth.json \
+            --snap research-artifacts/s3/dlmm_bin_fee_growth.json \
+            --snap research-artifacts/s4/dlmm_bin_fee_growth.json \
+            --out research-artifacts/dlmm_fixed_bin_cohort.json
+      - name: Upload numeric fee estimates and provenance only
+        uses: actions/upload-artifact@v4
+        with:
+          name: dlmm-q64-fee-capture-${{ github.run_id }}
+          path: |
+            research-artifacts/window-*.json
+            research-artifacts/dlmm_fee_walkforward.json
+            research-artifacts/dlmm_fixed_bin_cohort.json
+          retention-days: 30

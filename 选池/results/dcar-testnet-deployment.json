@@ -1,0 +1,58 @@
+{
+  "chainId": 10143,
+  "transactionHash": "0xa828183675e3164e34d80d3d3d302ebccf91e43e35660036aaca8b5fb0c77eb6",
+  "status": "deployed",
+  "contractAddress": "0xf4c5146a6535c7f58052e4ec185b3cbdfce4d2ff",
+  "gasUsed": "1033056",
+  "runtimeCodeHash": "0xb5dc6ccc22826422821b770363da8252c0c2ec31db863f6bd1e0f81adfe6c88a",
+  "replays": [
+    {
+      "amount": "10000",
+      "maxSplits": 3,
+      "match": true,
+      "result": [
+        [
+          "5042623155",
+          "2562098362",
+          "0",
+          "2395278483"
+        ],
+        "9740352045",
+        "9715631582",
+        "0x9e5e703d43f381763fb38e7437ef033db62c1fc380a99f973a6fa9554e26adde"
+      ]
+    },
+    {
+      "amount": "100",
+      "maxSplits": 1,
+      "match": true,
+      "result": [
+        [
+          "0",
+          "0",
+          "0",
+          "100000000"
+        ],
+        "113289218",
+        "110196193",
+        "0x01c195ac8b30992967d6f055e55e6c8e394995c60e9da3df23de1e2e57e88bdc"
+      ]
+    },
+    {
+      "amount": "1000",
+      "maxSplits": 2,
+      "match": true,
+      "result": [
+        [
+          "0",
+          "225068589",
+          "0",
+          "774931411"
+        ],
+        "1087715909",
+        "1078782581",
+        "0xeca6fc7242f4b1b1b61a430b49d23d2b7b1cc7c6210ba5a24fa01451f5dce153"
+      ]
+    }
+  ]
+}

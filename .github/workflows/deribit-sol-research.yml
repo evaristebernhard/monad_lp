@@ -1,0 +1,51 @@
+name: Deribit SOL research - depth and integer hedges
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 2 * * *'
+  push:
+    branches:
+      - main
+      - 'research/sol-depth-milp-20261009'
+    paths:
+      - '.github/workflows/deribit-sol-research.yml'
+      - 'rpc/option/research/**'
+      - 'backend/lp-options/research/**'
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install scientific solver
+        run: python3 -m pip install 'numpy>=1.26,<3' 'scipy>=1.13,<2'
+      - name: Check LP mathematical certificates
+        run: python3 -m unittest discover -s backend/lp-options/research -p 'test_*.py' -v
+      - name: Check option fetchers offline
+        run: python3 -m unittest discover -s rpc/option/research -p 'test_*.py' -v
+      - name: Fetch SOL_USDC option chain
+        run: |
+          mkdir -p research-artifacts
+          python3 rpc/option/research/fetch_deribit_sol.py --days 7 --per-side 120 --output research-artifacts/deribit_sol_snapshot.json
+      - name: Fetch orderbook depth
+        run: |
+          python3 rpc/option/research/fetch_sol_depth.py --input research-artifacts/deribit_sol_snapshot.json --output research-artifacts/deribit_sol_depth.json --depth 20
+      - name: Optimize CPMM with real option books
+        run: |
+          python3 backend/lp-options/research/integer_hedge.py --snapshot research-artifacts/deribit_sol_depth.json --kind cpmm --wealth 10000 --risk-lambda 1 --output research-artifacts/cpmm_integer_hedge.json
+      - name: Optimize CLMM with real option books
+        run: |
+          python3 backend/lp-options/research/integer_hedge.py --snapshot research-artifacts/deribit_sol_depth.json --kind clmm --wealth 10000 --risk-lambda 1 --output research-artifacts/clmm_integer_hedge.json
+      - name: Preserve source observations and certificates
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deribit-sol-depth-${{ github.run_id }}
+          path: research-artifacts/*.json
+          retention-days: 14
+          if-no-files-found: warn

@@ -1,0 +1,30 @@
+name: Meteora DLMM current LP fees vs options
+on:
+  workflow_dispatch:
+  push:
+    branches: ['research/dlmm-lp-fee-economics-20261009']
+    paths: ['research/dlmm_lp_fee_economics.py', '.github/workflows/dlmm-lp-fee-economics.yml']
+permissions:
+  contents: read
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - name: Fetch stored public DLMM Bin and Deribit snapshots
+        run: |
+          git lfs install --local
+          git lfs pull --include="data/sol_dlmm_deribit.db" --exclude=""
+      - name: Compute exact on-chain fee config and pool-wide fee sensitivity
+        run: python3 research/dlmm_lp_fee_economics.py
+      - name: Preserve sanitized output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dlmm-lp-fee-audit-${{ github.run_id }}
+          path: research-artifacts/dlmm_lp_fee_economics.json
+          retention-days: 14
+          if-no-files-found: warn

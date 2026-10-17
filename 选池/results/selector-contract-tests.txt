@@ -1,0 +1,16 @@
+Compiling 1 files with Solc 0.8.28
+Solc 0.8.28 finished in 94.49ms
+Compiler run successful!
+
+Ran 8 tests for test/MonUsdcQuoteSelector.t.sol:MonUsdcQuoteSelectorTest
+[PASS] testBestAndReplay() (gas: 13929)
+[PASS] testDuplicateCannotReplaceMissingPool() (gas: 13790)
+[PASS] testRejectMissingQuote() (gas: 10537)
+[PASS] testRejectNoQuote() (gas: 15911)
+[PASS] testRejectUnknownPool() (gas: 15698)
+[PASS] testRejectWrongPair() (gas: 10883)
+[PASS] testRejectWrongSourceChain() (gas: 10270)
+[PASS] testTiesDoNotDependOnQuoteOrder() (gas: 18778)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 1.50ms (1.57ms CPU time)
+
+Ran 1 test suite in 5.71ms (1.50ms CPU time): 8 tests passed, 0 failed, 0 skipped (8 total tests)

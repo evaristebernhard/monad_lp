@@ -1,0 +1,205 @@
+{
+  "asOf": "2026-10-17T04:17:09.856095+00:00",
+  "source": "Local Monad pool catalog; not an exhaustive on-chain index",
+  "totalMonadPools": 1574,
+  "samePairPools": 15,
+  "verificationBlock": "114086117",
+  "candidates": [
+    {
+      "pool": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+      "poolKey": {
+        "currency0": "0x0000000000000000000000000000000000000000",
+        "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+        "fee": 500,
+        "tickSpacing": 10,
+        "hooks": "0x0000000000000000000000000000000000000000"
+      },
+      "status": "quoted",
+      "amountOutRaw": "22807",
+      "amountOut": "0.022807",
+      "quoterGasEstimate": "49747",
+      "kind": "v4",
+      "protocol": "Uniswap V4",
+      "fee": 500
+    },
+    {
+      "pool": "0x8b926a72640b5766c5daa65365c24009618a91cab560946b550e4aa5ce2ae5f2",
+      "poolKey": {
+        "currency0": "0x0000000000000000000000000000000000000000",
+        "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+        "fee": 10000,
+        "tickSpacing": 200,
+        "hooks": "0x0000000000000000000000000000000000000000"
+      },
+      "status": "quoted",
+      "amountOutRaw": "22486",
+      "amountOut": "0.022486",
+      "quoterGasEstimate": "49843",
+      "kind": "v4",
+      "protocol": "Uniswap V4",
+      "fee": 10000
+    },
+    {
+      "pool": "0x7d892749d0562b0f78a26cdec26e97ec9dc7f8d1997cb590643ab69f10a1da0e",
+      "poolKey": {
+        "currency0": "0x0000000000000000000000000000000000000000",
+        "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+        "fee": 3000,
+        "tickSpacing": 60,
+        "hooks": "0x0000000000000000000000000000000000000000"
+      },
+      "status": "quoted",
+      "amountOutRaw": "22670",
+      "amountOut": "0.02267",
+      "quoterGasEstimate": "49711",
+      "kind": "v4",
+      "protocol": "Uniswap V4",
+      "fee": 3000
+    },
+    {
+      "pool": "0x000000000000000000000000659bd0bc4167ba25c62e05656f78043e7ed4a9da",
+      "address": "0x659bd0bc4167ba25c62e05656f78043e7ed4a9da",
+      "kind": "v3",
+      "protocol": "Uniswap V3",
+      "token0": "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A",
+      "token1": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+      "factory": "0x204FAca1764B154221e35c0d20aBb3c525710498",
+      "fee": 3000,
+      "quoter": "0x661e93cca42afacb172121ef892830ca3b70f08d"
+    },
+    {
+      "pool": "0x000000000000000000000000c33e9e441e6f4e74cdb34f878be51189c9cb00d8",
+      "address": "0xc33e9e441e6f4e74cdb34f878be51189c9cb00d8",
+      "kind": "v3",
+      "protocol": "Uniswap V3",
+      "token0": "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A",
+      "token1": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+      "factory": "0x204FAca1764B154221e35c0d20aBb3c525710498",
+      "fee": 10000,
+      "quoter": "0x661e93cca42afacb172121ef892830ca3b70f08d"
+    },
+    {
+      "pool": "0x0000000000000000000000005bc39a29ea5d8315263ec8939d6ad393debc34e9",
+      "address": "0x5bc39a29ea5d8315263ec8939d6ad393debc34e9",
+      "kind": "v3",
+      "protocol": "Uniswap V3",
+      "token0": "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A",
+      "token1": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+      "factory": "0x204FAca1764B154221e35c0d20aBb3c525710498",
+      "fee": 500,
+      "quoter": "0x661e93cca42afacb172121ef892830ca3b70f08d"
+    },
+    {
+      "pool": "0x00000000000000000000000063e48b725540a3db24acf6682a29f877808c53f2",
+      "address": "0x63e48b725540a3db24acf6682a29f877808c53f2",
+      "kind": "v3",
+      "protocol": "PancakeSwap V3",
+      "token0": "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A",
+      "token1": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+      "factory": "0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865",
+      "fee": 500,
+      "quoter": "0xb048bbc1ee6b733fffcfb9e9cef7375518e25997"
+    },
+    {
+      "pool": "0x000000000000000000000000b9897986847472cd08b9a0e7bcd31ea4f1322361",
+      "address": "0xb9897986847472cd08b9a0e7bcd31ea4f1322361",
+      "kind": "v3",
+      "protocol": "PancakeSwap V3",
+      "token0": "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A",
+      "token1": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+      "factory": "0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865",
+      "fee": 10000,
+      "quoter": "0xb048bbc1ee6b733fffcfb9e9cef7375518e25997"
+    },
+    {
+      "pool": "0x00000000000000000000000085717a98d195c9306bbf7c9523ba71f044fea0f7",
+      "address": "0x85717a98d195c9306bbf7c9523ba71f044fea0f7",
+      "kind": "v3",
+      "protocol": "PancakeSwap V3",
+      "token0": "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A",
+      "token1": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+      "factory": "0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865",
+      "fee": 2500,
+      "quoter": "0xb048bbc1ee6b733fffcfb9e9cef7375518e25997"
+    },
+    {
+      "pool": "0xadcb23117ee93b4e77ac9321a5c7e42c5c7ca2c12dde86ef2df97a53e0058be6",
+      "poolKey": {
+        "currency0": "0x0000000000000000000000000000000000000000",
+        "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+        "fee": 9000,
+        "tickSpacing": 90,
+        "hooks": "0x0000000000000000000000000000000000000000"
+      },
+      "status": "quoted",
+      "amountOutRaw": "22556",
+      "amountOut": "0.022556",
+      "quoterGasEstimate": "49807",
+      "kind": "v4",
+      "protocol": "Uniswap V4",
+      "fee": 9000
+    },
+    {
+      "pool": "0x0000000000000000000000003fe12728ea1b89e4bac6e59a9130b61a27d032f8",
+      "address": "0x3fe12728ea1b89e4bac6e59a9130b61a27d032f8",
+      "kind": "v2",
+      "protocol": "Uniswap V2",
+      "token0": "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A",
+      "token1": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+      "factory": "0x182a927119D56008d921126764bF884221b10f59",
+      "fee": 3000
+    },
+    {
+      "pool": "0x531dffc6f4bff190d95f794e35e3dd00dd78010643be9ceaf0115e113183ab77",
+      "poolKey": {
+        "currency0": "0x0000000000000000000000000000000000000000",
+        "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+        "fee": 100,
+        "tickSpacing": 1,
+        "hooks": "0x0000000000000000000000000000000000000000"
+      },
+      "status": "quoted",
+      "amountOutRaw": "15",
+      "amountOut": "0.000015",
+      "quoterGasEstimate": "4984462",
+      "kind": "v4",
+      "protocol": "Uniswap V4",
+      "fee": 100
+    },
+    {
+      "pool": "0x58249cb3e44c955d48c6176b1dd5888b7300f0d0b2d1ae934ca8063d16968f9b",
+      "poolKey": {
+        "currency0": "0x0000000000000000000000000000000000000000",
+        "currency1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+        "fee": 30000,
+        "tickSpacing": 600,
+        "hooks": "0x0000000000000000000000000000000000000000"
+      },
+      "status": "quoted",
+      "amountOutRaw": "22203",
+      "amountOut": "0.022203",
+      "quoterGasEstimate": "49683",
+      "kind": "v4",
+      "protocol": "Uniswap V4",
+      "fee": 30000
+    },
+    {
+      "pool": "0x00000000000000000000000083fef384587d07731880416db8850f8af66fda03",
+      "address": "0x83fef384587d07731880416db8850f8af66fda03",
+      "kind": "v3",
+      "protocol": "Uniswap V3",
+      "token0": "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A",
+      "token1": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+      "factory": "0x204FAca1764B154221e35c0d20aBb3c525710498",
+      "fee": 100,
+      "quoter": "0x661e93cca42afacb172121ef892830ca3b70f08d"
+    }
+  ],
+  "excluded": [
+    {
+      "pool": "0xec865b668bb7026fb853c26b8a478d333261d7fd41d1ef713795c87ccbb48175",
+      "protocol": "Uniswap V4",
+      "reason": "PoolKey not verified"
+    }
+  ]
+}

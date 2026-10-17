@@ -1,0 +1,117 @@
+\section{Empirical Hedge-Cost Frontiers}
+Every experiment below uses a hypothetical initial LP principal of \$10,000. The core performance quantity $z$ is the \emph{largest absolute fee-free terminal convexity residual} over a chosen stress window, found by the independent continuous-price oracle. A residual of \$20 is not a maximum possible \$20 investment loss. The hedge is long-option-only; the integer solver is limited to observed ask depths and reports nonzero MILP gap when applicable.
+
+\subsection{Meteora: real Bin reserves against SOL option asks}
+For the Oct.\ 9 08:23 UTC 4-bp Meteora SOL/USDC snapshot, the entire pool's Bin inventories were scaled \emph{pro rata} to \$10,000 and used as a \emph{synthetic} cross-Bin LP basket. This collection of Bins does not establish any one user's actually mintable PositionV2 or fees. The risk objective \eqref{eq:minimax} was solved for each of two terminal stress windows and risk parameters.
+
+\begin{table}[ht]
+\centering
+\caption{SOL DLMM Bin-inventory experiment with archived option ask ladder. $z_0$ is the unhedged worst absolute residual, $z$ the hedged worst residual. Option outlay includes indicative venue fees.}
+\label{tab:dlmm}
+\small
+\begin{tabular}{@{}ccrrrr@{}}
+\toprule
+Spot window & $\lambda$ & SOL lots & Outlay (\$) & $z_0$ (\$) & $z$ (\$)\\
+\midrule
+$\pm10\%$ & 0.1 & 0 & 0.00 & 202.45 & 202.45\\
+$\pm10\%$ & 1.0 & 3 & 122.99 & 202.45 & 29.46\\
+$\pm20\%$ & 0.1 & 0 & 0.00 & 745.67 & 745.67\\
+$\pm20\%$ & 1.0 & 7 & 177.32 & 745.67 & 15.83\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For $\pm10\%$ and $\lambda=1$, the selected hedge consists of one Oct.\ 23 strike-110 SOL put and one each of strike-111 and strike-114 SOL calls, each covering 10 SOL. The \emph{displayed premium} is \$122.00; \$122.99 includes the modeled trading fees. The bounded nonlinear risk $z$ falls from \$202.4546 to \$29.4555 over all terminal prices in the specified interval. The option cost \emph{plus} this absolute residual is \$152.45.
+
+For the $\pm20\%$ window, the solver selects two puts (strikes 104 and 108) and five calls (113, 115, 118, 120 and 122), for a \$177.32 estimated outlay and \$15.83 maximum nonlinear residual. This is not a paradox: each stress window defines a different minimax objective and permits different hedge strikes, quantities, and levels of overhedging. The final reported MILP relative gaps are approximately 0.00366 and 0.00492. We claim the oracle's \emph{certified model residual}, not a proof of exactly optimal integer portfolios.
+
+\subsection{The cost of concentrating SOL liquidity}
+A separate Oct.\ 9 10:08 UTC Solana snapshot used its own SOL index and Deribit ask ladders to compare an idealized Raydium CPMM with constructed CLMM positions. All use $\pm10\%$ terminal stress and $\lambda=1$.
+
+\begin{table}[ht]
+\centering
+\caption{Different hypothetical LP payoff geometries hedged using a distinct SOL option-book sample at 10:08 UTC, \$10,000 principal.}
+\label{tab:sol}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+LP configuration & Lots & Outlay (\$) & $z_0$ (\$) & $z$ (\$)\\
+\midrule
+Full-range CPMM & 0 & 0.00 & 13.17 & 13.17\\
+CLMM $\pm2.5\%$ & 8 & 318.65 & 448.17 & 40.91\\
+CLMM $\pm5.0\%$ & 8 & 279.65 & 392.56 & 25.30\\
+CLMM $\pm10.0\%$ & 7 & 197.32 & 269.12 & 11.86\\
+\bottomrule
+\end{tabular}
+\end{table}
+The full-range model has considerably less \emph{HODL-relative} fee-free nonlinear loss under the prescribed 10\% terminal stress. It does not imply low spot beta or principal protection. An actual concentrated LP might earn more swap fees while in range; the corresponding owner-specific fee data are not part of this simultaneous option-book snapshot.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar,bar width=12pt,
+  width=\linewidth,height=6.2cm,
+  ymin=0,ymax=500,
+  symbolic x coords={CPMM,CL2.5,CL5,CL10},
+  xtick=data,
+  ylabel={USDC (modelled)},
+  tick label style={font=\small},
+  legend style={at={(0.5,1.02)},anchor=south,legend columns=3,font=\footnotesize,draw=none},
+  ymajorgrids=true,grid style={gray!20},
+  enlarge x limits=0.19]
+\addplot[fill=slate!50,draw=slate] coordinates {(CPMM,13.17)(CL2.5,448.17)(CL5,392.56)(CL10,269.12)};
+\addplot[fill=teal!60,draw=teal] coordinates {(CPMM,0)(CL2.5,318.65)(CL5,279.65)(CL10,197.32)};
+\addplot[fill=rose!60,draw=rose] coordinates {(CPMM,13.17)(CL2.5,40.91)(CL5,25.30)(CL10,11.86)};
+\legend{Unhedged risk,Option outlay,Hedged residual}
+\end{axis}
+\end{tikzpicture}
+\caption{Option-cost versus terminal convexity risk for different hypothetical \$10k SOL LP positions. The components are not realized trading profits.}
+\label{fig:sol-cost}
+\end{figure}
+
+\subsection{Ethereum and option-lot normalization}
+To distinguish underlying-specific contract increments from protocol geometry, a separate Uniswap V2/V3 study employed Oct.\ 9 10:18 UTC Deribit ETH\_USDC options with entry index \$2,497.74/ETH and Oct.\ 23 expiry. Here an optimizer lot represents \emph{0.1 ETH}, or 0.1 of a full 1-ETH contract, instead of the 10-SOL option lot in the Solana case.
+
+\begin{table}[ht]
+\centering
+\caption{Independent ETH option-book experiment for \$10k hypothetical LP exposures. All positions share the same $\pm10\%$ terminal price stress within the ETH test.}
+\label{tab:eth}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Hypothetical LP & 0.1-ETH lots & Outlay (\$) & $z_0$ (\$) & $z$ (\$)\\
+\midrule
+Uniswap V2 CPMM & 2 & 6.57 & 13.17 & 4.51\\
+Uniswap V3 $\pm5\%$ & 40 & 225.64 & 392.56 & 19.01\\
+Uniswap V3 $\pm10\%$ & 33 & 160.09 & 269.12 & 11.07\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The V2 optimizer buys a 0.1-ETH strike-2350 put and a 0.1-ETH strike-2650 call. Its indicative fee-inclusive cost is \$6.57 and its certified nonlinear residual is \$4.51. The V3 $\pm5\%$ shadow LP requires 40 minimum-size option lots (4.0 full-ETH contract equivalents) with an estimated \$225.64 outlay. The cross-asset comparison is \emph{illustrative} rather than causal: different underlying assets, quote times, volatilities, strike grids and fees all change simultaneously.
+
+\subsection{A short independent sample of actual Meteora fee growth}
+The archived fee-growth investigation sampled 350 near-active Bins per pool for SOL/USDC 1-, 4-, and 20-bp Meteora pools. Five real on-chain observations span about 704 seconds during Oct.\ 9 11:46--11:58 UTC, which is \emph{not simultaneous} with the above option quotes. Raw \texttt{fee\_amount\_x/y\_per\_token\_stored} counters were converted using the on-chain protocol's fixed-point Q64 arithmetic and existing liquidity-supply sensitivity. This produces estimated fees received by \emph{the original public Bin liquidity}, not observed account receipts.
+
+An additional \emph{synthetic} fixed, evenly funded 70-Bin position of \$10,000, hypothetically held throughout that 704-second interval, has estimated captured fees and idealized HODL-relative divergence as follows:
+\begin{table}[ht]
+\centering
+\caption{Very short fee-growth study: public Bin counter changes and a non-executed, no-market-impact shadow LP, not an annualizable yield series.}
+\label{tab:fee}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Meteora pool & Shadow fees (\$) & Ideal divergence (\$) & Difference (\$)\\
+\midrule
+1-bp SOL/USDC & 3.567 & 16.968 & -13.401\\
+4-bps SOL/USDC & 3.250 & 3.138 & 0.112\\
+20-bps SOL/USDC & 0.533 & 0.000$^\dagger$ & 0.533$^\dagger$\\
+\bottomrule
+\end{tabular}
+
+\smallskip
+\parbox{0.95\linewidth}{\footnotesize $^\dagger$The recorded active Bin was unchanged. A zero derived divergence is a \emph{coarse-price-quantization artifact}, not proof that the external asset price or LP inventory risk was constant. No claim of positive investment profit is supported.}
+\end{table}
+
+The 4-bps shadow portfolio's \$0.112 positive difference is economically insignificant and excludes composition fees, execution, withdrawal and intra-Bin price changes. This is precisely why an option hedge solver must not infer that historical total pool fees will finance its long-option premium. Any joint hedge-income backtest requires \emph{actual} PositionV2 Bin shares and fee checkpoints over matching quote times.

@@ -1,0 +1,74 @@
+{% extends "layout.njk" %}
+{% import "macros.njk" as macros %}
+
+{% block main %}
+{{ imports }}
+{%- if definedType.docs and definedType.docs.length > 0 %}
+{{ macros.docblock(definedType.docs) }}
+{%- endif %}
+{% if definedType.type.kind === 'enumTypeNode' %}
+{{ macros.coreTypeDerives() }}
+pub enum {{ definedType.name | pascalCase }} {{ typeManifest.type }}
+{% elif definedType.type.kind === 'structTypeNode' %}
+{{ macros.coreTypeDerives() }}
+pub struct {{ definedType.name | pascalCase }} {{ typeManifest.type }}
+{% elif isOptionalBoolWrapper %}
+{{ macros.optionalBoolDerives() }}
+pub struct {{ definedType.name | pascalCase }}(pub bool);
+
+impl borsh::BorshDeserialize for {{ definedType.name | pascalCase }} {
+    fn deserialize_reader<R: std::io::Read>(reader: &mut R) -> std::io::Result<Self> {
+        let mut buf = [0u8; 1];
+        match reader.read(&mut buf)? {
+            0 => Ok({{ definedType.name | pascalCase }}(false)),
+            _ => Ok({{ definedType.name | pascalCase }}(buf[0] != 0)),
+        }
+    }
+}
+{% elif needsNewtypeWrapper %}
+#[derive(Debug, Clone, borsh::BorshSerialize, borsh::BorshDeserialize, PartialEq)]
+pub struct {{ definedType.name | pascalCase }}(pub {{ typeManifest.type }});
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for {{ definedType.name | pascalCase }} {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serde_big_array::BigArray::serialize(&self.0, serializer)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for {{ definedType.name | pascalCase }} {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        serde_big_array::BigArray::deserialize(deserializer).map({{ definedType.name | pascalCase }})
+    }
+}
+
+impl From<{{ typeManifest.type }}> for {{ definedType.name | pascalCase }} {
+    fn from(v: {{ typeManifest.type }}) -> Self {
+        Self(v)
+    }
+}
+
+impl From<{{ definedType.name | pascalCase }}> for {{ typeManifest.type }} {
+    fn from(v: {{ definedType.name | pascalCase }}) -> Self {
+        v.0
+    }
+}
+
+impl std::ops::Deref for {{ definedType.name | pascalCase }} {
+    type Target = {{ typeManifest.type }};
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+{% else %}
+pub type {{ definedType.name | pascalCase }} = {{ typeManifest.type }};
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,11 @@
+{
+  "name": "monad-best-buy",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.9"
+  },
+  "dependencies": {
+    "viem": "2.57.7"
+  }
+}

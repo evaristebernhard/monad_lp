@@ -1,0 +1,28 @@
+{
+  "benchmark_model": "independent synthetic V2-like pools; max 3 splits",
+  "capped_pool_tests": {
+    "cases": 120,
+    "max_exhaustive_score_minus_heuristic": 295.45227654,
+    "max_bound_gap_percent": 3.57787
+  },
+  "large_pool_tests": {
+    "1000": {
+      "samples": 12,
+      "median_offline_ms": 204.043,
+      "max_offline_ms": 223.918,
+      "max_certified_relative_gap_percent": 0.00461517
+    },
+    "2000": {
+      "samples": 12,
+      "median_offline_ms": 245.178,
+      "max_offline_ms": 295.155,
+      "max_certified_relative_gap_percent": 0.00461433
+    }
+  },
+  "adverse_update_test": {
+    "downward_change_of_selected_pools_y_reserve": "-2% (synthetic stress)",
+    "certified_reuse": false,
+    "old_route_relative_gap_upper_bound_percent": 1.8887
+  },
+  "limitations": "CPU-only, no Monad RPC/swap simulation, no V3/V4/order books/multi-hop"
+}

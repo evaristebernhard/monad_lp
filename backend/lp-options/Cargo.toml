@@ -1,0 +1,10 @@
+[package]
+name = "lp-options"
+version = "0.1.0"
+edition = "2021"
+description = "Backend option-hedge calculations over the RPC quote snapshot"
+
+[dependencies]
+anyhow = "1"
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde_json = "1"

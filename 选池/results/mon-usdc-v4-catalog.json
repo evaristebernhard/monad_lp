@@ -1,0 +1,125 @@
+{
+  "source": "read-only local catalog; not yet executable quote",
+  "chain_id": 143,
+  "pools": [
+    {
+      "pool_address": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+      "token_a_address": "0x0000000000000000000000000000000000000000",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 500.0,
+      "tick_spacing": 10.0,
+      "liquidity_usd": 1114386.9993952522,
+      "rpc_decoded_state": {
+        "active_liquidity_raw": "21169233726735089844",
+        "lp_fee_raw": "500",
+        "pool_id": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+        "protocol_fee_raw": "0",
+        "sqrt_price_x96": "13062198557830627000000",
+        "state_view": "0x77395f3b2e73ae90843717371294fa97cc419d64",
+        "tick": null
+      }
+    },
+    {
+      "pool_address": "0x8b926a72640b5766c5daa65365c24009618a91cab560946b550e4aa5ce2ae5f2",
+      "token_a_address": "0x0000000000000000000000000000000000000000",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 10000.0,
+      "tick_spacing": 200.0,
+      "liquidity_usd": 1625.0675901127534,
+      "rpc_decoded_state": {
+        "active_liquidity_raw": "8082554106912963",
+        "lp_fee_raw": "10000",
+        "pool_id": "0x8b926a72640b5766c5daa65365c24009618a91cab560946b550e4aa5ce2ae5f2",
+        "protocol_fee_raw": "0",
+        "sqrt_price_x96": "13025459759807006000000",
+        "state_view": "0x77395f3b2e73ae90843717371294fa97cc419d64",
+        "tick": null
+      }
+    },
+    {
+      "pool_address": "0x7d892749d0562b0f78a26cdec26e97ec9dc7f8d1997cb590643ab69f10a1da0e",
+      "token_a_address": "0x0000000000000000000000000000000000000000",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 3000.0,
+      "tick_spacing": 60.0,
+      "liquidity_usd": 4407.485985960849,
+      "rpc_decoded_state": {
+        "active_liquidity_raw": "21185059233147930",
+        "lp_fee_raw": "3000",
+        "pool_id": "0x7d892749d0562b0f78a26cdec26e97ec9dc7f8d1997cb590643ab69f10a1da0e",
+        "protocol_fee_raw": "0",
+        "sqrt_price_x96": "13071491829668256000000",
+        "state_view": "0x77395f3b2e73ae90843717371294fa97cc419d64",
+        "tick": null
+      }
+    },
+    {
+      "pool_address": "0xadcb23117ee93b4e77ac9321a5c7e42c5c7ca2c12dde86ef2df97a53e0058be6",
+      "token_a_address": "0x0000000000000000000000000000000000000000",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 90.0,
+      "tick_spacing": 90.0,
+      "liquidity_usd": 15475.751809488189,
+      "rpc_decoded_state": {
+        "active_liquidity_raw": "58230124919804881",
+        "lp_fee_raw": "9000",
+        "pool_id": "0xadcb23117ee93b4e77ac9321a5c7e42c5c7ca2c12dde86ef2df97a53e0058be6",
+        "protocol_fee_raw": "0",
+        "sqrt_price_x96": "13033039272476295000000",
+        "state_view": "0x77395f3b2e73ae90843717371294fa97cc419d64",
+        "tick": null
+      }
+    },
+    {
+      "pool_address": "0xec865b668bb7026fb853c26b8a478d333261d7fd41d1ef713795c87ccbb48175",
+      "token_a_address": "0x0000000000000000000000000000000000000000",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 5.0,
+      "tick_spacing": 10.0,
+      "liquidity_usd": 35.87157450328107,
+      "rpc_decoded_state": {
+        "active_liquidity_raw": "703418789572656",
+        "lp_fee_raw": "500",
+        "pool_id": "0xec865b668bb7026fb853c26b8a478d333261d7fd41d1ef713795c87ccbb48175",
+        "protocol_fee_raw": "0",
+        "sqrt_price_x96": "13095744153928182000000",
+        "state_view": "0x77395f3b2e73ae90843717371294fa97cc419d64",
+        "tick": null
+      }
+    },
+    {
+      "pool_address": "0x531dffc6f4bff190d95f794e35e3dd00dd78010643be9ceaf0115e113183ab77",
+      "token_a_address": "0x0000000000000000000000000000000000000000",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 1.0,
+      "tick_spacing": 1.0,
+      "liquidity_usd": 5499.684831730071,
+      "rpc_decoded_state": {
+        "active_liquidity_raw": "622545667",
+        "lp_fee_raw": "100",
+        "pool_id": "0x531dffc6f4bff190d95f794e35e3dd00dd78010643be9ceaf0115e113183ab77",
+        "protocol_fee_raw": "0",
+        "sqrt_price_x96": "15079950676713468000000",
+        "state_view": "0x77395f3b2e73ae90843717371294fa97cc419d64",
+        "tick": null
+      }
+    },
+    {
+      "pool_address": "0x58249cb3e44c955d48c6176b1dd5888b7300f0d0b2d1ae934ca8063d16968f9b",
+      "token_a_address": "0x0000000000000000000000000000000000000000",
+      "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "fee_bps": 3.0,
+      "tick_spacing": 600.0,
+      "liquidity_usd": 1405.1221793773484,
+      "rpc_decoded_state": {
+        "active_liquidity_raw": "14467919055484590",
+        "lp_fee_raw": "30000",
+        "pool_id": "0x58249cb3e44c955d48c6176b1dd5888b7300f0d0b2d1ae934ca8063d16968f9b",
+        "protocol_fee_raw": "0",
+        "sqrt_price_x96": "13136590284206207000000",
+        "state_view": "0x77395f3b2e73ae90843717371294fa97cc419d64",
+        "tick": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+name: DLMM Bin allocation and Deribit integer hedge frontier
+on:
+  workflow_dispatch:
+  push:
+    branches: ['research/bin-distribution-protocol-frontier-20261009']
+    paths: ['research/dlmm_bin_allocation_frontier.py','.github/workflows/dlmm-bin-allocation-frontier.yml']
+permissions:
+  contents: read
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - name: Fetch stored public SOL DLMM / Deribit SQLite
+        run: |
+          git lfs install --local
+          git lfs pull --include="data/sol_dlmm_deribit.db" --exclude=""
+      - name: Install integer optimization dependencies
+        run: python3 -m pip install 'numpy>=1.26,<3' 'scipy>=1.13,<2'
+      - name: Test bin allocation and exact static replication identity
+        run: python3 research/dlmm_bin_allocation_frontier.py --self-test
+      - name: Evaluate actual Bin competition and hedge contract frontier
+        run: python3 research/dlmm_bin_allocation_frontier.py --out research-artifacts/dlmm_bin_allocation_frontier.json
+      - name: Keep all numeric scenarios, no secret DB uploads
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dlmm-bin-allocation-frontier-${{ github.run_id }}
+          path: research-artifacts/*.json
+          retention-days: 14
+          if-no-files-found: warn

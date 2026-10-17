@@ -1,0 +1,35 @@
+{
+  "source_revision": "a317fec1939eda44d04088b47b48ca3ee158bc1f",
+  "q": 65536,
+  "byteorder": "little",
+  "blob_sha256": "2000e3b504062c2e22b0427d75f15e4c9f607e516007cfddded8a46a895f2334",
+  "layers": [
+    {
+      "name": "mlp_extractor.policy_net.0",
+      "rows": 64,
+      "cols": 3008,
+      "shift": 16,
+      "weight_offset": 0,
+      "bias_offset": 385024
+    },
+    {
+      "name": "mlp_extractor.policy_net.2",
+      "rows": 64,
+      "cols": 64,
+      "shift": 15,
+      "weight_offset": 385280,
+      "bias_offset": 393472
+    },
+    {
+      "name": "action_net",
+      "rows": 2,
+      "cols": 64,
+      "shift": 17,
+      "weight_offset": 393728,
+      "bias_offset": 393984
+    }
+  ],
+  "tanh": "tanh-q16.json",
+  "input_bound": 8,
+  "status": "experimental_not_deployed"
+}

@@ -1,0 +1,44 @@
+name: Read-only Raydium full-range 7d/30d fee and unhedged risk screen
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '35 7 * * *'
+  push:
+    branches:
+      - 'research/cpmm-fee-persistence-20261009'
+      - 'main'
+    paths:
+      - 'research/cpmm_7d30d_sustainable_fee.py'
+      - '.github/workflows/cpmm-7d30d-fee-screen.yml'
+permissions:
+  contents: read
+jobs:
+  cpmm-fee-vs-risk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - name: Retrieve the existing public pool catalog only
+        run: |
+          git lfs install --local
+          git lfs pull --include='data/lp_screener.db' --exclude=''
+      - name: Validate model and fail-closed pool identity/fee unit checks
+        run: python3 research/cpmm_7d30d_sustainable_fee.py --self-test
+      - name: Check official 24h/7d/30d actual pool fee aggregates
+        run: |
+          python3 research/cpmm_7d30d_sustainable_fee.py \
+            --catalog data/lp_screener.db \
+            --limit 72 \
+            --batch-size 8 \
+            --wealth 10000 --horizon 14 \
+            --out research-artifacts/cpmm_7d30d_fullrange.json
+      - name: Preserve only sanitized official pool metrics and hypotheses
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpmm-7d30d-fee-research-${{ github.run_id }}
+          path: research-artifacts/cpmm_7d30d_fullrange.json
+          retention-days: 30
+          if-no-files-found: warn

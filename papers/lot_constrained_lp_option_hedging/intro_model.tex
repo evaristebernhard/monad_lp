@@ -1,0 +1,86 @@
+\section{Introduction}
+Liquidity provision in an automated market maker exchanges directional inventory exposure and adverse selection for swap fees. The value of a passive liquidity position is normally concave in the outside-market asset price, corresponding to a short-convexity profile. Milionis et al.\ formalize loss-versus-rebalancing (LVR) and its connection to arbitrage against stale AMM prices \cite{milionis2022lvr,milionis2023fees}. European-option representations of impermanent loss, including concentrated liquidity, are already known \cite{deng2023static}. We do \emph{not} treat option replication as a novel insight.
+
+Our question is operationally narrower: for a fixed, hypothetical LP payoff, what risk reduction is possible \emph{with listed} European options when order size comes in discrete contract increments, the strike set is sparse, ask-side depth is limited, and premiums are paid? Unconstrained replication at every Bin strike does not imply an executable hedge.
+
+Our research contributions are:
+\begin{enumerate}[leftmargin=*,itemsep=2pt]
+\item A common initial-HODL-relative loss model for full-range CPMM, bounded CLMM and discrete fixed-Bin DLMM, explicitly distinct from directional principal loss and pathwise LVR.
+\item A smooth spline error upper bound and an elementary but nonzero \emph{local lot-quantization error lower bound} for isolated DLMM kinks. They characterize why theoretical zero-error replication may not be accessible to small investors.
+\item An integer cost-versus-worst-residual formulation with a continuous-price residual-risk oracle; the numerical study uses archived pool accounts, displayed Deribit ask ladders, realistic SOL and ETH contract increments, and separate on-chain fee-growth checks.
+\end{enumerate}
+The interpolation lemma and mixed-integer programming ingredients are standard; the contribution is their transparent integration into an explicitly bounded, real-market-data LP hedge exercise. The study does not assert novel no-arbitrage option pricing, profitable implementation, or global MILP optimality beyond reported solver gaps.
+
+\subsection{Related research}
+The LVR decomposition of \cite{milionis2022lvr} highlights arbitrage losses beyond naive end-to-end impermanent loss, while \cite{milionis2023fees} shows how trading fees change arbitrage incentives. Deng, Zong and Wang \cite{deng2023static} derive static replication formulas for concentrated impermanent loss. Protocol-specific LP fee accounting depends additionally on liquidity placement, swap routing and position checkpoints \cite{univ3,meteoraaccounts}. Our analysis deliberately studies a narrower terminal European option hedge and explicitly reports where empirical fees cannot be inferred from public total-value-locked data.
+
+\section{A Common Terminal Risk Benchmark}
+Let $S_0>0$ denote the entry price of a volatile token in USDC, and $W$ the entry value of an LP position. Let $x_0$ be the initial number of volatile units. The \emph{initial-token HODL} comparator is
+\begin{equation}
+B(S)=W+x_0(S-S_0).
+\label{eq:hodl}
+\end{equation}
+For an idealized fee-free AMM whose inventory instantly follows a frictionless arbitrage-equilibrium value $V(S)$, define
+\begin{equation}
+ D(S)=B(S)-V(S),\qquad D(S_0)=0.
+ \label{eq:divergence}
+\end{equation}
+The loss $D$ is \emph{relative to HODL}, not a dollar-capital loss. If SOL falls, $B(S)$ itself decreases; compensating $D$ does not eliminate that exposure. Real execution is path dependent; throughout the replication analysis, $D$ means \emph{fee-free terminal curvature only}.
+
+\subsection{Constant-product market maker}
+For a 50/50 deposit into a full-range pool $xy=k$,
+\begin{align}
+V_{\CP}(S)&=W\sqrt{S/S_0},&
+x_0&=W/(2S_0),\label{eq:cp-value}\\
+D_{\CP}(S)&=\frac{W}{2}\left(\sqrt{S/S_0}-1\right)^2,&
+D_{\CP}''(S)&=\frac{W}{4\sqrt{S_0}S^{3/2}}>0.
+\label{eq:cp-loss}
+\end{align}
+For example, if the pool begins at \$10,000, a terminal 10\% SOL decline causes only about \$13.17 of divergence from the initial same-token HODL basket, but the fee-free LP's \emph{dollar} value is approximately \$9,486.83. Full-range simplicity does not imply cash principal preservation.
+
+\subsection{Finite-range concentrated liquidity}
+Let $0<a<S_0<b$ be the concentrated position's range and $L>0$ its liquidity parameter. The inventories are
+\begin{equation}
+x(S)=\begin{cases}
+L(a^{-1/2}-b^{-1/2}),&S\le a,\\
+L(S^{-1/2}-b^{-1/2}),&a<S<b,\\
+0,&S\ge b,
+\end{cases}\qquad
+y(S)=\begin{cases}
+0,&S\le a,\\
+L(\sqrt S-\sqrt a),&a<S<b,\\
+L(\sqrt b-\sqrt a),&S\ge b.
+\end{cases}
+\label{eq:cl-inventory}
+\end{equation}
+Set $V_{\CL}(S)=Sx(S)+y(S)$, $x_0=x(S_0)$ and $W=V_{\CL}(S_0)$. In the active interval,
+\begin{equation}
+ V_{\CL}(S)=L\big(2\sqrt S-S/\sqrt b-\sqrt a\big),
+ \qquad D_{\CL}''(S)=\frac{L}{2S^{3/2}},
+\label{eq:cl-value}
+\end{equation}
+whereas $V_{\CL}$ is affine outside $[a,b]$. Narrower ranges generally concentrate more short curvature per invested dollar.
+
+\subsection{Static idealized discrete-Bin inventory}
+For fixed Bin conversion prices $K_i$, suppose lower Bins ($K_i<S_0$) initially contain $Y_i$ units of stable quotation asset and upper Bins initially contain $X_i$ volatile units. Under \emph{complete fee-free conversion at the Bin price}, omitting the mixed active Bin,
+\begin{equation}
+D_{\DL}(S)=
+\sum_{K_i<S_0}\frac{Y_i}{K_i}(K_i-S)^+
++\sum_{K_i>S_0}X_i(S-K_i)^+.
+\label{eq:dl-bins}
+\end{equation}
+The underlying curvature is atomic:
+\begin{equation}
+ D_{\DL}''=\sum_i q_i\delta_{K_i},\qquad
+ q_i=\begin{cases}Y_i/K_i,&K_i<S_0,\\X_i,&K_i>S_0.\end{cases}
+\label{eq:dl-atoms}
+\end{equation}
+Equation \eqref{eq:dl-bins} is an exact identity \emph{for this synthetic static conversion model}, not an exact realized Meteora PositionV2 cash-flow formula with dynamic fees, partial fills or rebalancing.
+
+\subsection{Terminal divergence versus pathwise LVR}
+For a continuously arbitraged, fee-free model, It\^o--Tanaka expresses the ideal DLMM LVR in terms of weighted semimartingale local times:
+\begin{equation}
+ \lvr_T^{\DL}=\frac12\sum_i q_i L_T^{K_i}(S).
+\label{eq:local-time}
+\end{equation}
+An external-price round trip may generate positive LVR but zero \emph{terminal} divergence. Therefore the static European option analysis below hedges $D(S_T)$, not each pathwise source of adverse selection. Actual LP fees and dynamic inventory rebalance are not bundled into its hedge claims.

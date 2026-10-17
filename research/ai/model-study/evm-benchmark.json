@@ -1,0 +1,28 @@
+{
+  "captured_at": "2026-10-17T03:27:29.426329+00:00",
+  "backend": "Foundry 1.6.0-rc1, standard Ethereum Cancun EVM, not Monad pricing",
+  "compiler": "Solidity 0.8.28, optimizer 1000 runs, viaIR",
+  "tests_passed": 8,
+  "tests_failed": 0,
+  "inference_gas_min": 17193245,
+  "inference_gas_max": 17231044,
+  "inference_gas_samples": [
+    17223738,
+    17231044,
+    17193313,
+    17193245,
+    17223740,
+    17231028
+  ],
+  "baseline_before_loop_unroll_gas_range": [
+    25754109,
+    25791892
+  ],
+  "weight_setup": "vm.etch installs STOP-prefixed code chunks in test setup, not real weight deployment transactions",
+  "gas_scope": "gasleft delta for external predict call, includes ABI handling; excludes transaction intrinsic gas and swaps",
+  "inputs": "6 synthetic normalized vectors, not live MON/USDC observations",
+  "parity": "Solidity int16/Q16 raw outputs, decoded action and position match Python integer reference",
+  "public_chain_deployment": false,
+  "monad_specific_gas_verified": false,
+  "swap_integration_verified": false
+}

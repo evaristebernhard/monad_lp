@@ -1,0 +1,46 @@
+name: Build research paper - integer LP option hedges
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - paper/quantized-lp-option-hedging-20261009
+    paths:
+      - 'papers/lot_constrained_lp_option_hedging/**'
+      - '.github/workflows/build-lp-option-paper.yml'
+permissions:
+  contents: read
+jobs:
+  build-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Validate option lot units and numeric archived-study manifest
+        run: python3 papers/lot_constrained_lp_option_hedging/verify_paper_results.py
+      - name: Compile full academic manuscript
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          working_directory: papers/lot_constrained_lp_option_hedging
+          args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode
+      - name: Check artifact and nonempty searchable text
+        run: |
+          test -s papers/lot_constrained_lp_option_hedging/main.pdf
+          python3 -m pip install -q pypdf
+          python3 - <<'PY'
+          from pypdf import PdfReader
+          reader = PdfReader('papers/lot_constrained_lp_option_hedging/main.pdf')
+          extracted = ' '.join((page.extract_text() or '') for page in reader.pages)
+          assert len(reader.pages) >= 7, 'paper unexpectedly short'
+          assert 'Hedging' in extracted and 'Bin' in extracted, 'missing searchable paper text'
+          print('Verified searchable paper PDF, pages:', len(reader.pages))
+          PY
+      - name: Upload compiled paper
+        uses: actions/upload-artifact@v4
+        with:
+          name: lp-option-hedging-paper-${{ github.run_id }}
+          path: papers/lot_constrained_lp_option_hedging/main.pdf
+          retention-days: 90
+          if-no-files-found: error

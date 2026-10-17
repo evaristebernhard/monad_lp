@@ -1,0 +1,75 @@
+{# Write a docblock from an array of strings. #}
+{# Handles continuation lines and empty lines properly to avoid clippy doc_lazy_continuation errors #}
+{# Note: Does not add trailing newline to avoid empty_line_after_doc_comment errors #}
+{# Process all docs together to maintain list context across doc strings #}
+{% macro docblock(docs) %}
+{% if docs and docs.length > 0 %}
+{{ docs | formatDocComments('') }}
+{% endif %}
+{% endmacro %}
+
+{# Write a docblock for field comments with indentation (4 spaces) #}
+{# Handles continuation lines and empty lines properly to avoid clippy doc_lazy_continuation errors #}
+{# Note: Does not add trailing newline to avoid empty_line_after_doc_comment errors #}
+{# Process all docs together to maintain list context across doc strings #}
+{% macro fieldDocblock(docs) -%}
+{% if docs and docs.length > 0 %}
+{{ docs | formatDocComments('    ') }}
+{% endif %}
+{%- endmacro %}
+
+{% macro escapeRustKeyword(name) %}
+{% set rustKeywords = RUST_KEYWORDS %}
+{% if name in rustKeywords %}r#{{ name }}{% else %}{{ name }}{% endif %}
+{% endmacro %}
+
+{# Core derives for decoder types (accounts, instructions, events) - uses BorshDeserialize #}
+{% macro coreDecoderDerives() -%}
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Clone, borsh::BorshSerialize, borsh::BorshDeserialize, PartialEq)]
+{%- endmacro %}
+
+{% macro coreTypeDerives() -%}
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Clone, borsh::BorshSerialize, borsh::BorshDeserialize, PartialEq)]
+{%- endmacro %}
+
+{# Derives for account/instruction wrapper enums #}
+{% macro enumWrapperDerives() -%}
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(tag = "type", content = "data"))]
+{%- endmacro %}
+
+{# GraphQL object derives #}
+{% macro graphqlObjectDerives() -%}
+#[derive(Debug, Clone, GraphQLObject)]
+{%- endmacro %}
+
+{# GraphQL enum derives #}
+{% macro graphqlEnumDerives() -%}
+#[derive(Debug, Clone, GraphQLEnum)]
+{%- endmacro %}
+
+{# Postgres row derives #}
+{% macro postgresRowDerives() -%}
+#[derive(sqlx::FromRow, Debug, Clone)]
+{%- endmacro %}
+
+{# Simple struct derives (for instruction account structs) - no serde tag attribute #}
+{% macro simpleStructDerives() -%}
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+{%- endmacro %}
+
+{% macro cpiEventDerives() -%}
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Clone, carbon_core::borsh::BorshSerialize, carbon_core::borsh::BorshDeserialize, PartialEq)]
+{%- endmacro %}
+
+{# Derives for optional bool newtypes (e.g. OptionBool) with custom BorshDeserialize. #}
+{% macro optionalBoolDerives() -%}
+#[derive(Debug, Clone, Copy, PartialEq, borsh::BorshSerialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
+{%- endmacro %}

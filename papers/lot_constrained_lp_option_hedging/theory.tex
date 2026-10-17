@@ -1,0 +1,49 @@
+\section{Continuous Replication and Quantization Bounds}
+Define put and call hinges $p_K(S)=(K-S)^+$ and $c_K(S)=(S-K)^+$. The ideal DLMM loss \eqref{eq:dl-bins} is already a finite portfolio of these European payoffs, provided that fractional quantities and \emph{all} Bin strikes are traded. For a sufficiently smooth convex loss, one similarly has a continuum-of-hinges representation up to an affine term. The existence of static impermanent-loss replication is not new \cite{deng2023static}; we isolate the precision lost when it must be discretized.
+
+\begin{proposition}[Uniform interpolation upper bound]
+\label{prop:spline}
+Let $D\in C^2([a,b])$ be convex, with $0\le D''(S)\le M$. Let $I_hD$ be the continuous piecewise-affine interpolant through nodes $a=s_0<\cdots<s_N=b$ of maximum spacing $h$. Then
+\begin{equation}
+ 0\le I_hD(S)-D(S)\le\frac{Mh^2}{8},\qquad
+ S\in[a,b].
+\label{eq:interpolation}
+\end{equation}
+Furthermore $I_hD$ is an affine function plus a portfolio of hinge payoffs with nonnegative slope jumps.
+\end{proposition}
+\begin{proof}
+Fix $[s_j,s_{j+1}]$ and write $E=I_hD-D$. It vanishes at the endpoints and satisfies $-M\le E''\le0$. Comparing $E$ with the quadratic barrier $\tfrac M2(S-s_j)(s_{j+1}-S)$ proves the upper bound, with maximum $M(s_{j+1}-s_j)^2/8$ at the midpoint. Convexity gives $I_hD\ge D$. The secant slopes of $D$ are nondecreasing, so adjacent affine segments have nonnegative derivative jumps representable by call hinges (or a put/call decomposition relative to an anchor strike).
+\end{proof}
+For a uniform grid, $\varepsilon$ accuracy follows whenever $h\le\sqrt{8\varepsilon/M}$. This bound assumes arbitrary strike positions and \emph{fractional} hedge quantities, and hence is not a certificate for a listed-derivatives exchange.
+
+\subsection{Minimum tradable option lots create an error floor}
+Let $m>0$ be the smallest underlying-asset quantity of a particular listed option contract. An AMM kink of size $q$ at strike $K$ can be matched exactly only when $q$ is in $m\mathbb{Z}_{\ge0}$, unless additional instruments or a more complicated offset are permitted.
+
+\begin{proposition}[Local lot-quantization obstruction]
+\label{prop:obstruction}
+Suppose $D$ is continuous and piecewise affine on $[K-h,K+h]$, with precisely one interior derivative jump $q>0$ at $K$. Suppose that the hedge has derivative jump $nm$ at $K$ for integer $n\ge0$, and no other target or hedge strikes lie in the open interval. For residual $R=D-H$, any affine correction satisfies
+\begin{equation}
+\|R\|_{\infty,[K-h,K+h]}
+ \ge\frac h4|q-nm|.
+\label{eq:quant-bound}
+\end{equation}
+Taking the best integer quantity gives a bound of
+$\frac h4\operatorname{dist}(q,m\mathbb Z_{\ge0})$.
+\end{proposition}
+\begin{proof}
+The residual $R$ is affine separately on both sides of $K$, with slope change $\delta=q-nm$. The symmetric second finite difference is
+\[
+R(K-h)-2R(K)+R(K+h)=h\delta.
+\]
+Its absolute value is at most $4\|R\|_\infty$, giving \eqref{eq:quant-bound}. An affine correction drops out of the second finite difference.
+\end{proof}
+The assumptions deliberately exclude nearby unmatched strikes: the statement is a local \emph{DLMM kink} result, not a universal residual lower bound for smooth CPMMs or arbitrary option portfolios. It reveals a scale effect. If a hypothetical LP allocation is multiplied by capital $W$, its kink quantity is $q(W)=Wq(1)$, while venue contract increments stay fixed. The mismatch $|Wq(1)-nm|$ changes in discrete steps rather than proportionally with $W$. Consequently there is \emph{no universal requirement} to deposit \$10,000 before an LP can be hedged; the useful account size depends on its risk concentration, available option contracts, and acceptable error.
+
+\subsection{Premium is an economic counterpart to negative convexity}
+The risk-neutral expectation of \eqref{eq:dl-bins}, when well defined, is a sum of vanilla option prices. Even perfect fee-free replication generally costs money. Under a zero-interest, risk-neutral geometric Brownian model with constant volatility $\sigma$ and $T$ in years, the idealized full-range CPMM expectation is
+\begin{equation}
+\E^{\Q}\left[D_{\CP}(S_T)\right]
+=W\left(1-\exp\left\{-\frac{\sigma^2T}{8}\right\}\right).
+\label{eq:cp-expected}
+\end{equation}
+Indeed, if $r=S_T/S_0$, then $\E^\Q[r]=1$ and $\E^\Q[\sqrt r]=\exp(-\sigma^2T/8)$. This is a \emph{risk-neutral convexity valuation}, not the physical expectation of future losses, and actual option ask premiums include spread and market microstructure.

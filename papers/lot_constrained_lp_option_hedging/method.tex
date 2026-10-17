@@ -1,0 +1,55 @@
+\section{Hedging with Finite Strikes, Lots and Ask-Side Depth}
+Fix a positive terminal stress interval $\mathcal I=[S_-,S_+]$. Each available option $j$ is specified by type $\tau_j\in\{p,c\}$, strike $K_j$, underlying asset size per exchange lot $m_j$, displayed ask-depth capacity $N_j$, and a price ladder. With the integer number of lots $n_j$ and payoff hinge $h_{\tau_j,K_j}\in\{p_{K_j},c_{K_j}\}$, the long-only terminal protection is
+\begin{equation}
+ H_{\bm n}(S)=\sum_{j=1}^J n_jm_jh_{\tau_j,K_j}(S),
+ \qquad n_j\in\{0,\ldots,N_j\}.
+\label{eq:hedge}
+\end{equation}
+Write $C(\bm n)$ for \emph{indicative} ask-ladder premiums plus a modeled fee budget. The depth ladder can be expanded into binary/integer variables with precedence constraints: a more expensive ask level may be used only after the cheaper displayed level is exhausted. This is an execution \emph{estimate}; a book snapshot cannot guarantee the quoted sizes will still be there when the orders arrive.
+
+For a risk-weight $\lambda\ge0$, we optimize
+\begin{equation}
+\begin{aligned}
+ \min_{\bm n,z}\quad&C(\bm n)+\lambda z\\
+ \text{subject to}\quad&
+   -z\le D(S)-H_{\bm n}(S)\le z
+      &&\forall S\in\mathcal I,\\
+ &n_j\in\mathbb{Z}_{\ge0},\quad 0\le n_j\le N_j.
+\end{aligned}
+\label{eq:minimax}
+\end{equation}
+The quantity $z$ is the \emph{worst absolute nonlinear terminal residual}. It is neither an expected return nor a loss bound for the LP's total dollar principal. The explicit loss of the dollar price sensitivity from the initial portfolio, as well as the effect of funding and fee compounding, remain outside this optimization.
+
+\begin{theorem}[Continuous-price exact error oracle]
+\label{thm:exact}
+For the CPMM, CLMM and finite idealized DLMM loss functions in \cref{eq:cp-loss,eq:cl-value,eq:dl-bins}, and for any fixed finite listed-option portfolio \eqref{eq:hedge}, the maximum of $|D-H_{\bm n}|$ on the compact interval $\mathcal I$ is attained at one of the following points:
+(i) an interval endpoint;
+(ii) a strike, Bin, or CLMM range breakpoint within $\mathcal I$;
+(iii) a stationary point of $D-H_{\bm n}$ inside a differentiable segment.
+\end{theorem}
+\begin{proof}
+The residual is continuous and piecewise $C^2$, with finitely many structural breakpoints. On each closed smooth segment, a maximum of its absolute value occurs at an endpoint or at a point of zero derivative unless the residual vanishes identically. For CPMM, $D'=x_0-W/(2\sqrt{S_0S})$; for an active CLMM, $D'=x_0-L(S^{-1/2}-b^{-1/2})$. Between option strikes, $H_{\bm n}'$ is constant, so candidate stationary roots can be solved explicitly. For DLMM, $D-H_{\bm n}$ is affine between breakpoints, so no interior stationary evaluation is required except constant segments.
+\end{proof}
+An exact continuous-spot \emph{a posteriori} envelope does not by itself prove that the mixed-integer optimizer found a global minimum. The implementation uses cutting planes. It initializes a finite set of endpoints and kinks, solves the restricted mixed-integer linear program, evaluates \cref{thm:exact} independently, and adds any violated extremal price before resolving. The final risk estimate is reported independently of the MILP optimality gap.
+
+\begin{remark}[Interpretation of the cost--risk objective]
+At $\lambda=0.1$, a solution may rationally purchase zero contracts, while at $\lambda=1$ it can purchase many. These are \emph{risk-preference scenarios}; the paper does not calibrate them to observed investor utility. Even when $C+z$ is less than an assumed fee budget, execution risk, basis exposure, price beta, fees and exit costs make a profitability conclusion unwarranted.
+\end{remark}
+
+\section{Data and Reproducibility Design}
+The empirical input consists of dated \emph{public} Solana and Ethereum AMM pool data, Meteora Bin inventory/fee-growth account snapshots, and displayed Deribit option ask ladders. Pool and option observations are \emph{not atomic}, and exact collection timestamps are preserved. We do not infer a live wallet position from a pool's aggregated Bin reserves. All source scripts, past run IDs and output summaries are available under the public \href{https://github.com/evaristebernhard/arbitage}{\texttt{arbitage} research repository}.
+
+\paragraph{Meteora data and decimal audit.}
+The SOL/USDC 4-bp Meteora pool
+\texttt{5rCf1DM8...TogYHAS6} (full identifier in the machine-readable data manifest)
+was snapshotted at 08:23:08 UTC on October 9, 2026, with active Bin ID $-5513$, 4,908 populated Bins and approximately \$4.006 million marked reserves. A previous snapshot collector had mistakenly applied SOL/USDC decimal conversion twice; the static optimizer checks the saved active Bin price against an independently saved pool price and corrects a factor 1,000 \emph{on reading}, leaving original archived data unmodified. This audit matters because false Bin strike prices would invalidate every hedge result. The option snapshot is from 08:23:52 UTC, 44.93 seconds later; its SOL index is \$110.2492 against pool mark \$110.2771.
+
+\paragraph{SOL and ETH option units.}
+All Solana tests use the SOL\_USDC October 23, 2026 expiration, at 08:00 UTC; the displayed minimum order increment in the collected SOL data is one whole \emph{10-SOL} option contract. Ethereum tests independently use ETH\_USDC options of the same expiration, with one full contract equal to \emph{1 ETH} but a \emph{minimum trading step of 0.1 ETH}. Quantities are normalized to underlying units before optimization. The two chains' spot prices, underlying option books and hedge positions are never mixed \cite{deribitlinear}.
+
+\paragraph{Snapshot attribution.}
+The main Meteora result comes from successful GitHub Actions run
+\href{https://github.com/evaristebernhard/arbitage/actions/runs/37910170471}{37910170471}, whose JSON artifact records exact Bin counts, index basis, premiums, MILP gaps and stationary-breakpoint verification. A distinct SOL cross-protocol screen saved around 10:08 UTC supplies the Raydium full-range versus CLMM comparison; it is documented in \texttt{docs/sol-cross-protocol-option-screen-20261009.md}. A separate
+\href{https://github.com/evaristebernhard/arbitage/actions/runs/37916764413}{ETH/Uniswap experiment (37916764413)}
+has its own option quote timestamp, strike chain and underlying contract sizes. The short-run fee-counter study uses
+\href{https://github.com/evaristebernhard/arbitage/actions/runs/37928429533}{run 37928429533} and refers to different on-chain times. Historical option-book snapshots are \emph{quotes}, not executed market trades or backtested fills.

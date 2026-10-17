@@ -1,0 +1,157 @@
+{
+  "metadata": {
+    "study_date": "2026-10-09",
+    "type": "sanitized archival numeric results (not fills or realized LP PnL)",
+    "repository": "evaristebernhard/arbitage",
+    "capital_usdc": 10000,
+    "expiry_utc": "2026-10-23T08:00:00Z"
+  },
+  "dlmm": {
+    "source_actions_run": 37910170471,
+    "source_artifact_id": 11605754511,
+    "pool": "5rCf1DM8LjKTw4YqhnoLcngyZYeNnQqztScTogYHAS6",
+    "pool_observed_utc": "2026-10-09T08:23:08.057418Z",
+    "deribit_observed_utc": "2026-10-09T08:23:52.991149Z",
+    "active_id": -5513,
+    "bin_step_bps": 4,
+    "populated_bins": 4908,
+    "sol_minimum_option_lot": 10,
+    "scenarios": [
+      {
+        "stress_pct": 10,
+        "lambda": 0.1,
+        "lots": 0,
+        "cost": 0,
+        "unhedged_max_residual": 202.45462249245728,
+        "hedged_max_residual": 202.45462249245728
+      },
+      {
+        "stress_pct": 10,
+        "lambda": 1,
+        "lots": 3,
+        "cost": 122.99249381295454,
+        "premium": 122,
+        "unhedged_max_residual": 202.45462249245728,
+        "hedged_max_residual": 29.455533520167393,
+        "mip_gap": 0.003660284311683401
+      },
+      {
+        "stress_pct": 20,
+        "lambda": 0.1,
+        "lots": 0,
+        "cost": 0,
+        "unhedged_max_residual": 745.6729887929135,
+        "hedged_max_residual": 745.6729887929135
+      },
+      {
+        "stress_pct": 20,
+        "lambda": 1,
+        "lots": 7,
+        "cost": 177.31581889689392,
+        "premium": 175,
+        "unhedged_max_residual": 745.6729887929135,
+        "hedged_max_residual": 15.8299696854545,
+        "mip_gap": 0.0049240776660312985
+      }
+    ]
+  },
+  "sol_cross": {
+    "source_artifact_id": 11609717952,
+    "source_time_utc": "2026-10-09T10:08:18.121474Z",
+    "stress_pct": 10,
+    "option_underlying": "SOL",
+    "rows": [
+      {
+        "position": "CPMM",
+        "lots": 0,
+        "cost": 0,
+        "unhedged": 13.167019494860142,
+        "hedged": 13.167019494860142
+      },
+      {
+        "position": "CLMM +/-2.5%",
+        "lots": 8,
+        "cost": 318.6484936,
+        "unhedged": 448.17231811057354,
+        "hedged": 40.91271811057368
+      },
+      {
+        "position": "CLMM +/-5%",
+        "lots": 8,
+        "cost": 279.6484936,
+        "unhedged": 392.5595520308925,
+        "hedged": 25.299952030892655
+      },
+      {
+        "position": "CLMM +/-10%",
+        "lots": 7,
+        "cost": 197.3174319,
+        "unhedged": 269.115300952255,
+        "hedged": 11.85570095225512
+      }
+    ]
+  },
+  "eth_cross": {
+    "source_actions_run": 37916764413,
+    "source_artifact_id": 11609824369,
+    "source_time_utc": "2026-10-09T10:18:35.400602Z",
+    "option_underlying": "ETH",
+    "minimum_lot_eth": 0.1,
+    "rows": [
+      {
+        "position": "Uniswap V2 CPMM",
+        "lots": 2,
+        "cost": 6.5698644,
+        "unhedged": 13.167019494861961,
+        "hedged": 4.508611816663688
+      },
+      {
+        "position": "Uniswap V3 +/-5%",
+        "lots": 40,
+        "cost": 225.637288,
+        "unhedged": 392.5595520309471,
+        "hedged": 19.014699763416495
+      },
+      {
+        "position": "Uniswap V3 +/-10%",
+        "lots": 33,
+        "cost": 160.0927626,
+        "unhedged": 269.115300952275,
+        "hedged": 11.068713949414814
+      }
+    ]
+  },
+  "short_fee_interval": {
+    "source_actions_run": 37928429533,
+    "source_artifact_id": 11614961224,
+    "elapsed_seconds": 704,
+    "source": "real public fee-per-liquidity counter changes + hypothetical newly minted static position",
+    "rows": [
+      {
+        "pool": "Meteora 1bp",
+        "shadow_fees_usdc": 3.567,
+        "ideal_divergence_usdc": 16.968
+      },
+      {
+        "pool": "Meteora 4bps",
+        "shadow_fees_usdc": 3.25,
+        "ideal_divergence_usdc": 3.138
+      },
+      {
+        "pool": "Meteora 20bps",
+        "shadow_fees_usdc": 0.533,
+        "ideal_divergence_usdc": 0,
+        "warning": "Same active Bin; zero is a coarse spot estimate, not true zero loss."
+      }
+    ]
+  },
+  "limitations": [
+    "non-atomic option and pool snapshots",
+    "synthetic pool-wide pro-rata Bin basket; not an actual PositionV2",
+    "MILP optimality gaps positive",
+    "stress windows are not tail probability regions",
+    "fee observations not matched in time to option quotes",
+    "no actual option executions",
+    "contract quantities distinct for SOL 10-unit and ETH 0.1-unit"
+  ]
+}

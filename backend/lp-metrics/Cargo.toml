@@ -1,0 +1,10 @@
+[package]
+name = "lp-metrics"
+version = "0.1.0"
+edition = "2021"
+description = "Pure LP price-history metrics loaded from the shared SQLite snapshot"
+
+[dependencies]
+anyhow = "1"
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde_json = "1"

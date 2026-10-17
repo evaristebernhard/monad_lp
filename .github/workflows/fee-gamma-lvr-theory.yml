@@ -1,0 +1,26 @@
+name: Fee vs Gamma / DLMM Bin theory verification
+on:
+  workflow_dispatch:
+  push:
+    branches: ['research/fee-gamma-lvr-theory-20261009']
+    paths:
+      - 'research/fee_gamma_lvr_theory.py'
+      - '.github/workflows/fee-gamma-lvr-theory.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate closed-form formulae, finite Bin replicas, KKT allocation
+        run: python3 research/fee_gamma_lvr_theory.py --self-test
+      - name: Compute transparent no-data-access numerical sensitivity
+        run: python3 research/fee_gamma_lvr_theory.py --output research-artifacts/fee_gamma_lvr_theory.json
+      - name: Upload research calculations
+        uses: actions/upload-artifact@v4
+        with:
+          name: fee-gamma-lvr-research-${{ github.run_id }}
+          path: research-artifacts/fee_gamma_lvr_theory.json
+          retention-days: 30

@@ -1,0 +1,30 @@
+name: Saved Bin distribution and other AMM catalog comparison
+on:
+  workflow_dispatch:
+  push:
+    branches: ['research/bin-distribution-protocol-frontier-20261009']
+    paths: ['research/bin_protocol_distribution.py','.github/workflows/bin-protocol-distribution.yml']
+permissions:
+  contents: read
+jobs:
+  read-saved-db:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - name: Fetch only existing pool/bin and public catalog SQLite from LFS
+        run: |
+          git lfs install --local
+          git lfs pull --include="data/sol_dlmm_deribit.db,data/lp_screener.db" --exclude=""
+      - name: Audit per-Bin reserves and protocol coverage
+        run: python3 research/bin_protocol_distribution.py --out research-artifacts/bin_protocol_distribution.json
+      - name: Upload public sanitized numerical aggregates
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bin-protocol-distribution-${{ github.run_id }}
+          path: research-artifacts/*.json
+          retention-days: 14
+          if-no-files-found: warn

@@ -1,0 +1,82 @@
+{
+  "chainId": 10143,
+  "deployer": "0x41d5D3B5f2e497d1F4bCF767ffac9DDAb85D2b79",
+  "sourceChainId": 143,
+  "sourceBlock": "114078450",
+  "sourceBlockHash": "0xc6d40de403bf824514f6625a2a8ede9c294d8a22a96cc3fa81ec6b4568bb851b",
+  "poolIds": [
+    "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+    "0x8b926a72640b5766c5daa65365c24009618a91cab560946b550e4aa5ce2ae5f2",
+    "0x7d892749d0562b0f78a26cdec26e97ec9dc7f8d1997cb590643ab69f10a1da0e",
+    "0xadcb23117ee93b4e77ac9321a5c7e42c5c7ca2c12dde86ef2df97a53e0058be6",
+    "0x531dffc6f4bff190d95f794e35e3dd00dd78010643be9ceaf0115e113183ab77",
+    "0x58249cb3e44c955d48c6176b1dd5888b7300f0d0b2d1ae934ca8063d16968f9b"
+  ],
+  "algorithm": "K=1 gross quote maximum; not V2 DCAR",
+  "constructorHash": "0x18fc751ac7a5ed660cf11a9531ceda622520638e5824d5b45e7d5c5c38d9cb9a",
+  "gasEstimate": "633577",
+  "gasLimit": "760292",
+  "maxFeePerGas": "122400000000",
+  "maximumTestMonWei": "93059740800000000",
+  "scope": "Read-only mainnet quote replay. Caller-supplied quotes are not authenticated. No swaps/custody.",
+  "transactionHash": "0x4a520f2c90b5a4182a78393f036c0ba75f83373fcfb32c3362356ba9847d7188",
+  "status": "deployed",
+  "submittedAt": "2026-10-17T03:41:05.438Z",
+  "contractAddress": "0x36a71946f5c9a6627dd7fcd464a6f5abc604f4ca",
+  "blockNumber": "71716511",
+  "gasUsed": "760292",
+  "explorer": "https://testnet.monadscan.com/address/0x36a71946f5c9a6627dd7fcd464a6f5abc604f4ca",
+  "runtimeCodeHash": "0xb6d210d9b979ac9e579fa7c4a8878f8aee680d4a97b6449b6febcb1545d979fc",
+  "replayResults": [
+    {
+      "direction": "MON_TO_USDC",
+      "amountIn": "1",
+      "poolId": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+      "amountOutRaw": "22807",
+      "replayHash": "0x69a513d6ab9d09f6c2a6aa8f4ca6b173811cbabf45560cc21169fb829ee97113",
+      "localMatches": true
+    },
+    {
+      "direction": "MON_TO_USDC",
+      "amountIn": "100",
+      "poolId": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+      "amountOutRaw": "2280765",
+      "replayHash": "0x1dbd95e96897e7b7d42be85c321df7c5d5636a395f654eee15a93591f8ef7f55",
+      "localMatches": true
+    },
+    {
+      "direction": "MON_TO_USDC",
+      "amountIn": "1000",
+      "poolId": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+      "amountOutRaw": "22807413",
+      "replayHash": "0x9001432bfa61d2512fbeed9bce61c2589d8b8e69d41d3be20acb340a06e7b9d6",
+      "localMatches": true
+    },
+    {
+      "direction": "USDC_TO_MON",
+      "amountIn": "1",
+      "poolId": "0x7d892749d0562b0f78a26cdec26e97ec9dc7f8d1997cb590643ab69f10a1da0e",
+      "amountOutRaw": "43831421289321037707",
+      "replayHash": "0x1cb631266876eb424b3367a6ee63f0ea50df7fe20416b1fd029a4233ab143a87",
+      "localMatches": true
+    },
+    {
+      "direction": "USDC_TO_MON",
+      "amountIn": "10",
+      "poolId": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+      "amountOutRaw": "438008166936890182065",
+      "replayHash": "0x252028fcff12b039622f68d5881c906e2bb330dab36a21b6b5aca22dce5ad7a7",
+      "localMatches": true
+    },
+    {
+      "direction": "USDC_TO_MON",
+      "amountIn": "100",
+      "poolId": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+      "amountOutRaw": "4379878249129850901877",
+      "replayHash": "0xa4ad1137d6eabf014ed5c326f8a0470970b9eabcbd23acdb9fa6734cceb7d6da",
+      "localMatches": true
+    }
+  ],
+  "quoteAuthentication": false,
+  "swapsExecuted": false
+}

@@ -1,0 +1,22 @@
+{
+  "chainId": 10143,
+  "deployer": "0x41d5D3B5f2e497d1F4bCF767ffac9DDAb85D2b79",
+  "sourceChainId": 143,
+  "sourceBlock": "114078450",
+  "sourceBlockHash": "0xc6d40de403bf824514f6625a2a8ede9c294d8a22a96cc3fa81ec6b4568bb851b",
+  "poolIds": [
+    "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+    "0x8b926a72640b5766c5daa65365c24009618a91cab560946b550e4aa5ce2ae5f2",
+    "0x7d892749d0562b0f78a26cdec26e97ec9dc7f8d1997cb590643ab69f10a1da0e",
+    "0xadcb23117ee93b4e77ac9321a5c7e42c5c7ca2c12dde86ef2df97a53e0058be6",
+    "0x531dffc6f4bff190d95f794e35e3dd00dd78010643be9ceaf0115e113183ab77",
+    "0x58249cb3e44c955d48c6176b1dd5888b7300f0d0b2d1ae934ca8063d16968f9b"
+  ],
+  "algorithm": "K=1 gross quote maximum; not V2 DCAR",
+  "constructorHash": "0x18fc751ac7a5ed660cf11a9531ceda622520638e5824d5b45e7d5c5c38d9cb9a",
+  "gasEstimate": "633577",
+  "gasLimit": "760292",
+  "maxFeePerGas": "122400000000",
+  "maximumTestMonWei": "93059740800000000",
+  "scope": "Read-only mainnet quote replay. Caller-supplied quotes are not authenticated. No swaps/custody."
+}

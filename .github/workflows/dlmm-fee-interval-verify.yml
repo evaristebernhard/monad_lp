@@ -1,0 +1,40 @@
+name: Reproduce two-point Meteora Bin fee-growth audit
+on:
+  workflow_dispatch:
+  push:
+    branches: ['research/dlmm-real-fee-growth-rpc-20261009']
+    paths:
+      - 'research/dlmm_compare_fee_growth.py'
+      - '.github/workflows/dlmm-fee-interval-verify.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download 11:46 UTC public baseline artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dlmm-fee-growth-37925823991
+          run-id: 37925823991
+          github-token: ${{ github.token }}
+          path: research-artifacts/before
+      - name: Download 11:50 UTC public followup artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dlmm-fee-growth-37926179416
+          run-id: 37926179416
+          github-token: ${{ github.token }}
+          path: research-artifacts/after
+      - name: Reproduce independent per-Bin counter and liquidity deltas
+        run: |
+          python3 research/dlmm_compare_fee_growth.py             --before research-artifacts/before/dlmm_bin_fee_growth.json             --after research-artifacts/after/dlmm_bin_fee_growth.json             --out research-artifacts/dlmm_fee_interval_comparison.json
+      - name: Publish only computed counter deltas, never raw RPC DB
+        uses: actions/upload-artifact@v4
+        with:
+          name: dlmm-fee-interval-verification-${{ github.run_id }}
+          path: research-artifacts/dlmm_fee_interval_comparison.json
+          retention-days: 30

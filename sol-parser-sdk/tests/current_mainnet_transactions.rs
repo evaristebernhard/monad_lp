@@ -1,0 +1,434 @@
+use sol_parser_sdk::{
+    parse_rpc_transaction_cost, parse_transaction_from_rpc, DexEvent, SwqosProvider,
+};
+use solana_client::rpc_client::RpcClient;
+use solana_client::rpc_config::RpcTransactionConfig;
+use solana_sdk::signature::Signature;
+use solana_transaction_status::UiTransactionEncoding;
+use std::str::FromStr;
+
+fn run_mainnet_tests() -> bool {
+    std::env::var("RUN_MAINNET_TESTS").as_deref() == Ok("1")
+}
+
+fn rpc_client() -> RpcClient {
+    RpcClient::new(
+        std::env::var("SOLANA_RPC_URL")
+            .unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string()),
+    )
+}
+
+fn parse(signature: &str) -> Vec<DexEvent> {
+    let signature = Signature::from_str(signature).expect("valid fixture signature");
+    parse_transaction_from_rpc(&rpc_client(), &signature, None)
+        .unwrap_or_else(|error| panic!("{signature}: {error}"))
+}
+
+fn fetch(signature: &str) -> solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta {
+    let signature = Signature::from_str(signature).expect("valid fixture signature");
+    rpc_client()
+        .get_transaction_with_config(
+            &signature,
+            RpcTransactionConfig {
+                encoding: Some(UiTransactionEncoding::Base64),
+                commitment: None,
+                max_supported_transaction_version: Some(1),
+            },
+        )
+        .unwrap_or_else(|error| panic!("{signature}: {error}"))
+}
+
+// These transactions were captured from current mainnet traffic in August/September 2026.
+// Run with: RUN_MAINNET_TESTS=1 SOLANA_RPC_URL=<optional archive RPC> cargo test --test current_mainnet_transactions
+
+#[test]
+fn current_meteora_damm_v2_swap() {
+    if !run_mainnet_tests() {
+        return;
+    }
+    const SIGNATURE: &str =
+        "5WUC7ZMio6F1D5Dhcteb8gChkReQ1YVg3zaB2bBQpfccN1knU6F3gHBYdTv1dypX3VJyM4rTASp5YDoyXGqtmpCU";
+    let swaps: Vec<_> = parse(SIGNATURE)
+        .into_iter()
+        .filter_map(|event| match event {
+            DexEvent::MeteoraDammV2Swap(event) => Some(event),
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(swaps.len(), 1);
+    let swap = &swaps[0];
+    assert_eq!(swap.metadata.signature.to_string(), SIGNATURE);
+    assert_eq!(swap.metadata.slot, 443_486_348);
+    assert_eq!((swap.amount_0, swap.amount_1, swap.swap_mode), (48_633_499_685, 55_554_409, 0));
+    assert_eq!(swap.actual_amount_in, 48_633_499_685);
+    assert_eq!(swap.output_amount, 56_115_565);
+    assert_eq!((swap.lp_fee, swap.claiming_fee, swap.compounding_fee), (44_938, 44_938, 0));
+    assert_eq!((swap.protocol_fee, swap.partner_fee, swap.referral_fee), (11_234, 0, 0));
+    assert_eq!((swap.reserve_a_amount, swap.reserve_b_amount), (9_746_117_860_573, 11_200_603_532));
+}
+
+#[test]
+fn issue_82_damm_v2_swaps_have_real_accounts() {
+    if !run_mainnet_tests() {
+        return;
+    }
+    for (signature, pool, mint_a, vault_a) in [
+        (
+            "4vPzV2JPbDZghNgE6pYQhcjTFrNQt1V2A23bRXCpmYRQdjmKTGYgrfiLWXdXrdZpBu1CrWWLQoJxbL7GnoQJLRhv",
+            "GSKh9Q5BmhwWNvr9phx7ei1gNkpVLBTqqx9GbMTfwcxE",
+            "8qecx8juVNhpkAkUpcAY7LFoBLrWTnk7SUqvEmPGA55i",
+            "3wfYBNJXsntMjsYgJ6YM2T5CbzShoRYnqG58os9pD5Nk",
+        ),
+        (
+            "4CBrBEWnoo3TKMMbBx8zscYqVcLrrCDwWykKjGUWfASABGQz7RKLJD7mCKm7pWyGaxRaBaapMqnrSwCy3ZHFCS9W",
+            "52388vAjCySRMBjuQJD36iQ2941hKEzTpU46M7MjZeoM",
+            "Eikjz9BPLatgiemV52q8fkoEeCysULahcPk8WzSSEsb4",
+            "31REzdmgf2FJCgRaEdDvMQynVPMzVcaDWBLN8Lxr1bzX",
+        ),
+    ] {
+        let swaps: Vec<_> = parse(signature).into_iter().filter_map(|event| match event {
+            DexEvent::MeteoraDammV2Swap(swap) => Some(swap),
+            _ => None,
+        }).collect();
+        assert_eq!(swaps.len(), 1, "{signature}");
+        let swap = &swaps[0];
+        assert_eq!(swap.metadata.slot, 447_312_514);
+        assert_eq!(swap.pool.to_string(), pool);
+        assert_eq!(swap.token_a_mint.to_string(), mint_a);
+        assert_eq!(swap.token_b_mint.to_string(), "So11111111111111111111111111111111111111112");
+        assert_eq!(swap.token_a_vault.to_string(), vault_a);
+        assert_ne!(swap.token_b_vault, solana_sdk::pubkey::Pubkey::default());
+        assert_ne!(swap.payer, solana_sdk::pubkey::Pubkey::default());
+        assert_ne!(swap.input_token_account, solana_sdk::pubkey::Pubkey::default());
+        assert_ne!(swap.output_token_account, solana_sdk::pubkey::Pubkey::default());
+        assert_eq!(swap.token_a_program.to_string(), "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
+        assert_eq!(swap.token_b_program.to_string(), "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+        assert_eq!(swap.program.to_string(), "cpamdpZCGKUy5JxQXB4dcpGPiikHawvSWAd6mEn1sGG");
+        assert_eq!(swap.referral_token_account, None);
+    }
+}
+
+#[test]
+fn current_meteora_damm_v2_add_liquidity() {
+    if !run_mainnet_tests() {
+        return;
+    }
+    const SIGNATURE: &str =
+        "67SA1qv4f6ZY948qt7C22dTReS8EcGG8PkVJYdoqSXUxf3h2QPUjdnbu6hqdR79WR1CYxweCePycpcuTFR8WYWbr";
+    let adds: Vec<_> = parse(SIGNATURE)
+        .into_iter()
+        .filter_map(|event| match event {
+            DexEvent::MeteoraDammV2AddLiquidity(event) => Some(event),
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(adds.len(), 1);
+    let add = &adds[0];
+    assert_eq!(add.metadata.signature.to_string(), SIGNATURE);
+    assert_eq!(add.metadata.slot, 443_564_414);
+    assert_eq!((add.token_a_amount, add.token_b_amount), (1_223_939_852, 4_178_320));
+    assert_eq!(add.liquidity_delta, 1_319_169_404_971_592_647_400_000_000);
+    assert_eq!(
+        (add.token_a_amount_threshold, add.token_b_amount_threshold),
+        (1_225_165_017, 4_182_502)
+    );
+    assert_eq!((add.total_amount_a, add.total_amount_b), (1_223_939_852, 4_178_320));
+    assert_eq!((add.reserve_a_amount, add.reserve_b_amount), (8_471_243_526, 28_919_366));
+}
+
+#[test]
+fn current_meteora_dlmm_swap_and_nested_orca() {
+    if !run_mainnet_tests() {
+        return;
+    }
+    const SIGNATURE: &str =
+        "eEWaGsbRPoiD36Xf3epzSMmdtXX36va76b13YfsDV3ncsxQHBTjC68zZ8mbzFXTNWy3n3qKUAHjgHBconX4Gu1i";
+    let events = parse(SIGNATURE);
+    let swaps: Vec<_> = events
+        .iter()
+        .filter_map(|event| match event {
+            DexEvent::MeteoraDlmmSwap(event) => Some(event),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(swaps.len(), 1);
+    assert_eq!(swaps[0].metadata.signature.to_string(), SIGNATURE);
+    assert_eq!(swaps[0].metadata.slot, 438_873_646);
+    assert_eq!(swaps[0].amount_in, 2_738_183_783);
+    assert_eq!(swaps[0].amount_out, 81_555_062);
+    assert_eq!(swaps[0].fee, 18_486_656);
+    assert_eq!(swaps[0].protocol_fee, 2_054_072);
+
+    let orca: Vec<_> = events
+        .iter()
+        .filter_map(|event| match event {
+            DexEvent::OrcaWhirlpoolSwap(event) => Some(event),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(orca.len(), 1);
+    assert_eq!(orca[0].input_amount, 2_397_194_654);
+    assert_eq!(orca[0].output_amount, 942_951_733);
+}
+
+#[test]
+fn current_meteora_dlmm_swap_separates_threshold_from_executed_output() {
+    if !run_mainnet_tests() {
+        return;
+    }
+    const SIGNATURE: &str =
+        "4bo3keYw6cNyKFBPWkyVKBRxx5HR9pqUX7oUCKfaCDHyEHUtcvWf83JMyw8aCw95miYpCibmvZ47yzEU2QgL1SpC";
+    let swaps: Vec<_> = parse(SIGNATURE)
+        .into_iter()
+        .filter_map(|event| match event {
+            DexEvent::MeteoraDlmmSwap(event) => Some(event),
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(swaps.len(), 1);
+    assert_eq!(swaps[0].metadata.slot, 439_180_262);
+    assert_eq!(swaps[0].amount_in, 15_256_451_464);
+    assert_eq!(swaps[0].min_amount_out, 1_152_138_244);
+    assert_eq!(swaps[0].amount_out, 1_152_143_151);
+    assert!(swaps[0].amount_out > swaps[0].min_amount_out);
+}
+
+#[test]
+fn current_meteora_dlmm_add_liquidity_occurrences() {
+    if !run_mainnet_tests() {
+        return;
+    }
+    const SIGNATURE: &str =
+        "h3sGiriW4jCGgbnNF8DaEKnsWhjtcH5ZM1dkyZFidgD2fx9aDNatray38yRmkxaWez3g5qFNpyXhE8ho716vjgp";
+    let adds: Vec<_> = parse(SIGNATURE)
+        .into_iter()
+        .filter_map(|event| match event {
+            DexEvent::MeteoraDlmmAddLiquidity(event) => Some(event),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(adds.len(), 3);
+    assert_eq!(adds[0].metadata.slot, 438_873_652);
+    assert_eq!(adds[0].amounts, [0, 389_400_592]);
+    assert_eq!(adds[1].amounts, [4_957_546_677, 65_633_812]);
+    assert_eq!(adds[2].amounts, [6_984_260_460, 0]);
+}
+
+#[test]
+fn current_pumpfun_and_pumpswap_trades() {
+    if !run_mainnet_tests() {
+        return;
+    }
+    const PUMPFUN_SIGNATURE: &str =
+        "QUYUtVPVkkjV2GGFTC4MfxtauNpRvWDViGCGxTckxPWbPZvEY92d1sZD9Lq5iK31sy3Drwy28gHmV89iRt9hz9R";
+    let pumpfun: Vec<_> = parse(PUMPFUN_SIGNATURE)
+        .into_iter()
+        .filter_map(|event| match event {
+            DexEvent::PumpFunBuy(event) => Some(event),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(pumpfun.len(), 1);
+    assert_eq!(pumpfun[0].metadata.slot, 438_880_952);
+    assert_eq!(pumpfun[0].sol_amount, 977_777_777);
+    assert_eq!(pumpfun[0].token_amount, 30_765_521_374_696);
+    assert_eq!(pumpfun[0].ix_name, "buy");
+
+    const PUMPSWAP_SIGNATURE: &str =
+        "2qgqjVi7XtBeSudSkZhbQrsdFNeMUB4jApLdcdihAwcWWb5SxQvQKjrfr2ZQ12TrR4BEwvaY7PiHLqE3uZD24iw7";
+    let pumpswap: Vec<_> = parse(PUMPSWAP_SIGNATURE)
+        .into_iter()
+        .filter_map(|event| match event {
+            DexEvent::PumpSwapBuy(event) => Some(event),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(pumpswap.len(), 1);
+    assert_eq!(pumpswap[0].metadata.slot, 438_881_023);
+    assert_eq!(pumpswap[0].base_amount_out, 7_317_003_080);
+    assert_eq!(pumpswap[0].quote_amount_in, 10_000_000);
+    assert_eq!(pumpswap[0].ix_name, "buy_exact_quote_in");
+}
+
+#[test]
+fn current_raydium_clmm_cpmm_amm_v4_and_launchlab() {
+    if !run_mainnet_tests() {
+        return;
+    }
+    const CLMM_SIGNATURE: &str =
+        "2TyjCWrh3zqNmDg7NgdGAFqGaCbEkUHE8zrjzsRyqRVTXYZNKFFJgFEDce5mD4se3h2u6GyNJLXbeAW1ad8dsApq";
+    let clmm: Vec<_> = parse(CLMM_SIGNATURE)
+        .into_iter()
+        .filter_map(|event| match event {
+            DexEvent::RaydiumClmmSwap(event) => Some(event),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(clmm.len(), 1);
+    assert_eq!(clmm[0].metadata.slot, 438_880_315);
+    assert_eq!((clmm[0].amount_0, clmm[0].amount_1), (156_679, 11_888));
+
+    const CPMM_SIGNATURE: &str =
+        "4v27ccyrAgpCdCHLvjvn8smFn4Fb4HGcRVTSt952eNcF5jg5niA5bKRLPoGrzxXZdZULEZujgA5TXdESNbwmFYE8";
+    let cpmm: Vec<_> = parse(CPMM_SIGNATURE)
+        .into_iter()
+        .filter_map(|event| match event {
+            DexEvent::RaydiumCpmmSwap(event) => Some(event),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(cpmm.len(), 3);
+    assert_eq!(cpmm[0].metadata.slot, 438_881_024);
+    assert_eq!((cpmm[0].input_amount, cpmm[0].output_amount), (851_111, 3_788_666));
+    assert_eq!((cpmm[1].input_amount, cpmm[1].output_amount), (636_739, 1_163_813_842));
+    assert_eq!((cpmm[2].input_amount, cpmm[2].output_amount), (1_163_813_842, 2_843_080));
+
+    const AMM_V4_SIGNATURE: &str =
+        "2iHYs4AHC5nutcbBxpA5aptBYTGaDUYBgamohfetDnAPiPBW5NkguxgnjVF5886Jy8MZ19UXdeZyPKq9C5wqAki4";
+    let amm_v4: Vec<_> = parse(AMM_V4_SIGNATURE)
+        .into_iter()
+        .filter_map(|event| match event {
+            DexEvent::RaydiumAmmV4Swap(event) => Some(event),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(amm_v4.len(), 1);
+    assert_eq!(amm_v4[0].metadata.slot, 438_881_026);
+    assert_eq!(amm_v4[0].amount_in, 28_804_156_949_609);
+    assert_eq!(amm_v4[0].amount_out, 428_715_251);
+
+    const LAUNCHLAB_SIGNATURE: &str =
+        "4pSXdZEdL3oFCcbccroG7GkV4oEVtbygS2pBVP28chfNETEN8yqE3q6gMws4F2ZsbfE8rDGEbgBqTnv5xahH5RFT";
+    let launchlab: Vec<_> = parse(LAUNCHLAB_SIGNATURE)
+        .into_iter()
+        .filter_map(|event| match event {
+            DexEvent::RaydiumLaunchlabTrade(event) => Some(event),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(launchlab.len(), 1);
+    assert_eq!(launchlab[0].metadata.slot, 438_880_206);
+    assert_eq!(launchlab[0].amount_in, 511_580_573);
+    assert_eq!(launchlab[0].amount_out, 5_169_841_048_834);
+}
+
+#[test]
+fn current_raydium_launchlab_usd1_trade_exposes_quote_context() {
+    if !run_mainnet_tests() {
+        return;
+    }
+    const SIGNATURE: &str =
+        "zuaKyxjpM7G5et2XqZofjjGNczNduGs6g8ipCEeZKKV7h6FFgRNJbXnzfufSZWD3bEacmf8sVktXpZaadQhmVuJ";
+    const USD1_MINT: &str = "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB";
+    const USD1_GLOBAL_CONFIG: &str = "EPiZbnrThjyLnoQ6QQzkxeFqyL5uyg9RzNHHAudUPxBz";
+
+    let trades: Vec<_> = parse(SIGNATURE)
+        .into_iter()
+        .filter_map(|event| match event {
+            DexEvent::RaydiumLaunchlabTrade(event) => Some(event),
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(trades.len(), 1);
+    assert_eq!(trades[0].metadata.slot, 438_894_516);
+    assert_eq!(trades[0].quote_mint.to_string(), USD1_MINT);
+    assert_eq!(trades[0].global_config.to_string(), USD1_GLOBAL_CONFIG);
+}
+
+#[test]
+fn current_stonkfun_reward_trade_preserves_platform_quote_accounts_and_fees() {
+    if !run_mainnet_tests() {
+        return;
+    }
+    const SIGNATURE: &str =
+        "4Pb4vgRq6rAFi5NmMZMsfBvuwVVsvBqhySfPS3naMksujvEiGtPjxRLape7V82ZVQvxt7P8YKPCL6RSWTreMUFrY";
+
+    let trades: Vec<_> = parse(SIGNATURE)
+        .into_iter()
+        .filter_map(|event| match event {
+            DexEvent::RaydiumLaunchlabTrade(event) => Some(event),
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(trades.len(), 1);
+    let trade = &trades[0];
+    assert_eq!(trade.metadata.slot, 446_924_673);
+    assert_eq!(trade.stonkfun_mode(), Some(sol_parser_sdk::core::events::StonkFunMode::Reward));
+    assert_eq!(trade.amount_in, 1_938_744);
+    assert_eq!(trade.amount_out, 52_377_117_857);
+    assert_eq!((trade.protocol_fee, trade.platform_fee), (4_847, 19_388));
+    assert_eq!(trade.creator_fee, 0);
+    assert_eq!(trade.share_fee, 0);
+    assert_eq!(trade.global_config.to_string(), "7em1KfyK7cGENxXhLXn17sRbUHB3WJY3rUqwcsxQFmy1");
+    assert_eq!(trade.platform_config.to_string(), "6BwHHDg3u1854jC8PDLXvR4spTcLNaoBxLJNGC4nTESt");
+    assert_eq!(trade.base_mint.to_string(), "BJ56gcrMNKDzVwjQXKToya9cAcMZvN9pz6ZzUejxQary");
+    assert_eq!(trade.quote_mint.to_string(), "CARDSccUMFKoPRZxt5vt3ksUbxEFEcnZ3H2pd3dKxYjp");
+    assert_eq!(trade.base_token_program.to_string(), "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
+    assert_eq!(
+        trade.quote_token_program.to_string(),
+        "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+    );
+    assert_eq!(trade.system_program.to_string(), "11111111111111111111111111111111");
+    assert_eq!(
+        trade.platform_associated_account.to_string(),
+        "hD6YgNjkVtaw5snL74P1VmUrQtGUoGAkgwHgtsWsj1H"
+    );
+    assert_eq!(
+        trade.creator_associated_account.to_string(),
+        "GZrRchHGgeZXRjv2wEfCyUHfiChc8NNjxwJJijokWBnp"
+    );
+}
+
+#[test]
+fn current_stonkfun_graduated_cpmm_swap_parses_from_mainnet() {
+    if !run_mainnet_tests() {
+        return;
+    }
+    const SIGNATURE: &str =
+        "3jiXX1AXnQfve1FCHwqUUXoM2BpS2jZEDNB7S6UXLdHGQa3VmBoWNVw9A2gTLbvEZeSU697s9XKgKDqxaR92Qqcz";
+    const POOL: &str = "BUVzsLLLG7GWoyJVoU31pXiBveazA6GXTavZ9VD3CwS9";
+
+    let swaps: Vec<_> = parse(SIGNATURE)
+        .into_iter()
+        .filter_map(|event| match event {
+            DexEvent::RaydiumCpmmSwap(event) if event.pool_id.to_string() == POOL => Some(event),
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(swaps.len(), 1);
+    assert_eq!(swaps[0].metadata.slot, 446_943_741);
+    assert!(swaps[0].input_amount > 0);
+    assert!(swaps[0].output_amount > 0);
+}
+
+#[test]
+fn current_transaction_cost_with_jito_tip() {
+    if !run_mainnet_tests() {
+        return;
+    }
+    const SIGNATURE: &str =
+        "4yaaD6ywu8epxVTvZEDAGPhdKK2V73XqvLqQWm1KbSFQ1uTk2nnC4uW7xTrpSuQYpTivmDQQawu7x3dFbYC1KuZ6";
+    const TIP_RECIPIENT: &str = "96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5";
+
+    let transaction = fetch(SIGNATURE);
+    let cost = parse_rpc_transaction_cost(&transaction).expect("parse current transaction cost");
+
+    assert_eq!(transaction.slot, 438_900_232);
+    assert_eq!(cost.transaction_fee_lamports, Some(29_242));
+    assert_eq!(cost.compute_units_consumed, Some(135_026));
+    assert_eq!(cost.compute_unit_limit, Some(300_000));
+    assert_eq!(cost.compute_unit_price_micro_lamports, Some(80_805));
+    assert_eq!(cost.priority_fee_lamports, Some(24_242));
+    assert_eq!(cost.tip_lamports, 137_273);
+    assert_eq!(cost.total_fee_and_tip_lamports, Some(166_515));
+    assert_eq!(cost.tip_payments.len(), 1);
+    assert_eq!(cost.tip_payments[0].provider, SwqosProvider::Jito);
+    assert_eq!(cost.tip_payments[0].recipient.to_string(), TIP_RECIPIENT);
+    assert_eq!(cost.tip_lamports_for(SwqosProvider::Jito), 137_273);
+}

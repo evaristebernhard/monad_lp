@@ -1,0 +1,19 @@
+[package]
+name = "carbon-proc-macros"
+version = "2.0.0"
+rust-version = { workspace = true }
+edition = { workspace = true }
+description = "Procedural macros for Carbon"
+license = { workspace = true }
+readme = "README.md"
+repository = { workspace = true }
+keywords = ["solana", "indexer", "proc-macro"]
+categories = ["encoding"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = { workspace = true }
+serde = { workspace = true }
+syn = { workspace = true, features = ["full"] }

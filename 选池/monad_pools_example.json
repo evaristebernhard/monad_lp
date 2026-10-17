@@ -1,0 +1,13 @@
+{
+  "description": "SYNTHETIC DEMO ONLY. Reserves and gas costs are NOT live Monad data. Units: input A, output B.",
+  "amount_in": 10000,
+  "max_splits": 3,
+  "risk_aversion": 1.0,
+  "base_gas_in_output_token": 0.3,
+  "pools": [
+    {"name": "Demo-V2-Deep",  "reserve_in": 100000, "reserve_out": 100000, "fee_bps": 30, "incremental_gas_in_out": 0.5, "risk_bps": 3},
+    {"name": "Demo-V2-BetterSpot",  "reserve_in": 30000, "reserve_out": 32000, "fee_bps": 10, "incremental_gas_in_out": 0.4, "risk_bps": 12},
+    {"name": "Demo-V2-LowFee", "reserve_in": 70000, "reserve_out": 70000, "fee_bps": 5, "incremental_gas_in_out": 0.4, "risk_bps": 2},
+    {"name": "Demo-V2-Thin", "reserve_in": 20000, "reserve_out": 23000, "fee_bps": 100, "incremental_gas_in_out": 2.0, "risk_bps": 70}
+  ]
+}

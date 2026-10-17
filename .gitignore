@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+target/
+dist/
+
+# Python generated files
+__pycache__/
+*.py[cod]
+
+# Local environments and caches
+.venv/
+venv/
+*.db
+*.db-shm
+*.db-wal
+/lp_refresh_latest.json
+/priority_refresh_latest.json
+/rpc_health_latest.json
+/rpc_replay_slippage.json
+
+# Generated build/report artifacts
+output/
+tmp/
+
+# Runtime pool/research snapshots belong in SQLite, not workspace JSON files.
+/*.json
+!/package.json
+!/package-lock.json
+/research/arb/*.json
+
+# Local RPC endpoints and scan catalogs
+*_rpc.txt
+solanarpc.txt
+rpc_catalog.csv
+tarids.txt
+rpc/.env
+rpc/data/*.db
+rpc/data/*.db-*
+
+# Embedded build outputs and local Wi-Fi credentials
+.pio/
+
+# Wallet credentials stay local.
+.env
+.env.*

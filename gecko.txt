@@ -1,0 +1,3 @@
+ const API_URL = "https://api.geckoterminal.com/api/v2";
+      const API_KEY =
+        "ory_at_9cOdZ9PAuHq2fAJEx8zTVDmCe6QpXMdSEBE31hrlt4Q.3lCezjTgQDuCtTFKLts0850uchYMno5Ny4Ajs5SzhTU";

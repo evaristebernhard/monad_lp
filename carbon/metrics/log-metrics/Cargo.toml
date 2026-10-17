@@ -1,0 +1,20 @@
+[package]
+name = "carbon-log-metrics"
+version = "2.0.0"
+rust-version = { workspace = true }
+description = "Log Metrics"
+license = { workspace = true }
+edition = { workspace = true }
+readme = "README.md"
+repository = { workspace = true }
+keywords = ["solana", "log", "metrics"]
+categories = ["encoding"]
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+carbon-core = { workspace = true }
+log = { workspace = true }
+tokio = { workspace = true }
+tokio-util = { workspace = true }

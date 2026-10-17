@@ -1,0 +1,1546 @@
+{
+  "captured_at": "2026-10-17T03:17:46+00:00",
+  "chain_id": 143,
+  "scope": "single_pool_buy_sell_hold",
+  "pool": {
+    "pool_address": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+    "protocol": "Uniswap V4",
+    "pool_type": "uniswap_v4",
+    "token_a_address": "0x0000000000000000000000000000000000000000",
+    "token_b_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+    "token_a_symbol": "MON",
+    "token_b_symbol": "USDC",
+    "fee_bps": 500.0,
+    "lp_fee_share_assumption": 1.0,
+    "pair": "MON/USDC",
+    "base_token": "0x0000000000000000000000000000000000000000"
+  },
+  "latest_metrics": {
+    "price": {
+      "as_of": 1792207043,
+      "base_token": "0x0000000000000000000000000000000000000000",
+      "pool": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+      "price_semantics": "pool_token_ratio",
+      "quote_token": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "source": "monad_listener_rpc",
+      "state_block": 114074233,
+      "status": "ok",
+      "unit": "quote_per_base",
+      "value": 0.022655442571425308
+    },
+    "vol": {
+      "as_of": 1792205998,
+      "pool": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+      "price_semantics": "pool_token_ratio",
+      "samples": 24,
+      "source": "mixed_pool_history",
+      "sources": [
+        "geckoterminal_pool_ratio_1h",
+        "monad_listener_rpc"
+      ],
+      "status": "ok",
+      "unit": "daily_fraction",
+      "value": 0.04182351281975351,
+      "window_end": 1792206000,
+      "window_start": 1792119600
+    },
+    "fee_apr": {
+      "as_of": 1792207039,
+      "as_of_kind": "provider_snapshot_observation",
+      "fee_as_of": 1792207043,
+      "fee_bps": 5.0,
+      "fee_source": "monad_listener_rpc",
+      "observed_at": 1792207039,
+      "pool": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+      "provider_cache_age_seconds": 0,
+      "source": "geckoterminal_pool_snapshot",
+      "source_as_of": null,
+      "status": "ok",
+      "tvl_as_of": 1792207039,
+      "unit": "annual_fraction",
+      "value": 0.32940638855708737,
+      "volume_as_of": 1792207039
+    },
+    "volume": {
+      "as_of": 1792207039,
+      "as_of_kind": "provider_snapshot_observation",
+      "observed_at": 1792207039,
+      "pool": "0x18a9fc874581f3ba12b7898f80a683c66fd5877fd74b26a85ba9a3a79c549954",
+      "provider_cache_age_seconds": 0,
+      "source": "geckoterminal_pool_snapshot",
+      "source_as_of": null,
+      "status": "ok",
+      "unit": "USD",
+      "value": 2032300.99929168
+    }
+  },
+  "history": [
+    {
+      "timestamp": 1791630000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0246478293394255,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791633600
+    },
+    {
+      "timestamp": 1791633600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0247139720874802,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791637200
+    },
+    {
+      "timestamp": 1791637200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0247644057167315,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791640800
+    },
+    {
+      "timestamp": 1791640800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0246681347977463,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791644400
+    },
+    {
+      "timestamp": 1791644400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0247469246,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791648000
+    },
+    {
+      "timestamp": 1791648000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0247407411954022,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791651600
+    },
+    {
+      "timestamp": 1791651600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0246903972147467,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791655200
+    },
+    {
+      "timestamp": 1791655200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0247721562495861,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791658800
+    },
+    {
+      "timestamp": 1791658800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0249165867335372,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791662400
+    },
+    {
+      "timestamp": 1791662400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0252981774,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791666000
+    },
+    {
+      "timestamp": 1791666000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.025262965,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791669600
+    },
+    {
+      "timestamp": 1791669600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0252405954,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791673200
+    },
+    {
+      "timestamp": 1791673200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0250914774952769,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791676800
+    },
+    {
+      "timestamp": 1791676800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0249907246741401,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791680400
+    },
+    {
+      "timestamp": 1791680400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0252966565226666,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791684000
+    },
+    {
+      "timestamp": 1791684000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.025122803164535,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791687600
+    },
+    {
+      "timestamp": 1791687600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0247207318624721,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791691200
+    },
+    {
+      "timestamp": 1791691200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0250057738883703,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791694800
+    },
+    {
+      "timestamp": 1791694800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.02488536423655,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791698400
+    },
+    {
+      "timestamp": 1791698400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0254298435048129,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791702000
+    },
+    {
+      "timestamp": 1791702000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0253363374809997,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791705600
+    },
+    {
+      "timestamp": 1791705600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.025376111,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791709200
+    },
+    {
+      "timestamp": 1791709200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.025326501438298,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791712800
+    },
+    {
+      "timestamp": 1791712800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0250058976,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791716400
+    },
+    {
+      "timestamp": 1791716400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0256803687925907,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791720000
+    },
+    {
+      "timestamp": 1791720000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0255932264704746,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791723600
+    },
+    {
+      "timestamp": 1791723600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0260263879012059,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791727200
+    },
+    {
+      "timestamp": 1791727200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.025951902,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791730800
+    },
+    {
+      "timestamp": 1791730800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0265162232205072,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791734400
+    },
+    {
+      "timestamp": 1791734400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0264466594871038,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791738000
+    },
+    {
+      "timestamp": 1791738000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0269913105649218,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791741600
+    },
+    {
+      "timestamp": 1791741600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0267267851621236,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791745200
+    },
+    {
+      "timestamp": 1791745200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0265669980916882,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791748800
+    },
+    {
+      "timestamp": 1791748800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0268681959309592,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791752400
+    },
+    {
+      "timestamp": 1791752400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0271940134269862,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791756000
+    },
+    {
+      "timestamp": 1791756000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0278547070742065,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791759600
+    },
+    {
+      "timestamp": 1791759600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0275706509425642,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791763200
+    },
+    {
+      "timestamp": 1791763200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0273195568257804,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791766800
+    },
+    {
+      "timestamp": 1791766800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0271423213133351,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791770400
+    },
+    {
+      "timestamp": 1791770400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0268915506678159,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791774000
+    },
+    {
+      "timestamp": 1791774000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0267416694872575,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791777600
+    },
+    {
+      "timestamp": 1791777600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0268295842505924,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791781200
+    },
+    {
+      "timestamp": 1791781200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0264482143137013,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791784800
+    },
+    {
+      "timestamp": 1791784800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0261825942086339,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791788400
+    },
+    {
+      "timestamp": 1791788400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.026134653900438,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791792000
+    },
+    {
+      "timestamp": 1791792000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0259935618431353,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791795600
+    },
+    {
+      "timestamp": 1791795600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0258437781620434,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791799200
+    },
+    {
+      "timestamp": 1791799200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0259380458679656,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791802800
+    },
+    {
+      "timestamp": 1791802800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0255972092755068,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791806400
+    },
+    {
+      "timestamp": 1791806400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0256924721320249,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791810000
+    },
+    {
+      "timestamp": 1791810000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0258937326,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791813600
+    },
+    {
+      "timestamp": 1791813600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0256588516389123,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791817200
+    },
+    {
+      "timestamp": 1791817200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0255034795090421,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791820800
+    },
+    {
+      "timestamp": 1791820800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0250604662,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791824400
+    },
+    {
+      "timestamp": 1791824400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0248957665600016,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791828000
+    },
+    {
+      "timestamp": 1791828000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0247797675810838,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791831600
+    },
+    {
+      "timestamp": 1791831600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0249095858610733,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791835200
+    },
+    {
+      "timestamp": 1791835200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0249796309605782,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791838800
+    },
+    {
+      "timestamp": 1791838800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0245885424707269,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791842400
+    },
+    {
+      "timestamp": 1791842400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0246067758,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791846000
+    },
+    {
+      "timestamp": 1791846000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0242568884207498,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791849600
+    },
+    {
+      "timestamp": 1791849600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0242331458857067,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791853200
+    },
+    {
+      "timestamp": 1791853200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0246633978720115,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791856800
+    },
+    {
+      "timestamp": 1791856800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0249834664680174,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791860400
+    },
+    {
+      "timestamp": 1791860400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0248908929213112,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791864000
+    },
+    {
+      "timestamp": 1791864000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0248390413372424,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791867600
+    },
+    {
+      "timestamp": 1791867600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0250190936240895,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791871200
+    },
+    {
+      "timestamp": 1791871200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.025192662407849,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791874800
+    },
+    {
+      "timestamp": 1791874800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0250589526,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791878400
+    },
+    {
+      "timestamp": 1791878400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0249262441153167,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791882000
+    },
+    {
+      "timestamp": 1791882000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0246603302131447,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791885600
+    },
+    {
+      "timestamp": 1791885600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0243448035624345,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791889200
+    },
+    {
+      "timestamp": 1791889200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0242105985480608,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791892800
+    },
+    {
+      "timestamp": 1791892800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0242258174403913,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791896400
+    },
+    {
+      "timestamp": 1791896400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0240742522851463,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791900000
+    },
+    {
+      "timestamp": 1791900000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0242553543123443,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791903600
+    },
+    {
+      "timestamp": 1791903600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0241718821504941,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791907200
+    },
+    {
+      "timestamp": 1791907200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0242694058,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791910800
+    },
+    {
+      "timestamp": 1791910800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0242173298730725,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791914400
+    },
+    {
+      "timestamp": 1791914400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0244966202601854,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791918000
+    },
+    {
+      "timestamp": 1791918000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0244512933860922,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791921600
+    },
+    {
+      "timestamp": 1791921600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0244957278254547,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791925200
+    },
+    {
+      "timestamp": 1791925200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0245005722469134,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791928800
+    },
+    {
+      "timestamp": 1791928800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0245154538320231,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791932400
+    },
+    {
+      "timestamp": 1791932400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.024394527578375,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791936000
+    },
+    {
+      "timestamp": 1791936000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0244815633345314,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791939600
+    },
+    {
+      "timestamp": 1791939600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0247055565041707,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791943200
+    },
+    {
+      "timestamp": 1791943200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.024913178300957,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791946800
+    },
+    {
+      "timestamp": 1791946800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0248734082857538,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791950400
+    },
+    {
+      "timestamp": 1791950400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0249453721565564,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791954000
+    },
+    {
+      "timestamp": 1791954000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0246340384351359,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791957600
+    },
+    {
+      "timestamp": 1791957600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0246603245346046,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791961200
+    },
+    {
+      "timestamp": 1791961200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0248597325504651,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791964800
+    },
+    {
+      "timestamp": 1791964800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0246701725663181,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791968400
+    },
+    {
+      "timestamp": 1791968400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.024575644883086,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791972000
+    },
+    {
+      "timestamp": 1791972000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0245950979506011,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791975600
+    },
+    {
+      "timestamp": 1791975600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.024621297778027,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791979200
+    },
+    {
+      "timestamp": 1791979200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0241863809839818,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791982800
+    },
+    {
+      "timestamp": 1791982800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0239317151103036,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791986400
+    },
+    {
+      "timestamp": 1791986400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0238802774856873,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791990000
+    },
+    {
+      "timestamp": 1791990000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0239331268296524,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791993600
+    },
+    {
+      "timestamp": 1791993600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0243193705519287,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1791997200
+    },
+    {
+      "timestamp": 1791997200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0239050898523203,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792000800
+    },
+    {
+      "timestamp": 1792000800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0240118706720932,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792004400
+    },
+    {
+      "timestamp": 1792004400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0237547420023755,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792008000
+    },
+    {
+      "timestamp": 1792008000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0240969710519116,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792011600
+    },
+    {
+      "timestamp": 1792011600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0241252553162281,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792015200
+    },
+    {
+      "timestamp": 1792015200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0241926537088724,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792018800
+    },
+    {
+      "timestamp": 1792018800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0240777411046681,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792022400
+    },
+    {
+      "timestamp": 1792022400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0237966209229116,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792026000
+    },
+    {
+      "timestamp": 1792026000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0238401176426408,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792029600
+    },
+    {
+      "timestamp": 1792029600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0233169388317217,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792033200
+    },
+    {
+      "timestamp": 1792033200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0229846646582551,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792036800
+    },
+    {
+      "timestamp": 1792036800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0232354935380898,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792040400
+    },
+    {
+      "timestamp": 1792040400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0220484527616763,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792044000
+    },
+    {
+      "timestamp": 1792044000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0226918496329066,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792047600
+    },
+    {
+      "timestamp": 1792047600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0227349618922137,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792051200
+    },
+    {
+      "timestamp": 1792051200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0227989318160535,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792054800
+    },
+    {
+      "timestamp": 1792054800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.022696190373966,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792058400
+    },
+    {
+      "timestamp": 1792058400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0224697080549122,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792062000
+    },
+    {
+      "timestamp": 1792062000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0224936146836382,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792065600
+    },
+    {
+      "timestamp": 1792065600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0223878942107614,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792069200
+    },
+    {
+      "timestamp": 1792069200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0222483702140005,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792072800
+    },
+    {
+      "timestamp": 1792072800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0230993827454618,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792076400
+    },
+    {
+      "timestamp": 1792076400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0235695834,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792080000
+    },
+    {
+      "timestamp": 1792080000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0233594941246737,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792083600
+    },
+    {
+      "timestamp": 1792083600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0234335583907647,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792087200
+    },
+    {
+      "timestamp": 1792087200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.023264409,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792090800
+    },
+    {
+      "timestamp": 1792090800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0232725651544715,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792094400
+    },
+    {
+      "timestamp": 1792094400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0231343706,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792098000
+    },
+    {
+      "timestamp": 1792098000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0231515871061428,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792101600
+    },
+    {
+      "timestamp": 1792101600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0231634062870352,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792105200
+    },
+    {
+      "timestamp": 1792105200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0229502046305327,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792108800
+    },
+    {
+      "timestamp": 1792108800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0229942320361124,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792112400
+    },
+    {
+      "timestamp": 1792112400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.022861932934799,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792116000
+    },
+    {
+      "timestamp": 1792116000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0228437538273627,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792119600
+    },
+    {
+      "timestamp": 1792119600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0229570437855821,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792123200
+    },
+    {
+      "timestamp": 1792123200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.023046305264631,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792126800
+    },
+    {
+      "timestamp": 1792126800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0233083558678154,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792130400
+    },
+    {
+      "timestamp": 1792130400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0234392481690881,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792134000
+    },
+    {
+      "timestamp": 1792134000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0233808992889635,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792137600
+    },
+    {
+      "timestamp": 1792137600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0234651520630112,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792141200
+    },
+    {
+      "timestamp": 1792141200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0233611891027344,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792144800
+    },
+    {
+      "timestamp": 1792144800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0233555108047485,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792148400
+    },
+    {
+      "timestamp": 1792148400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0236632711955826,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792152000
+    },
+    {
+      "timestamp": 1792152000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0232316157532214,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792155600
+    },
+    {
+      "timestamp": 1792155600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0231736808,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792159200
+    },
+    {
+      "timestamp": 1792159200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.023095085397413503,
+      "source": "monad_listener_rpc",
+      "price_status": "priced",
+      "observed_at": 1792162798
+    },
+    {
+      "timestamp": 1792162800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.02261930209711773,
+      "source": "monad_listener_rpc",
+      "price_status": "priced",
+      "observed_at": 1792166398
+    },
+    {
+      "timestamp": 1792166400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.02266435315213378,
+      "source": "monad_listener_rpc",
+      "price_status": "priced",
+      "observed_at": 1792169996
+    },
+    {
+      "timestamp": 1792170000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.022644352544493578,
+      "source": "monad_listener_rpc",
+      "price_status": "priced",
+      "observed_at": 1792170083
+    },
+    {
+      "timestamp": 1792173600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0223141125129948,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792177200
+    },
+    {
+      "timestamp": 1792177200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.022552580993213,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792180800
+    },
+    {
+      "timestamp": 1792180800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0227021614273832,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792184400
+    },
+    {
+      "timestamp": 1792184400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0228016779807869,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792188000
+    },
+    {
+      "timestamp": 1792188000,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0228686134733842,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792191600
+    },
+    {
+      "timestamp": 1792191600,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0228454793185665,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792195200
+    },
+    {
+      "timestamp": 1792195200,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0227963694079046,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792198800
+    },
+    {
+      "timestamp": 1792198800,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.0227124313991984,
+      "source": "geckoterminal_pool_ratio_1h",
+      "price_status": "priced",
+      "observed_at": 1792202400
+    },
+    {
+      "timestamp": 1792202400,
+      "token0_address": "0x0000000000000000000000000000000000000000",
+      "token1_address": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+      "token1_per_token0": 0.02262876043098229,
+      "source": "monad_listener_rpc",
+      "price_status": "priced",
+      "observed_at": 1792205998
+    }
+  ],
+  "coverage": {
+    "24h": {
+      "observed_hours": 24,
+      "required_hours": 24
+    },
+    "60h": {
+      "observed_hours": 60,
+      "required_hours": 60
+    },
+    "120h": {
+      "observed_hours": 120,
+      "required_hours": 120
+    }
+  },
+  "adapter_status": {
+    "raw_hourly_ratios_only": true,
+    "original_model_input_dimension": 3008,
+    "original_model_window": "60 daily observations x 50 features + 8 portfolio fields",
+    "full_pretrained_observation_ready": false,
+    "missing": [
+      "OHLCV-based technical features in the original order",
+      "original scaler application",
+      "8 fields from the strategy account"
+    ],
+    "note": "Hourly ratios are real observations, not equivalent to the original daily feature window. APR is an LP metric, not a directional trading score."
+  },
+  "execution_status": "research_snapshot_no_model_inference_no_transaction"
+}

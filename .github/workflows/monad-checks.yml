@@ -1,0 +1,58 @@
+name: Monad listener checks
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['config/monad-demo-pools.json', 'frontend/**', 'backend/**', 'rpc/**', '.github/workflows/monad-checks.yml']
+  pull_request:
+    paths: ['config/monad-demo-pools.json', 'frontend/**', 'backend/**', 'rpc/**', '.github/workflows/monad-checks.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - name: Test API, metrics and event collector with isolated fixtures
+        run: |
+          python3 -m unittest discover -s rpc/tools -p test_monad_pool_coverage.py -v
+          cargo test --locked --manifest-path backend/Cargo.toml -p lp-api -p lp-metrics
+          cargo test --locked --manifest-path rpc/Cargo.toml --bin local-rpc
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - run: node --test tests/monad-trade.test.mjs
+      - run: npx playwright install --with-deps chromium
+      - name: Test missing tokens, ambiguous tokens, charts and slow switching
+        run: |
+          npx vite --host 127.0.0.1 > "$RUNNER_TEMP/monad-vite.log" 2>&1 &
+          vite_pid=$!
+          trap 'kill "$vite_pid"' EXIT
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:5173/ > /dev/null; then break; fi
+            sleep 1
+          done
+          node tests/monad-browser.mjs
+          node tests/monad-switch-performance.mjs
+          node tests/monad-trade-browser.mjs
+          node tests/monad-trade-reverse-browser.mjs
