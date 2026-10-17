@@ -4,6 +4,7 @@ import MonadListener from './MonadListener'
 import MonadDemo from './MonadDemo'
 import './styles.css'
 const PoolSelection = lazy(() => import('./PoolSelection'))
+const AiShowcase = lazy(() => import('./ai/AiShowcase'))
 
 const api = (path, options = {}) => fetch(path, options).then((response) => {
   if (!response.ok) throw new Error(`API ${response.status}`)
@@ -156,7 +157,19 @@ function App() {
     try { return JSON.parse(window.localStorage.getItem(WATCHLIST_KEY) || '[]') } catch { return [] }
   })
   const [watchlistOnly, setWatchlistOnly] = useState(false)
-  const [view, setView] = useState(window.location.hash === '#selection' ? 'selection' : 'demo')
+  const [view, setView] = useState(() => {
+    const page = window.location.hash.slice(1)
+    return ['ai', 'selection', 'demo', 'monad', 'market'].includes(page) ? page : 'demo'
+  })
+  useEffect(() => {window.history.replaceState(null, '', `#${view}`)}, [view])
+  useEffect(() => {
+    const onHashChange = () => {
+      const page = window.location.hash.slice(1)
+      if (['ai', 'selection', 'demo', 'monad', 'market'].includes(page)) setView(page)
+    }
+    window.addEventListener('hashchange', onHashChange)
+    return () => window.removeEventListener('hashchange', onHashChange)
+  }, [])
   const [toast, setToast] = useState('')
 
   const loadRuntime = async () => {
@@ -303,9 +316,10 @@ function App() {
         <div className="nav-label">Workspace</div>
         <button className={`nav-item ${view === 'market' && !watchlistOnly ? 'active' : ''}`} onClick={() => { setView('market'); setWatchlistOnly(false); setPage(1) }}><Icon name="grid"/> Pool market</button>
         <button className={`nav-item ${view === 'market' && watchlistOnly ? 'active' : ''}`} onClick={() => { setView('market'); setWatchlistOnly(true); setPage(1) }}><Icon name="bookmark"/> Watchlist <span className="nav-count">{watchlist.length}</span></button>
-        <button className={`nav-item ${view === 'monad' ? 'active' : ''}`} onClick={() => { setView('monad'); setWatchlistOnly(false) }}><Icon name="pulse"/> Monad listener</button>
+        <button className={`nav-item ${view === 'monad' ? 'active' : ''}`} onClick={() => { setView('monad'); setWatchlistOnly(false) }}><Icon name="pulse"/> Wallet listener</button>
         <button className={`nav-item ${view === 'demo' ? 'active' : ''}`} onClick={() => { setView('demo'); setWatchlistOnly(false) }}><Icon name="pulse"/> 20 pool</button>
-        <button className={`nav-item ${view === 'selection' ? 'active' : ''}`} onClick={() => { setView('selection'); setWatchlistOnly(false) }}><Icon name="pulse"/> 选池策略</button>
+        <button className={`nav-item ${view === 'selection' ? 'active' : ''}`} onClick={() => { setView('selection'); setWatchlistOnly(false) }}><Icon name="pulse"/> 最优报价</button>
+        <button className={`nav-item ${view === 'ai' ? 'active' : ''}`} onClick={() => { setView('ai'); setWatchlistOnly(false) }}><Icon name="chart"/> AI 交易</button>
       </nav>
       <div className="sidebar-footer">
         <div className="source-status"><span className="status-dot"/> {health?.source === 'sqlite' ? 'SQLite primary' : 'Data service starting'}</div>
@@ -315,11 +329,11 @@ function App() {
 
     <main className="main-content">
       <header className="topbar">
-        <div className="breadcrumb"><span>{view === 'monad' ? 'Chain monitoring' : 'Markets'}</span><span className="slash">/</span><strong>{view === 'monad' ? 'Monad listener' : view === 'demo' ? '20 pool' : view === 'selection' ? '选池策略' : 'LP pools'}</strong></div>
-       <div className="top-actions">{!['monad', 'demo', 'selection'].includes(view) && <><span className={`live-dot ${refreshStale ? 'stale' : ''}`}/><span>Local SQLite snapshot</span></>}<button className="icon-button" onClick={() => { if (view === 'monad') window.dispatchEvent(new Event('monad-refresh')); else if (view === 'demo') window.dispatchEvent(new Event('monad-demo-refresh')); else { loadPools(); loadRuntime() } }} title="Refresh"><Icon name="refresh"/></button></div>
+        <div className="breadcrumb"><span>{view === 'monad' ? 'Chain monitoring' : view === 'ai' ? 'Onchain AI' : 'Markets'}</span><span className="slash">/</span><strong>{view === 'monad' ? 'Wallet listener' : view === 'demo' ? '20 pool' : view === 'selection' ? '最优报价' : view === 'ai' ? 'AI 交易' : 'LP pools'}</strong></div>
+       <div className="top-actions">{!['monad', 'demo', 'selection', 'ai'].includes(view) && <><span className={`live-dot ${refreshStale ? 'stale' : ''}`}/><span>Local SQLite snapshot</span></>}<button className="icon-button" onClick={() => { if (view === 'monad') window.dispatchEvent(new Event('monad-refresh')); else if (view === 'demo') window.dispatchEvent(new Event('monad-demo-refresh')); else if (view === 'ai') window.location.reload(); else { loadPools(); loadRuntime() } }} title="Refresh"><Icon name="refresh"/></button></div>
      </header>
 
-      {!['monad', 'demo', 'selection'].includes(view) && <section className="page-heading">
+      {!['monad', 'demo', 'selection', 'ai'].includes(view) && <section className="page-heading">
         <div>
           <h1>{watchlistOnly ? 'Watchlist' : 'Pool market'}</h1>
           <p>{watchlistOnly ? 'Your saved pools, persisted through the local Rust API.' : 'Scan liquidity, flow and fee opportunity across Monad pools.'}</p>
@@ -328,9 +342,9 @@ function App() {
         <div className="snapshot-time">UI sync {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
       </section>}
 
-      {!['monad', 'demo', 'selection'].includes(view) && <RefreshBanner report={rpcRefresh} age={refreshAge} stateAge={stateAge} stale={refreshStale}/>}
+      {!['monad', 'demo', 'selection', 'ai'].includes(view) && <RefreshBanner report={rpcRefresh} age={refreshAge} stateAge={stateAge} stale={refreshStale}/>}
 
-      {view === 'monad' ? <MonadListener/> : view === 'demo' ? <MonadDemo/> : view === 'selection' ? <Suspense fallback={<p>加载选池策略…</p>}><PoolSelection/></Suspense> : <>
+      {view === 'monad' ? <MonadListener/> : view === 'demo' ? <MonadDemo/> : view === 'selection' ? <Suspense fallback={<p>加载选池策略…</p>}><PoolSelection/></Suspense> : view === 'ai' ? <Suspense fallback={<p>加载演示…</p>}><AiShowcase/></Suspense> : <>
       <section className="metric-strip">
         <Metric label="Indexed pools" value={summary?.pools?.toLocaleString() || '—'} detail="Monad" />
         <Metric label="Total liquidity" value={formatMoney(summary?.liquidity)} detail="Across Monad venues" />

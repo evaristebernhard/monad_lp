@@ -66,6 +66,8 @@ rpc/                      RPC 转发、池状态、价格历史、期权报价�
 
 ## 启动
 
+服务停止后的恢复、tmux 后台运行、接口检查及可选开机自启，见 [后端服务重启指南](docs/后端服务重启指南.md)。
+
 ```bash
 cargo run --manifest-path backend/lp-api/Cargo.toml
 ```
@@ -77,6 +79,14 @@ npm --prefix frontend run dev
 ```
 
 访问 `http://127.0.0.1:5173`。Vite 将 `/api` 转发到 `127.0.0.1:8100`。
+
+## Monad 链上 AI 演示
+
+进入 `http://127.0.0.1:5173/#ai`，连接 MetaMask、授权一次限额并点击 Start。Keeper 每 10 秒自动提交一轮链上 AI 决策，六轮完成后停止。测试 USDC/WMON 由钱包直接结算，不需要先充值合约。
+
+- 会话合约：[`0xfb2f3fe4a40f66e77f5ddd5b25de7cdd6ad534dd`](https://testnet.monadscan.com/address/0xfb2f3fe4a40f66e77f5ddd5b25de7cdd6ad534dd)
+- 菜单入口：`Wallet listener`、`最优报价`、`AI 交易`
+- 部署记录、演示流程、源码和测试命令：[AI 演示指南](research/ai/showcase/README.md)
 
 ## 期权研究的当前边界
 

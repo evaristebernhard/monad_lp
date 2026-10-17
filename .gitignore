@@ -43,3 +43,9 @@ rpc/data/*.db-*
 # Wallet credentials stay local.
 .env
 .env.*
+
+# Hackathon keeper process runtime (never commit local daemon state).
+/research/ai/showcase/keeper.log
+/research/ai/showcase/keeper.pid
+/research/ai/showcase/keeper-runtime.json
+/frontend/public/ai/keeper-status.json

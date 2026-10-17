@@ -1,0 +1,19 @@
+{
+  "chainId": 10143,
+  "contract": "0xfb2f3fe4a40f66e77f5ddd5b25de7cdd6ad534dd",
+  "model": "0x5dd31af6d70b7633fd5da3e30c03feb5fde00618",
+  "router": "0x430c23895c8D44883526e3E0B09327dAD8766660",
+  "usdc": "0x534b2f3A21130d7a60830c2Df862319e593943A3",
+  "wmon": "0x97B3070F9Da6C002343862b35E68Bd8e22608943",
+  "keeper": "0x41d5D3B5f2e497d1F4bCF767ffac9DDAb85D2b79",
+  "explorer": "https://testnet.monadscan.com/address/0xfb2f3fe4a40f66e77f5ddd5b25de7cdd6ad534dd",
+  "transaction": "0x4643f3f594220acf78d37cb5aa46c6d335053a31b97c46460d8b17b058697b8c",
+  "intervalSeconds": 10,
+  "rounds": 6,
+  "sessionTTL": 110,
+  "buyUSDC": "0.4",
+  "sellWMON": "0.1",
+  "maxUSDC": "0.8",
+  "maxWMON": "0.2",
+  "mode": "keeper-session"
+}

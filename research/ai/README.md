@@ -1,8 +1,29 @@
-# 已训练交易模型
+# Monad 链上 AI 工作区
+
+当前 Hackathon 演示见 [showcase/README.md](showcase/README.md)。现在是一次 Start 自动六轮交易，Keeper 执行、钱包持币。旧部署和一次性购买 USDC 的脚本保留在 `showcase/archive/`。
+
+| 目录 | 内容 |
+| --- | --- |
+| `showcase/` | 当前测试网钱包演示、部署与购买 USDC 记录 |
+| `evm/src/`、`evm/test/` | Solidity 链上模型、执行器和 Foundry 测试 |
+| `monad-small/` | 基于真实 Monad 历史行情训练的 131 参数模型 |
+| `monad-small-v2/` | 4 小时模型实验 |
+| `model-study/` | 较大 PPO actor 的旧版研究 |
+
+前端入口：`/#ai` 自动交易，链上会话合约 `0xfb2f3fe4a40f66e77f5ddd5b25de7cdd6ad534dd`。模型研究代码收进 `frontend/src/ai/research/`，不再出现在导航栏。链上模型仍是 `0x5dd31af6d70b7633fd5da3e30c03feb5fde00618`。
+
+## 早期股票 PPO 模型研究
+
+新的真实 Monad 行情实验见 [monad-small/README.md](monad-small/README.md)。
+该实验使用 GeckoTerminal 的 CHOG、WMON、WETH 数据重新训练小模型。
+它有 131 个参数，已在测试网部署，不沿用下述股票模型权重。
 
 已下载 Adilbai/stock-trading-rl-agent 的 final_model.zip。
 这是已有的 PPO 检查点，不需要先训练才能取得权重。
-原模型用于股票交易。已完成权重拆解、合成输入的 PyTorch 对照与本地 EVM 整数推理测试。尚未运行真实 MON 输入或部署公共链合约。
+原模型用于股票交易。已完成权重拆解、合成输入的 PyTorch 对照与本地 EVM 整数推理测试。
+后续已在 Monad 测试网完整部署整数 actor，六组样例全部一致。
+尚未运行真实 MON 输入或执行 DEX 交易。
+测试网地址、费用和复现方法见 ../../docs/trading-model-testnet.md。
 
 - 原始仓库：https://huggingface.co/Adilbai/stock-trading-rl-agent
 - 下载路径：third_party/stock-trading-rl-agent
