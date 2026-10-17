@@ -536,7 +536,7 @@ export default function MonadListener() {
   const activeToken = useRef(token)
   activeToken.current = token
   const [historyRefresh, setHistoryRefresh] = useState(0)
-  useEffect(() => { const t = setInterval(() => setHistoryRefresh(v => v + 1), 5000); return () => clearInterval(t) }, [])
+  useEffect(() => { const t = setInterval(() => setHistoryRefresh(v => v + 1), 1000); return () => clearInterval(t) }, [])
   const [decodedPoolTypes, setDecodedPoolTypes] = useState(DEFAULT_DECODED_POOL_TYPES)
   useEffect(() => { if (!window.localStorage.getItem(TOKEN_KEY)) request('/api/monad/display').then(v => { if (v.token && !activeToken.current) { setToken(v.token); setDraftToken(current => current || v.token) } }).catch(() => {}) }, [])
 
@@ -669,7 +669,7 @@ export default function MonadListener() {
       if (!cancelled) await load()
     }
     activate()
-    const timer = window.setInterval(() => { load(); request('/api/monad/listener/status').then(v => { if (activeToken.current === token) setListenerStatus(v) }).catch(() => {}) }, 5000)
+    const timer = window.setInterval(() => { load(); request('/api/monad/listener/status').then(v => { if (activeToken.current === token) setListenerStatus(v) }).catch(() => {}) }, 1000)
     return () => {
       cancelled = true
       window.clearInterval(timer)
@@ -678,7 +678,7 @@ export default function MonadListener() {
 
   useEffect(() => {
     if (!token.trim() || !tokenReady) return undefined
-    const timer = window.setInterval(loadEvents, 2500)
+    const timer = window.setInterval(loadEvents, 1000)
     return () => window.clearInterval(timer)
   }, [loadEvents, tokenReady, token])
 

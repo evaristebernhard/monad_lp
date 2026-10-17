@@ -6,7 +6,9 @@
   "scripts": {
     "api": "LP_API_ADDR=0.0.0.0:8100 cargo run --manifest-path ../backend/lp-api/Cargo.toml",
     "rpc": "MONAD_POOL_DB=../data/lp_screener.db MONAD_LISTENER_DB=../rpc/data/monad_events.db RPC_DB_PATH=../rpc/data/rpc.db SOLANA_LISTENER_POOL_DB=../data/lp_screener.db SOLANA_LISTENER_EVENT_DB=../rpc/data/solana_events.db SOLANA_LISTENER_WHALE_DB=../rpc/data/solana_whales.db SOLANA_LISTENER_REALTIME_DB=../rpc/data/solana_realtime.db SOLANA_LISTENER_OUTPUT=../rpc/data/solana_logs.jsonl cargo run --manifest-path ../rpc/Cargo.toml --bin local-rpc",
-    "dev": "concurrently -k \"npm run rpc\" \"npm run api\" \"vite --host 0.0.0.0\"",
+    "ai-feed": "NODE_USE_ENV_PROXY=1 node ../research/ai/showcase/rpc-feed.mjs",
+    "ai-keeper": "NODE_USE_ENV_PROXY=1 node ../research/ai/showcase/keeper.mjs",
+    "dev": "concurrently --names rpc,api,ai-feed,ai-keeper,vite --restart-tries -1 --restart-after 3000 \"npm run rpc\" \"npm run api\" \"npm run ai-feed\" \"npm run ai-keeper\" \"vite --host 0.0.0.0\"",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0"
   },

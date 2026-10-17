@@ -30,7 +30,14 @@
 .ows-action-1 strong{color:#b4f78e;text-shadow:0 0 49px #b7f97927}
 .ows-action-2 strong{color:#f19b8b;text-shadow:0 0 49px #f19b8b27}
 .ows-action-0 strong{color:#c4cdd2}
-.ows-action p{margin:8px 0 0;color:#9eada5;font-size:12px;z-index:1}
+.ows-action p{margin:8px 0 0;color:#d0ded4;font-size:18px;line-height:1.5;z-index:1}
+.ows-action p a{color:#9adeaa;text-decoration:none;font-size:11px}
+.ows-model-signal{display:flex;align-items:center;gap:10px;margin-top:14px;font:11px var(--mono,monospace);color:#85978c;z-index:1}
+.ows-model-signal b{color:#bdc9c0;font-weight:500}
+.ows-data-details{margin-top:18px;font-size:11px;color:#8b9e90}
+.ows-data-details summary,.ows-samples>summary{cursor:pointer;padding:8px 0;color:#9db2a4}
+.ows-data-details>a{color:#9adeaa}
+.ows-samples{font-size:12px}
 .ows-process{display:flex;border-top:1px solid #303c35;border-bottom:1px solid #303c35;padding:19px 0;gap:24px;justify-content:space-between}
 .ows-process>div{display:grid;gap:7px}
 .ows-process span{font-size:10px;color:#899991}
@@ -45,6 +52,12 @@
 .ows-progress-step.completed small{color:#99efab}
 .ows-progress-step.future{opacity:.52}
 .ows-callout{font-size:10px;line-height:1.7;color:#839489;margin-top:15px}
+.ows-callout a{color:#9adeaa}
+.ows-rpc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;border-top:1px solid var(--ows-border);padding:18px 0 8px;margin-top:15px}
+.ows-rpc>div{display:grid;gap:7px;min-width:0;overflow-wrap:anywhere}
+.ows-rpc span,.ows-rpc small{color:#8b9e90;font-size:10px}
+.ows-rpc strong{font:13px var(--mono,monospace);color:#e4f2e8}
+.ows-rpc a{color:#9adeaa;text-decoration:none}
 .ows-control-stage{padding:28px;display:flex;flex-direction:column;gap:17px;background:linear-gradient(155deg,#14221c,#121c1a)}
 .ows-section-label{color:#a4b7aa;border-bottom:1px solid #33453a;padding-bottom:11px}
 .ows-holdings{display:grid;gap:14px;padding:3px 0 13px}
@@ -54,6 +67,12 @@
 .ows-exec-details{display:grid;gap:14px;font-size:12px;color:#94a59a}
 .ows-exec-details span{display:flex;justify-content:space-between;gap:15px}
 .ows-exec-details b{font:600 11px var(--mono,monospace);color:#d7e7db}
+.ows-online{color:#b7f979!important}
+.ows-offline{color:#f19b8b!important}
+.ows-run-status{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid #35483c;background:#18271f;padding:11px 12px;color:#93a99a;font-size:11px}
+.ows-run-status strong{font:600 15px var(--mono,monospace);color:#c3d6c7}
+.ows-run-status.running{border-color:#618b57;background:#203727;color:#c5e7c5}
+.ows-run-status.running strong{color:var(--ows-green)}
 .ows-primary{display:flex;justify-content:space-between;align-items:center;border:0;background:var(--ows-green);color:#14231a;font-size:14px;font-weight:750;padding:18px 16px;margin-top:9px;min-height:54px;transition:background .15s}
 .ows-primary:hover:not(:disabled){background:#d3ffab}
 .ows-primary span{font-size:20px}

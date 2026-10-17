@@ -20,7 +20,7 @@ if(process.env.MONAD_API_ORIGIN)await page.route('**/api/**',async route=>{
 else page.on('request',r=>calls.push(new URL(r.url()).pathname))
 try {
  await page.goto(process.env.MONAD_WEB_ORIGIN||'http://127.0.0.1:5173')
- await page.getByRole('button',{name:'Monad listener'}).click()
+ await page.getByRole('button',{name:'Wallet listener'}).click()
  await page.locator('.solana-pool-select').first().waitFor({timeout:45000})
  await page.getByRole('button',{name:'1h',exact:true}).click()
  await page.waitForFunction(()=>document.querySelector('.solana-chart-scale')?.innerText.includes('Price · USD'),null,{timeout:45000})

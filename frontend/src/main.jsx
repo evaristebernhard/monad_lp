@@ -1,4 +1,4 @@
-import React, { useEffect, useState, lazy, Suspense } from 'react'
+import React, { useEffect, useState, useRef, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import MonadListener from './MonadListener'
 import MonadDemo from './MonadDemo'
@@ -94,6 +94,7 @@ const formatAge = (seconds) => {
 const unixAge = (timestamp) => timestamp ? Math.max(0, Date.now() / 1000 - Number(timestamp)) : null
 const chainPalette = ['#58d9ff', '#b8f05a', '#ffad66', '#c49bff', '#ff827b', '#70d6c4', '#f7df75']
 const UI_MIN_LIQUIDITY_USD = 0.000000000001
+const POOL_PAGE_SIZE = 25
 const LIVE_RPC_STATES = new Set(['live', 'account_present'])
 const isDisplayablePool = (pool) => Number(pool?.liquidity_usd) > 0 && LIVE_RPC_STATES.has(pool?.rpc_state_status)
 
@@ -171,32 +172,49 @@ function App() {
     return () => window.removeEventListener('hashchange', onHashChange)
   }, [])
   const [toast, setToast] = useState('')
+  const poolRequest = useRef({ id: 0, controller: null, inFlight: false })
+  const runtimeRequest = useRef({ controller: null, inFlight: false })
 
   const loadRuntime = async () => {
-    const [healthData, stateData, refreshData, summaryData] = await Promise.all([
-      api('/api/health').catch(() => ({ source: 'offline' })),
-      api('/api/rpc-state/summary').catch(() => null),
-      api('/api/rpc-refresh').catch(() => null),
-      api('/api/summary?chain=monad').catch(() => null),
-    ])
-    setHealth(healthData)
-    setRpcState(stateData)
-    setRpcRefresh(refreshData)
-    if (summaryData) setSummary(summaryData)
+    if (runtimeRequest.current.inFlight) return
+    const controller = new AbortController()
+    runtimeRequest.current = { controller, inFlight: true }
+    try {
+      const [healthData, stateData, refreshData] = await Promise.all([
+        api('/api/health', { signal: controller.signal }).catch(() => ({ source: 'offline' })),
+        api('/api/rpc-state/summary', { signal: controller.signal }).catch(() => null),
+        api('/api/rpc-refresh', { signal: controller.signal }).catch(() => null),
+      ])
+      if (controller.signal.aborted) return
+      setHealth(healthData)
+      setRpcState(stateData)
+      setRpcRefresh(refreshData)
+    } finally {
+      if (runtimeRequest.current.controller === controller) runtimeRequest.current = { controller: null, inFlight: false }
+    }
   }
 
   const loadPools = async ({ silent = false } = {}) => {
-    if (!silent) setLoading(true)
-    setError('')
     if (watchlistOnly && !watchlist.length) {
+      poolRequest.current.controller?.abort()
+      poolRequest.current = { id: poolRequest.current.id + 1, controller: null, inFlight: false }
       setPools([])
       setTotal(0)
       setLastUpdated(new Date())
       setLoading(false)
       return
     }
+    if (poolRequest.current.inFlight) {
+      if (silent) return
+      poolRequest.current.controller?.abort()
+    }
+    const requestId = poolRequest.current.id + 1
+    const controller = new AbortController()
+    poolRequest.current = { id: requestId, controller, inFlight: true }
+    if (!silent) setLoading(true)
+    setError('')
     try {
-      const params = new URLSearchParams({ chain, q: query, protocol, pair, sort, order, page: String(page), page_size: '50' })
+      const params = new URLSearchParams({ chain, q: query, protocol, pair, sort, order, page: String(page), page_size: String(POOL_PAGE_SIZE) })
       if (watchlistOnly) params.set('addresses', watchlist.join(','))
       if (pairCategory !== 'all') params.set('pair_category', pairCategory)
       if (poolType !== 'all') params.set('pool_type', poolType)
@@ -211,10 +229,11 @@ function App() {
       // Non-live pools remain queryable in SQLite but never enter the flow UI.
       params.set('rpc_status', 'live')
       const [poolData, summaryData, metaData] = await Promise.all([
-        api(`/api/pools?${params}`),
-        summary ? Promise.resolve(summary) : api('/api/summary?chain=monad'),
-        meta.protocols.length ? Promise.resolve(meta) : api('/api/meta?chain=monad'),
+        api(`/api/pools?${params}`, { signal: controller.signal }),
+        summary ? Promise.resolve(summary) : api('/api/summary?chain=monad', { signal: controller.signal }),
+        meta.protocols.length ? Promise.resolve(meta) : api('/api/meta?chain=monad', { signal: controller.signal }),
       ])
+      if (controller.signal.aborted || poolRequest.current.id !== requestId) return
       const visiblePools = (poolData.items || []).filter((pool) => pool.chain === chain && pool.pool_price_status !== 'unavailable' && isDisplayablePool(pool))
       setPools(visiblePools)
       setTotal(Math.max(0, Number(poolData.total || 0) - ((poolData.items || []).length - visiblePools.length)))
@@ -222,13 +241,25 @@ function App() {
       setMeta(metaData)
       setLastUpdated(new Date())
     } catch (err) {
-      setError('无法连接本地数据服务，请先启动 API server')
+      if (err?.name !== 'AbortError' && !controller.signal.aborted && poolRequest.current.id === requestId) {
+        setError('无法连接本地数据服务，请先启动 API server')
+      }
     } finally {
-      if (!silent) setLoading(false)
+      if (poolRequest.current.id === requestId) {
+        poolRequest.current = { id: requestId, controller: null, inFlight: false }
+        if (!silent) setLoading(false)
+      }
     }
   }
 
-  useEffect(() => { if (view === 'market') loadPools() }, [view, chain, query, protocol, pair, sort, order, page, pairCategory, poolType, minLiquidity, minVolume, minFeeBps, minAprPercent, aprStatus, rpcStatus, watchlistOnly, watchlist])
+  useEffect(() => {
+    if (view !== 'market') return undefined
+    const timer = window.setTimeout(() => loadPools(), query ? 250 : 0)
+    return () => {
+      window.clearTimeout(timer)
+      poolRequest.current.controller?.abort()
+    }
+  }, [view, chain, query, protocol, pair, sort, order, page, pairCategory, poolType, minLiquidity, minVolume, minFeeBps, minAprPercent, aprStatus, rpcStatus, watchlistOnly, watchlist])
   useEffect(() => { setPage(1) }, [chain, query, protocol, pair, sort, order, pairCategory, poolType, minLiquidity, minVolume, minFeeBps, minAprPercent, aprStatus, rpcStatus])
   useEffect(() => {
     if (view !== 'market') return undefined
@@ -237,8 +268,11 @@ function App() {
       loadPools({ silent: true })
       loadRuntime()
     }, 30000)
-    return () => window.clearInterval(timer)
-  }, [view, chain, query, protocol, pair, sort, order, page, pairCategory, poolType, minLiquidity, minVolume, minFeeBps, minAprPercent, aprStatus, rpcStatus, watchlistOnly, watchlist])
+    return () => {
+      window.clearInterval(timer)
+      runtimeRequest.current.controller?.abort()
+    }
+  }, [view])
   useEffect(() => {
     api('/api/watchlist').then(async (data) => {
       const remote = Array.isArray(data.addresses) ? data.addresses : []
@@ -302,7 +336,7 @@ function App() {
     else { setSort(value); setOrder('desc') }
   }
 
-  const pages = Math.max(1, Math.ceil(total / 50))
+  const pages = Math.max(1, Math.ceil(total / POOL_PAGE_SIZE))
   const activeFilters = [pairCategory !== 'all', poolType !== 'all', Boolean(minLiquidity), Boolean(minVolume), Boolean(minFeeBps), Boolean(minAprPercent), aprStatus !== 'all'].filter(Boolean).length
   const stateAge = unixAge(rpcState?.checked_at)
   const monadRpcState = rpcState?.chains?.find((item) => item.chain === chain)

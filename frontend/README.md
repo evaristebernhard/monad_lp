@@ -8,10 +8,16 @@ From this directory:
 
 ```bash
 npm install
-npm run dev       # starts local-rpc on :8545, Rust API on :8100 and Vite on :5173
+npm run dev       # starts RPC, Rust API, AI feed, AI keeper and Vite
 ```
 
 Open `http://127.0.0.1:5173`.
+
+The development command keeps the long-running services under one process
+group. If one service exits, it is restarted after three seconds. Stop the
+whole project with `Ctrl+C`; do not start the old detached AI commands again,
+otherwise two feeds or keepers may write the same runtime files or submit
+duplicate work.
 
 The browser talks to the Rust API through Vite's `/api` proxy. The Rust API
 always reads the canonical SQLite snapshot at `../data/lp_screener.db` for pool
